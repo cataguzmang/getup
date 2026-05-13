@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cousiño-Macul · Get Up NYC v13</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #F8FAFC; }
+
+/* ══ TOP NAV ══════════════════════════════════════════════════════ */
+#topnav { background: white; border-bottom: 2px solid #E2E8F0; padding: 0 20px; height: 50px; display: flex; align-items: center; gap: 0; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+#logo { font-size: 14px; font-weight: 800; color: #1E293B; margin-right: 24px; white-space: nowrap; }
+#logo span { color: #7C3AED; }
+.app-tab { padding: 0 22px; height: 50px; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: none; font-family: inherit; color: #94A3B8; border-bottom: 2.5px solid transparent; margin-bottom: -2px; transition: all .2s; }
+.app-tab.active { color: #7C3AED; border-bottom-color: #7C3AED; }
+.app-tab:hover:not(.active) { color: #475569; }
+
+/* ══ VIEWS ════════════════════════════════════════════════════════ */
+.view { display: none; flex: 1; flex-direction: column; min-height: 0; }
+.view.active { display: flex; }
+
+/* ══════════════════════════════════════════════════════════════════
+   MAP TOOL
+══════════════════════════════════════════════════════════════════ */
+#map-toolbar { background: white; border-bottom: 1px solid #E2E8F0; padding: 7px 16px; display: flex; align-items: center; gap: 7px; flex-shrink: 0; flex-wrap: wrap; }
+.zone-btn { padding: 3px 11px; border-radius: 20px; font-size: 10.5px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all .15s; }
+.toggle-btn { padding: 3px 11px; border-radius: 20px; font-size: 10.5px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1.5px solid; transition: all .15s; }
+#map-right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+#visible { font-size: 10.5px; color: #94A3B8; }
+#visible strong { color: #1E293B; }
+#map-el { flex: 1; }
+#map-legend { background: white; border: 1px solid #E2E8F0; border-radius: 10px; padding: 9px 13px; box-shadow: 0 2px 8px rgba(0,0,0,.09); font-size: 10px; pointer-events: none; }
+.leg-title { font-size: 8px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #94A3B8; margin-bottom: 6px; }
+.leg-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: #374151; font-size: 9.5px; }
+.leg-dot { width: 9px; height: 9px; border-radius: 50%; border: 2px solid white; flex-shrink: 0; }
+.leg-hr { border: none; border-top: 1px solid #E2E8F0; margin: 5px 0; }
+.leaflet-popup-content-wrapper { border-radius: 10px !important; box-shadow: 0 4px 20px rgba(0,0,0,.13) !important; }
+.leaflet-popup-content { margin: 11px 13px !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   PIPELINE TOOL
+══════════════════════════════════════════════════════════════════ */
+#pipe-toolbar { background: white; border-bottom: 1px solid #E2E8F0; padding: 7px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+#pipe-title { font-size: 13px; font-weight: 700; color: #1E293B; }
+.pstat { font-size: 10.5px; color: #94A3B8; }
+.pstat strong { font-weight: 700; }
+#pipe-right { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+#autosave-lbl { font-size: 10px; color: #94A3B8; }
+.pipe-action-btn { padding: 4px 11px; border-radius: 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid #E2E8F0; background: white; color: #475569; transition: all .15s; white-space: nowrap; }
+.pipe-action-btn:hover { background: #F8FAFC; border-color: #CBD5E1; }
+#btn-new-client { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; border: none; background: #7C3AED; color: white; white-space: nowrap; }
+#btn-new-client:hover { background: #6D28D9; }
+
+/* Kanban */
+#kanban { flex: 1; display: flex; gap: 10px; padding: 10px 14px; overflow-x: auto; overflow-y: hidden; min-height: 0; }
+.kol { flex: 0 0 215px; display: flex; flex-direction: column; border-radius: 10px; border: 1.5px solid; min-height: 0; }
+.kol-head { padding: 8px 11px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid; border-radius: 8px 8px 0 0; flex-shrink: 0; }
+.kol-head-left { display: flex; align-items: center; gap: 6px; }
+.kol-icon { font-size: 13px; }
+.kol-label { font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.kol-count { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 10px; background: rgba(0,0,0,.07); color: #475569; }
+.kol-cards { flex: 1; overflow-y: auto; padding: 7px; display: flex; flex-direction: column; gap: 6px; }
+.kol-empty { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #CBD5E1; }
+.kcard { background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 11px; cursor: grab; transition: all .15s; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+.kcard:hover { box-shadow: 0 4px 12px rgba(0,0,0,.10); transform: translateY(-1px); }
+.kcard.dragging { opacity: .4; cursor: grabbing; transform: rotate(1.5deg) scale(1.02); }
+.kol-cards.drag-over { background: rgba(124,58,237,.06); outline: 2px dashed #A78BFA; outline-offset: -3px; border-radius: 0 0 8px 8px; }
+.drag-ph { height: 58px; border-radius: 7px; border: 2px dashed #DDD6FE; background: #F5F3FF; flex-shrink: 0; }
+.kprog { display: flex; gap: 2px; margin-bottom: 7px; }
+.kprog-seg { height: 3px; flex: 1; border-radius: 2px; }
+.kname { font-size: 11px; font-weight: 700; color: #1E293B; line-height: 1.3; margin-bottom: 2px; }
+.kaddr { font-size: 9px; color: #94A3B8; margin-bottom: 6px; }
+.kbadges { display: flex; gap: 3px; flex-wrap: wrap; margin-bottom: 5px; }
+.kb { padding: 1px 6px; border-radius: 5px; font-size: 8.5px; font-weight: 600; }
+.knotes { font-size: 9.5px; color: #475569; line-height: 1.4; border-top: 1px solid #F1F5F9; padding-top: 5px; margin-top: 4px; }
+.kdate { font-size: 9px; color: #7C3AED; font-weight: 600; margin-top: 3px; }
+.kactions { display: flex; gap: 4px; margin-top: 7px; }
+.kbtn-edit { flex: 1; padding: 3px 0; border-radius: 5px; font-size: 9.5px; font-weight: 600; cursor: pointer; font-family: inherit; border: 1px solid #DDD6FE; background: #F5F3FF; color: #5B21B6; text-align: center; }
+.kbtn-edit:hover { background: #EDE9FE; }
+.kbtn-del { padding: 3px 7px; border-radius: 5px; font-size: 10px; cursor: pointer; font-family: inherit; border: 1px solid #FECACA; background: #FEF2F2; color: #DC2626; }
+.kbtn-del:hover { background: #FEE2E2; }
+
+/* ══ SHARED MODAL ═════════════════════════════════════════════════ */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+.modal-overlay.open { display: flex; }
+.modal-box { background: white; border-radius: 16px; width: 460px; max-width: 96vw; padding: 26px; box-shadow: 0 24px 64px rgba(0,0,0,.2); position: relative; max-height: 92vh; overflow-y: auto; }
+.modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 18px; color: #94A3B8; cursor: pointer; }
+.modal-box h3 { font-size: 15px; font-weight: 700; color: #1E293B; margin-bottom: 3px; }
+.modal-sub { font-size: 11px; color: #94A3B8; margin-bottom: 18px; }
+.form-row { margin-bottom: 13px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 13px; }
+.flabel { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: #94A3B8; display: block; margin-bottom: 5px; font-weight: 700; }
+.finput { width: 100%; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; color: #1E293B; font-family: inherit; font-size: 13px; padding: 8px 11px; outline: none; transition: border-color .15s; }
+.finput:focus { border-color: #7C3AED; }
+.fselect { width: 100%; background: #F8FAFC; border: 1.5px solid #E2E8F0; border-radius: 8px; color: #1E293B; font-family: inherit; font-size: 13px; padding: 8px 11px; outline: none; cursor: pointer; }
+.geo-btn { padding: 8px 12px; border-radius: 8px; background: #F0F9FF; border: 1px solid #BAE6FD; color: #0369A1; font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.geo-btn:hover { background: #E0F2FE; }
+.geo-status { font-size: 10px; margin-top: 4px; min-height: 16px; }
+.geo-hint { font-size: 9.5px; color: #94A3B8; margin-top: 3px; }
+.stage-picker { display: flex; gap: 5px; }
+.spick { flex: 1; padding: 7px 3px; border-radius: 8px; border: 2px solid #E2E8F0; background: white; cursor: pointer; font-family: inherit; text-align: center; transition: all .15s; }
+.spick-icon { font-size: 15px; margin-bottom: 2px; }
+.spick-label { font-size: 7.5px; font-weight: 700; color: #94A3B8; line-height: 1.2; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+.btn-cancel { padding: 9px 18px; border-radius: 8px; background: #F1F5F9; border: none; color: #64748B; font-family: inherit; font-size: 13px; cursor: pointer; }
+.btn-save { padding: 9px 18px; border-radius: 8px; background: #7C3AED; border: none; color: white; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(124,58,237,.3); }
+.btn-save:hover { background: #6D28D9; }
+
+/* Toast */
+#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1E293B; color: white; padding: 9px 18px; border-radius: 9px; font-size: 12px; font-weight: 600; z-index: 99999; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+#toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ══ TOP NAV ══════════════════════════════════════════════════ -->
+<div id="topnav">
+  <div id="logo">🍷 Cousiño-Macul · <span>Get Up</span> NYC <span style="font-size:9px;font-weight:400;color:#CBD5E1;margin-left:4px;">v13</span></div>
+  <button class="app-tab active" data-view="view-map">🗺 Mapa de Cuentas</button>
+  <button class="app-tab"        data-view="view-pipe">🚀 Pipeline Get Up</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MAP VIEW  (completely independent — no shared JS state)
+══════════════════════════════════════════════════════════════════ -->
+<div id="view-map" class="view active">
+
+  <div id="map-toolbar">
+    <span style="font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94A3B8;">Zona:</span>
+    <button class="zone-btn active" data-zone="Todos"     style="background:#1E293B;color:white;">Todos</button>
+    <button class="zone-btn"        data-zone="Manhattan" style="background:#FEE2E2;color:#991B1B;">Manhattan</button>
+    <button class="zone-btn"        data-zone="Brooklyn"  style="background:#DBEAFE;color:#1D4ED8;">Brooklyn</button>
+    <button class="zone-btn"        data-zone="Bronx"     style="background:#D1FAE5;color:#065F46;">The Bronx</button>
+    <button class="zone-btn"        data-zone="Queens"    style="background:#FEF3C7;color:#92400E;">Queens</button>
+    <div id="map-right">
+      <button class="toggle-btn" id="tw" style="background:#FEF3C7;border-color:#F59E0B;color:#92400E;">⭕ Winebow (51)</button>
+      <button class="toggle-btn" id="tg" style="background:#EDE9FE;border-color:#7C3AED;color:#5B21B6;">⭐ Get Up</button>
+      <span id="visible"><strong>—</strong> visibles</span>
+    </div>
+  </div>
+
+  <div id="map-el"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PIPELINE VIEW  (completely independent — own localStorage key)
+══════════════════════════════════════════════════════════════════ -->
+<div id="view-pipe" class="view">
+
+  <div id="pipe-toolbar">
+    <span id="pipe-title">🚀 Pipeline Get Up</span>
+    <span class="pstat">Total: <strong id="ps-total">0</strong></span>
+    <span class="pstat">En proceso: <strong id="ps-prog" style="color:#7C3AED">0</strong></span>
+    <span class="pstat">Cerrados: <strong id="ps-closed" style="color:#15803D">0</strong></span>
+    <div id="pipe-right">
+      <span id="autosave-lbl"></span>
+      <button class="pipe-action-btn" id="btn-export">💾 Exportar</button>
+      <label  class="pipe-action-btn" id="btn-import-lbl">📂 Importar
+        <input type="file" id="import-file" accept=".json" style="display:none;">
+      </label>
+      <button id="btn-new-client">+ Nuevo cliente</button>
+    </div>
+  </div>
+
+  <div id="kanban"></div>
+</div>
+
+<!-- ══ MODAL (shared UI, pipeline-only logic) ════════════════════ -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close" id="modal-close">✕</button>
+    <h3 id="modal-title">Nuevo cliente Get Up</h3>
+    <div class="modal-sub" id="modal-sub">Completa los datos del prospecto.</div>
+
+    <div class="form-row">
+      <label class="flabel">Nombre del negocio *</label>
+      <input class="finput" id="f-name" placeholder="Ej: West Side Wine & Spirits" autocomplete="off">
+    </div>
+    <div class="form-row">
+      <label class="flabel">Dirección *</label>
+      <div style="display:flex;gap:7px;">
+        <input class="finput" id="f-addr" placeholder="Ej: 500 W 45th St, New York" style="flex:1;" autocomplete="off">
+        <button class="geo-btn" id="btn-geocode">📍 Geocodificar</button>
+      </div>
+      <div class="geo-status" id="geo-status"></div>
+      <div class="geo-hint">💡 Escribe la dirección y presiona 📍 para obtener coordenadas automáticamente.</div>
+    </div>
+    <div class="form-row-2">
+      <div><label class="flabel">Latitud *</label><input class="finput" id="f-lat" placeholder="40.7580" type="number" step="any"></div>
+      <div><label class="flabel">Longitud *</label><input class="finput" id="f-lng" placeholder="-73.9855" type="number" step="any"></div>
+    </div>
+    <div class="form-row-2">
+      <div>
+        <label class="flabel">Borough *</label>
+        <select class="fselect" id="f-city">
+          <option value="Manhattan">Manhattan</option>
+          <option value="Brooklyn">Brooklyn</option>
+          <option value="Bronx">The Bronx</option>
+          <option value="Queens">Queens</option>
+        </select>
+      </div>
+      <div>
+        <label class="flabel">Tipo *</label>
+        <select class="fselect" id="f-type">
+          <option value="retail">🍾 Retail / Licorería</option>
+          <option value="restaurant">🍽 Restaurant / Bar</option>
+          <option value="activo">⭐ Cliente Activo Winebow</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="flabel">Etapa del pipeline</label>
+      <div class="stage-picker" id="stage-picker"></div>
+    </div>
+    <div class="form-row">
+      <label class="flabel">Notas</label>
+      <textarea class="finput" id="f-notes" rows="2" placeholder="Ej: Llamar los jueves, hablar con el manager…" style="resize:vertical;"></textarea>
+    </div>
+    <div class="form-row">
+      <label class="flabel">Próxima fecha</label>
+      <input class="finput" id="f-date" type="date">
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" id="modal-cancel">Cancelar</button>
+      <button class="btn-save"   id="modal-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ════════════════════════════════════════════════════════════════
+//  SHARED CONSTANTS
+// ════════════════════════════════════════════════════════════════
+const BORO = {
+  Manhattan: { dot:"#DC2626", fill:"#FEE2E2", label:"#991B1B" },
+  Brooklyn:  { dot:"#2563EB", fill:"#DBEAFE", label:"#1D4ED8" },
+  Bronx:     { dot:"#059669", fill:"#D1FAE5", label:"#065F46" },
+  Queens:    { dot:"#D97706", fill:"#FEF3C7", label:"#92400E" },
+};
+
+const STAGES = [
+  { label:"Prospecto",       icon:"🎯", color:"#64748B", bg:"#F8FAFC", border:"#E2E8F0" },
+  { label:"Primer Contacto", icon:"📞", color:"#D97706", bg:"#FFFBEB", border:"#FDE68A" },
+  { label:"Presentación",    icon:"🍷", color:"#7C3AED", bg:"#F5F3FF", border:"#DDD6FE" },
+  { label:"Seguimiento",     icon:"🔁", color:"#0369A1", bg:"#F0F9FF", border:"#BAE6FD" },
+  { label:"Cerrado ✓",       icon:"✅", color:"#15803D", bg:"#F0FDF4", border:"#BBF7D0" },
+];
+
+// Winebow accounts (map-only, never editable)
+const WINEBOW = [
+  { name:"Renaissance Fine Wine & Spirits", addr:"161 Freedom Pl",      city:"Manhattan", lat:40.7753, lng:-73.9916 },
+  { name:"Blue Streak Wines & Spirits",     addr:"4720 Center Blvd",     city:"Queens",    lat:40.7468, lng:-73.9543 },
+  { name:"Alison",                          addr:"110 Saint Marks Pl",   city:"Manhattan", lat:40.7278, lng:-73.9857 },
+  { name:"PJs Liquor Warehouse",            addr:"4898 Broadway",        city:"Manhattan", lat:40.8680, lng:-73.9274 },
+  { name:"Winery The",                      addr:"257 W 116th St",       city:"Manhattan", lat:40.8021, lng:-73.9536 },
+  { name:"Empellon",                        addr:"230 W 4th St",         city:"Manhattan", lat:40.7317, lng:-74.0033 },
+  { name:"First Avenue Vintner",            addr:"984 1st Ave",          city:"Manhattan", lat:40.7561, lng:-73.9652 },
+  { name:"Gun Hill Liquor Warehouse",       addr:"5790 Broadway",        city:"Bronx",     lat:40.8888, lng:-73.8977 },
+  { name:"MMJ Wines & Spirits",             addr:"4251 Katonah Ave",     city:"Bronx",     lat:40.8776, lng:-73.8668 },
+  { name:"Winebow Non Retail",              addr:"31 W 27th St",         city:"Manhattan", lat:40.7459, lng:-73.9894 },
+  { name:"Cafe 53",                         addr:"126 W 53rd St",        city:"Manhattan", lat:40.7626, lng:-73.9845 },
+  { name:"Palo Santo",                      addr:"652 Union St",         city:"Brooklyn",  lat:40.6764, lng:-73.9765 },
+  { name:"Rosetta Wines",                   addr:"44 Exchange Pl",       city:"Manhattan", lat:40.7054, lng:-74.0113 },
+  { name:"Beacon Wine & Liquor",            addr:"2120 Broadway",        city:"Manhattan", lat:40.7844, lng:-73.9814 },
+  { name:"Caesars Wines & Liquors",         addr:"6715 Bay Pkwy",        city:"Brooklyn",  lat:40.6143, lng:-73.9988 },
+  { name:"Dirty Precious LLC",              addr:"317 3rd Ave",          city:"Brooklyn",  lat:40.6710, lng:-73.9840 },
+  { name:"Garnett Wines & Liquor",          addr:"929 Lexington Ave",    city:"Manhattan", lat:40.7707, lng:-73.9643 },
+  { name:"Riverdale Vintner",               addr:"549 W 235th St",       city:"Bronx",     lat:40.8993, lng:-73.9120 },
+  { name:"Vines on Pinehurst",              addr:"814 W 187th St",       city:"Manhattan", lat:40.8517, lng:-73.9313 },
+  { name:"Harlemite Restaurant",            addr:"231 Lenox Ave",        city:"Manhattan", lat:40.8014, lng:-73.9484 },
+  { name:"Meichi Na Liquor",                addr:"391 Flatbush Ave",     city:"Brooklyn",  lat:40.6749, lng:-73.9763 },
+  { name:"Young Ethels",                    addr:"506 5th Ave",          city:"Brooklyn",  lat:40.6597, lng:-73.9797 },
+  { name:"Bowery & Vine",                   addr:"269 Bowery",           city:"Manhattan", lat:40.7235, lng:-73.9933 },
+  { name:"Dr Wine",                         addr:"1287 1st Ave",         city:"Manhattan", lat:40.7648, lng:-73.9565 },
+  { name:"Empellon Al Pastor",              addr:"132 Saint Marks Pl",   city:"Manhattan", lat:40.7282, lng:-73.9840 },
+  { name:"Gastromarket",                    addr:"315 10th Ave",         city:"Manhattan", lat:40.7499, lng:-74.0023 },
+  { name:"Grand Cru Wine & Spirits",        addr:"555 W 42nd St",        city:"Manhattan", lat:40.7582, lng:-74.0002 },
+  { name:"Leonetta",                        addr:"181 Lexington Ave",    city:"Manhattan", lat:40.7427, lng:-73.9856 },
+  { name:"Liquor Land",                     addr:"930 East 233rd St",    city:"Bronx",     lat:40.8946, lng:-73.8594 },
+  { name:"SoHo Wines & Spirits",            addr:"461 W Broadway",       city:"Manhattan", lat:40.7250, lng:-74.0007 },
+  { name:"Wine Story",                      addr:"1585 1st Ave",         city:"Manhattan", lat:40.7690, lng:-73.9554 },
+  { name:"Amsterwine",                      addr:"475 9th Ave",          city:"Manhattan", lat:40.7534, lng:-74.0002 },
+  { name:"Baluchis Masala",                 addr:"60 Pearl St",          city:"Manhattan", lat:40.7041, lng:-74.0131 },
+  { name:"Indian Summer",                   addr:"239 Malcolm X Blvd",   city:"Manhattan", lat:40.8057, lng:-73.9473 },
+  { name:"Katsuhama Restaurant",            addr:"11 E 47th St",         city:"Manhattan", lat:40.7575, lng:-73.9776 },
+  { name:"Keens Steakhouse",                addr:"72 W 36th St",         city:"Manhattan", lat:40.7499, lng:-73.9880 },
+  { name:"Tipsy",                           addr:"584 Myrtle Ave",       city:"Brooklyn",  lat:40.6959, lng:-73.9651 },
+  { name:"Vin de Table",                    addr:"832 DeKalb Ave",       city:"Brooklyn",  lat:40.6914, lng:-73.9452 },
+  { name:"Food in Motion",                  addr:"214 Sullivan St",      city:"Manhattan", lat:40.7283, lng:-74.0003 },
+  { name:"Garrys Wine & Liquor",            addr:"231 Flatbush Ave",     city:"Brooklyn",  lat:40.6849, lng:-73.9783 },
+  { name:"Heights Chateau",                 addr:"123 Atlantic Ave",     city:"Brooklyn",  lat:40.6902, lng:-73.9955 },
+  { name:"Mister Wright Fine Wines",        addr:"1593 3rd Ave",         city:"Manhattan", lat:40.7847, lng:-73.9531 },
+  { name:"Morton Williams Wines",           addr:"1219 Madison Ave",     city:"Manhattan", lat:40.7870, lng:-73.9566 },
+  { name:"Ona",                             addr:"1685 Lexington Ave",   city:"Manhattan", lat:40.7886, lng:-73.9466 },
+  { name:"Park Avenue Liquors",             addr:"292 Madison Ave",      city:"Manhattan", lat:40.7503, lng:-73.9836 },
+  { name:"Il Vignetto",                     addr:"145 Union St",         city:"Brooklyn",  lat:40.6815, lng:-73.9998 },
+  { name:"Robert Restaurant",               addr:"2 Columbus Cir",       city:"Manhattan", lat:40.7683, lng:-73.9822 },
+  { name:"Artesano",                        addr:"90 Chambers St",       city:"Manhattan", lat:40.7138, lng:-74.0079 },
+  { name:"67 Wine & Spirits",               addr:"179 Columbus Ave",     city:"Manhattan", lat:40.7762, lng:-73.9818 },
+  { name:"Absolut Spirits Company",         addr:"401 Park Ave S",       city:"Manhattan", lat:40.7448, lng:-73.9832 },
+  { name:"Couleur Cafe",                    addr:"435 7th Ave",          city:"Brooklyn",  lat:40.6631, lng:-73.9799 },
+];
+
+// Get Up seed — base data never changes; progress is stored separately
+const GETUP_SEED = [
+  { id:0, name:"Hell's Kitchen Wines & Spirits", addr:"408 W 55th St",        city:"Manhattan", lat:40.7657, lng:-73.9901, type:"retail"     },
+  { id:1, name:"Shon 45 Wine & Spirits",          addr:"840 8th Ave",          city:"Manhattan", lat:40.7637, lng:-73.9867, type:"retail"     },
+  { id:2, name:"Liberty Fine Wines & Spirits",    addr:"706 9th Ave",          city:"Manhattan", lat:40.7632, lng:-73.9896, type:"retail"     },
+  { id:3, name:"Penn Cellars",                    addr:"1 Pennsylvania Plaza", city:"Manhattan", lat:40.7506, lng:-73.9937, type:"retail"     },
+  { id:4, name:"NuyoRes Restaurant",              addr:"154 W 13th St",        city:"Manhattan", lat:40.7371, lng:-74.0000, type:"restaurant" },
+  { id:5, name:"Restaurant Rosso",                addr:"127 E 7th St",         city:"Manhattan", lat:40.7262, lng:-73.9831, type:"restaurant" },
+  { id:6, name:"Central Perk",                    addr:"1420 6th Ave",         city:"Manhattan", lat:40.7668, lng:-73.9793, type:"restaurant" },
+  { id:7, name:"55th St Wine & Spirits",          addr:"50 W 55th St",         city:"Manhattan", lat:40.7621, lng:-73.9776, type:"retail"     },
+  { id:8, name:"Columbus Circle Wine",            addr:"1802 Broadway",        city:"Manhattan", lat:40.7673, lng:-73.9816, type:"retail"     },
+  { id:9, name:"67 Wine & Spirits",               addr:"179 Columbus Ave",     city:"Manhattan", lat:40.7762, lng:-73.9818, type:"activo"     },
+  { id:10, name:"Briciola",                        addr:"370 W 51st St",        city:"Manhattan", lat:40.7634, lng:-73.9908, type:"restaurant" },
+];
+
+// ── Type badge helper ────────────────────────────────────────────
+function typeBadge(type) {
+  const map = {
+    retail:     { bg:"#F0F9FF", color:"#0369A1", border:"#BAE6FD", label:"🍾 Retail"          },
+    restaurant: { bg:"#FEF3C7", color:"#92400E", border:"#FDE68A", label:"🍽 Restaurant"       },
+    activo:     { bg:"#F0FDF4", color:"#15803D", border:"#BBF7D0", label:"✅ Cliente Activo"   },
+  };
+  const t = map[type] || map.retail;
+  return t;
+}
+function toast(msg, bg="#1E293B") {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.style.background = bg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2300);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════════
+document.querySelectorAll(".app-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".app-tab").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.view).classList.add("active");
+    if (btn.dataset.view === "view-map") setTimeout(() => MAP.invalidateSize(), 50);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════
+//  TOOL 1 · MAP  (reads pipeline progress for popup labels only)
+// ════════════════════════════════════════════════════════════════
+const MAP = L.map("map-el", { center:[40.730,-73.980], zoom:12 });
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>', maxZoom:19
+}).addTo(MAP);
+
+// Legend
+const legCtrl = L.control({ position:"bottomleft" });
+legCtrl.onAdd = () => {
+  const d = L.DomUtil.create("div","");
+  d.id = "map-legend";
+  d.innerHTML = `
+    <div class="leg-title">Winebow activos</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#DC2626;box-shadow:0 0 0 1px #DC2626"></div>Manhattan</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#2563EB;box-shadow:0 0 0 1px #2563EB"></div>Brooklyn</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#059669;box-shadow:0 0 0 1px #059669"></div>The Bronx</div>
+    <div class="leg-row"><div class="leg-dot" style="background:#D97706;box-shadow:0 0 0 1px #D97706"></div>Queens</div>
+    <div class="leg-hr"></div>
+    <div class="leg-title">Get Up · En desarrollo</div>
+    <div class="leg-row">
+      <svg width="13" height="13" viewBox="0 0 22 22" style="flex-shrink:0">
+        <polygon points="11,1 13.9,7.6 21,8.6 16,13.4 17.2,20.5 11,17 4.8,20.5 6,13.4 1,8.6 8.1,7.6" fill="#7C3AED" stroke="white" stroke-width="1.8"/>
+      </svg>
+      <span id="leg-g">Get Up</span>
+    </div>`;
+  return d;
+};
+legCtrl.addTo(MAP);
+
+let mapMarkers=[], mapZone="Todos", mapShowW=true, mapShowG=true;
+
+function dotIcon(color){
+  return L.divIcon({className:"",
+    html:`<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 1px 6px rgba(0,0,0,.4);"></div>`,
+    iconSize:[12,12],iconAnchor:[6,6],popupAnchor:[0,-8]});
+}
+function starIcon(){
+  return L.divIcon({className:"",
+    html:`<svg width="19" height="19" viewBox="0 0 22 22"><polygon points="11,1 13.9,7.6 21,8.6 16,13.4 17.2,20.5 11,17 4.8,20.5 6,13.4 1,8.6 8.1,7.6" fill="#7C3AED" stroke="white" stroke-width="1.8"/></svg>`,
+    iconSize:[19,19],iconAnchor:[9.5,9.5],popupAnchor:[0,-11]});
+}
+function wPopup(c){
+  const col=BORO[c.city]||{fill:"#F1F5F9",label:"#374151"};
+  return `<div style="font-family:system-ui;min-width:170px;">
+    <div style="font-weight:700;font-size:12px;color:#1E293B;margin-bottom:3px;line-height:1.3;">${c.name}</div>
+    <div style="font-size:10px;color:#94A3B8;margin-bottom:7px;">📍 ${c.addr}</div>
+    <span style="padding:2px 8px;border-radius:6px;font-size:9.5px;font-weight:700;background:${col.fill};color:${col.label};">${c.city}</span>
+  </div>`;
+}
+function gPopup(c){
+  const prog = PIPE.getProgress();
+  const stage = prog[c.id]?.stage ?? 0;
+  const st = STAGES[stage];
+  const tb = typeBadge(c.type);
+  const notes=prog[c.id]?.notes||"";
+  const date=prog[c.id]?.date||"";
+  return `<div style="font-family:system-ui;min-width:190px;max-width:210px;">
+    <div style="font-weight:700;font-size:12px;color:#1E293B;margin-bottom:3px;line-height:1.3;">${c.name}</div>
+    <div style="font-size:10px;color:#94A3B8;margin-bottom:8px;">📍 ${c.addr}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;">
+      <span style="padding:2px 8px;border-radius:6px;font-size:9.5px;font-weight:700;background:#EDE9FE;color:#5B21B6;">⭐ Get Up</span>
+      <span style="padding:2px 8px;border-radius:6px;font-size:9.5px;font-weight:600;background:${st.bg};color:${st.color};">${st.icon} ${st.label}</span>
+      <span style="padding:2px 8px;border-radius:6px;font-size:9.5px;font-weight:600;background:${tb.bg};color:${tb.color};border:1px solid ${tb.border};">${tb.label}</span>
+    </div>
+    ${notes?`<div style="margin-top:7px;font-size:10px;color:#475569;border-top:1px solid #F1F5F9;padding-top:5px;">${notes}</div>`:""}
+    ${date?`<div style="margin-top:4px;font-size:9.5px;color:#7C3AED;font-weight:600;">📅 ${date}</div>`:""}
+  </div>`;
+}
+
+function renderMap(){
+  mapMarkers.forEach(m=>m.remove()); mapMarkers=[];
+  let count=0;
+  if(mapShowW) WINEBOW.forEach(c=>{
+    if(mapZone!=="Todos"&&c.city!==mapZone) return;
+    const m=L.marker([c.lat,c.lng],{icon:dotIcon(BORO[c.city]?.dot||"#64748B")});
+    m.bindPopup(wPopup(c),{maxWidth:220}); m.addTo(MAP); mapMarkers.push(m); count++;
+  });
+  // Get Up clients from seed (always latest list)
+  if(mapShowG) GETUP_SEED.forEach(c=>{
+    if(mapZone!=="Todos"&&c.city!==mapZone) return;
+    const m=L.marker([c.lat,c.lng],{icon:starIcon()});
+    m.bindPopup(gPopup(c),{maxWidth:230}); m.addTo(MAP); mapMarkers.push(m); count++;
+  });
+  document.getElementById("visible").innerHTML=`<strong>${count}</strong> visibles`;
+  const lg=document.getElementById("leg-g");
+  if(lg) lg.textContent=`Get Up (${GETUP_SEED.length})`;
+  const tgBtn=document.getElementById("tg");
+  if(tgBtn) tgBtn.textContent=`⭐ Get Up (${GETUP_SEED.length})`;
+}
+
+// Zone filter
+document.querySelectorAll(".zone-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    mapZone=btn.dataset.zone;
+    document.querySelectorAll(".zone-btn").forEach(b=>{b.classList.remove("active");b.style.boxShadow="none";});
+    btn.classList.add("active"); btn.style.boxShadow="0 2px 8px rgba(0,0,0,.18)";
+    renderMap();
+  });
+});
+document.getElementById("tw").addEventListener("click",function(){
+  mapShowW=!mapShowW;
+  this.style.background=mapShowW?"#FEF3C7":"#F8FAFC";
+  this.style.borderColor=mapShowW?"#F59E0B":"#E2E8F0";
+  this.style.color=mapShowW?"#92400E":"#CBD5E1";
+  renderMap();
+});
+document.getElementById("tg").addEventListener("click",function(){
+  mapShowG=!mapShowG;
+  this.style.background=mapShowG?"#EDE9FE":"#F8FAFC";
+  this.style.borderColor=mapShowG?"#7C3AED":"#E2E8F0";
+  this.style.color=mapShowG?"#5B21B6":"#CBD5E1";
+  renderMap();
+});
+
+// ════════════════════════════════════════════════════════════════
+//  TOOL 2 · PIPELINE  (completely self-contained object)
+// ════════════════════════════════════════════════════════════════
+const PIPE = (() => {
+  // ── own localStorage key — only stores progress, never seed data ──
+  const STORE = "getup-pipeline-progress-v2";
+  let dragId = null;
+  let editingId = null;
+
+  // ── Storage: only {stage, notes, date} per id + custom clients ──
+  function getProgress() {
+    try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch(e) { return {}; }
+  }
+  function saveProgress(prog) {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(prog));
+      showAutosave();
+    } catch(e) {}
+  }
+
+  // ── Build working list: seed + progress merged + user-added customs ──
+  function buildList() {
+    const prog = getProgress();
+    const list = GETUP_SEED.map(s => ({
+      ...s,
+      // id:9 (67 Wine & Spirits) defaults to stage 1 (Primer Contacto) if no saved progress
+      stage: prog[s.id]?.stage ?? (s.id === 9 ? 1 : 0),
+      notes: prog[s.id]?.notes ?? "",
+      date:  prog[s.id]?.date  ?? "",
+    }));
+    // Add custom clients (user-added, not in seed)
+    Object.entries(prog).forEach(([idStr, data]) => {
+      if (data._custom && !GETUP_SEED.find(s => s.id === +idStr)) {
+        list.push({ id:+idStr, ...data._custom, stage:data.stage||0, notes:data.notes||"", date:data.date||"" });
+      }
+    });
+    return list;
+  }
+
+  function saveClient(client) {
+    const prog = getProgress();
+    const inSeed = GETUP_SEED.find(s => s.id === client.id);
+    prog[client.id] = { stage: client.stage, notes: client.notes, date: client.date };
+    if (!inSeed) {
+      prog[client.id]._custom = { name:client.name, addr:client.addr, city:client.city, lat:client.lat, lng:client.lng, type:client.type };
+    }
+    saveProgress(prog);
+  }
+
+  function deleteClient(id) {
+    const prog = getProgress();
+    delete prog[id];
+    saveProgress(prog);
+  }
+
+  function nextId() {
+    const all = [...GETUP_SEED.map(s=>s.id), ...Object.keys(getProgress()).map(Number)];
+    return all.length ? Math.max(...all)+1 : 0;
+  }
+
+  function showAutosave() {
+    const el = document.getElementById("autosave-lbl");
+    if (!el) return;
+    const t = new Date().toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"});
+    el.textContent = `✓ Guardado ${t}`;
+    el.style.color = "#15803D";
+    setTimeout(()=>{ el.style.color="#94A3B8"; }, 3000);
+  }
+
+  // ── Render stats bar ──
+  function renderStats(list) {
+    document.getElementById("ps-total").textContent  = list.length;
+    document.getElementById("ps-prog").textContent   = list.filter(p=>p.stage>0&&p.stage<4).length;
+    document.getElementById("ps-closed").textContent = list.filter(p=>p.stage===4).length;
+  }
+
+  // ── Build a card DOM node ──
+  function buildCard(p, st) {
+    const tb = typeBadge(p.type);
+    const card = document.createElement("div");
+    card.className="kcard"; card.dataset.id=p.id; card.draggable=true;
+    card.innerHTML=`
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:7px;">
+        <div class="kprog" style="flex:1;">${STAGES.map((_,di)=>`<div class="kprog-seg" style="background:${di<=p.stage?st.color:"#E2E8F0"};"></div>`).join("")}</div>
+        <span style="font-size:12px;color:#CBD5E1;cursor:grab;" title="Arrastrar para mover">⠿</span>
+      </div>
+      <div class="kname">${p.name}</div>
+      <div class="kaddr">${p.addr}</div>
+      <div class="kbadges">
+        <span class="kb" style="background:#EDE9FE;color:#5B21B6;">⭐ Get Up</span>
+        <span class="kb" style="background:${tb.bg};color:${tb.color};border:1px solid ${tb.border};">${tb.label}</span>
+      </div>
+      ${p.notes?`<div class="knotes">${p.notes}</div>`:""}
+      ${p.date?`<div class="kdate">📅 ${p.date}</div>`:""}
+      <div class="kactions">
+        <button class="kbtn-edit" data-id="${p.id}">✏️ Editar</button>
+        <button class="kbtn-del"  data-id="${p.id}">🗑</button>
+      </div>`;
+
+    card.querySelector(".kbtn-edit").addEventListener("click",e=>{e.stopPropagation();openForm(p.id);});
+    card.querySelector(".kbtn-del").addEventListener("click",e=>{
+      e.stopPropagation();
+      if(confirm(`¿Eliminar "${p.name}"?`)){
+        deleteClient(p.id);
+        render();
+        renderMap(); // refresh map popups
+        toast("🗑 Cliente eliminado","#DC2626");
+      }
+    });
+
+    // Drag
+    card.addEventListener("dragstart",e=>{
+      dragId=p.id; card.classList.add("dragging");
+      e.dataTransfer.effectAllowed="move"; e.dataTransfer.setData("text/plain",p.id);
+    });
+    card.addEventListener("dragend",()=>{
+      card.classList.remove("dragging");
+      document.querySelectorAll(".kol-cards").forEach(c=>c.classList.remove("drag-over"));
+      document.querySelectorAll(".drag-ph").forEach(ph=>ph.remove());
+    });
+    return card;
+  }
+
+  // ── Render kanban ──
+  function render() {
+    const list = buildList();
+    renderStats(list);
+    const kb = document.getElementById("kanban");
+    kb.innerHTML="";
+
+    STAGES.forEach((st,si)=>{
+      const cards=list.filter(p=>p.stage===si);
+      const col=document.createElement("div");
+      col.className="kol"; col.style.background=st.bg; col.style.borderColor=st.border;
+
+      const head=document.createElement("div");
+      head.className="kol-head"; head.style.borderColor=st.border;
+      head.innerHTML=`<div class="kol-head-left"><span class="kol-icon">${st.icon}</span><span class="kol-label" style="color:${st.color};">${st.label}</span></div><span class="kol-count">${cards.length}</span>`;
+      col.appendChild(head);
+
+      const cardsEl=document.createElement("div");
+      cardsEl.className="kol-cards"; cardsEl.dataset.stage=si;
+
+      if(cards.length===0){
+        const empty=document.createElement("div");
+        empty.className="kol-empty"; empty.textContent="Sin cuentas";
+        cardsEl.appendChild(empty);
+      } else {
+        cards.forEach(p=>cardsEl.appendChild(buildCard(p,st)));
+      }
+
+      // Drop zone
+      cardsEl.addEventListener("dragover",e=>{
+        e.preventDefault(); e.dataTransfer.dropEffect="move";
+        cardsEl.classList.add("drag-over");
+        if(!cardsEl.querySelector(".drag-ph")){
+          const ph=document.createElement("div"); ph.className="drag-ph"; cardsEl.appendChild(ph);
+        }
+      });
+      cardsEl.addEventListener("dragleave",e=>{
+        if(!cardsEl.contains(e.relatedTarget)){
+          cardsEl.classList.remove("drag-over");
+          cardsEl.querySelectorAll(".drag-ph").forEach(ph=>ph.remove());
+        }
+      });
+      cardsEl.addEventListener("drop",e=>{
+        e.preventDefault();
+        cardsEl.classList.remove("drag-over");
+        cardsEl.querySelectorAll(".drag-ph").forEach(ph=>ph.remove());
+        if(dragId===null) return;
+        const targetStage=parseInt(cardsEl.dataset.stage);
+        const allClients=buildList();
+        const client=allClients.find(x=>x.id===dragId);
+        if(!client||client.stage===targetStage) return;
+        client.stage=targetStage;
+        saveClient(client);
+        render();
+        renderMap(); // keep map popups in sync
+        toast(`✓ Movido a "${STAGES[targetStage].label}"`);
+        dragId=null;
+      });
+
+      col.appendChild(cardsEl);
+      kb.appendChild(col);
+    });
+  }
+
+  // ── Stage picker ──
+  function buildStagePicker(sel){
+    const p=document.getElementById("stage-picker"); p.innerHTML="";
+    STAGES.forEach((s,i)=>{
+      const b=document.createElement("button"); b.type="button"; b.className="spick";
+      b.style.borderColor=i===sel?s.color:"#E2E8F0";
+      b.style.background =i===sel?s.bg:"white";
+      b.innerHTML=`<div class="spick-icon">${s.icon}</div><div class="spick-label" style="color:${i===sel?s.color:"#94A3B8"}">${s.label}</div>`;
+      b.addEventListener("click",()=>buildStagePicker(i));
+      p.appendChild(b);
+    });
+  }
+
+  function getPickerStage(){
+    let stage=0;
+    document.querySelectorAll("#stage-picker .spick").forEach((b,i)=>{
+      const bg=b.style.background;
+      if(bg&&bg!=="white"&&bg!=="rgb(255, 255, 255)") stage=i;
+    });
+    return stage;
+  }
+
+  // ── Form ──
+  function openForm(id=null){
+    editingId=id;
+    const isNew=id===null;
+    document.getElementById("modal-title").textContent=isNew?"➕ Nuevo cliente Get Up":"✏️ Editar cliente";
+    document.getElementById("modal-sub").textContent  =isNew?"Completa los datos del prospecto.":"Modifica los datos del cliente.";
+    document.getElementById("geo-status").textContent="";
+
+    if(!isNew){
+      const c=buildList().find(x=>x.id===id);
+      document.getElementById("f-name").value  = c.name;
+      document.getElementById("f-addr").value  = c.addr;
+      document.getElementById("f-lat").value   = c.lat;
+      document.getElementById("f-lng").value   = c.lng;
+      document.getElementById("f-city").value  = c.city;
+      document.getElementById("f-type").value  = c.type;
+      document.getElementById("f-notes").value = c.notes||"";
+      document.getElementById("f-date").value  = c.date||"";
+      buildStagePicker(c.stage||0);
+    } else {
+      ["f-name","f-addr","f-lat","f-lng","f-notes","f-date"].forEach(fid=>document.getElementById(fid).value="");
+      document.getElementById("f-city").value="Manhattan";
+      document.getElementById("f-type").value="retail";
+      buildStagePicker(0);
+    }
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+
+  function saveForm(){
+    const name=document.getElementById("f-name").value.trim();
+    const addr=document.getElementById("f-addr").value.trim();
+    const lat=parseFloat(document.getElementById("f-lat").value);
+    const lng=parseFloat(document.getElementById("f-lng").value);
+    const city=document.getElementById("f-city").value;
+    const type=document.getElementById("f-type").value;
+    const notes=document.getElementById("f-notes").value.trim();
+    const date=document.getElementById("f-date").value;
+    const stage=getPickerStage();
+
+    if(!name){alert("El nombre es obligatorio.");return;}
+    if(!addr){alert("La dirección es obligatoria.");return;}
+    if(isNaN(lat)||isNaN(lng)){alert("Las coordenadas son obligatorias.\nUsa 📍 Geocodificar o ingrésalas manualmente.");return;}
+
+    const id = editingId===null ? nextId() : editingId;
+    saveClient({id,name,addr,city,lat,lng,type,stage,notes,date});
+    closeForm();
+    render();
+    renderMap();
+    toast(editingId===null?"✅ Cliente agregado":"✅ Cliente actualizado");
+  }
+
+  function closeForm(){ document.getElementById("modal-overlay").classList.remove("open"); }
+
+  // ── Export / Import ──
+  function exportData(){
+    const data=JSON.stringify(buildList(),null,2);
+    const blob=new Blob([data],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=`getup-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+    URL.revokeObjectURL(url);
+    toast("💾 Backup exportado");
+  }
+
+  function importData(file){
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        const imported=JSON.parse(ev.target.result);
+        if(!Array.isArray(imported)) throw new Error();
+        const prog={};
+        imported.forEach(c=>{
+          prog[c.id]={stage:c.stage||0,notes:c.notes||"",date:c.date||""};
+          if(!GETUP_SEED.find(s=>s.id===c.id)){
+            prog[c.id]._custom={name:c.name,addr:c.addr,city:c.city,lat:c.lat,lng:c.lng,type:c.type};
+          }
+        });
+        saveProgress(prog);
+        render(); renderMap();
+        toast("📂 Datos importados correctamente");
+      } catch(e){ alert("Archivo inválido. Usa un backup exportado desde esta app."); }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── Events ──
+  document.getElementById("btn-new-client").addEventListener("click",()=>openForm(null));
+  document.getElementById("modal-cancel").addEventListener("click",closeForm);
+  document.getElementById("modal-close").addEventListener("click",closeForm);
+  document.getElementById("modal-overlay").addEventListener("click",e=>{if(e.target===document.getElementById("modal-overlay"))closeForm();});
+  document.getElementById("modal-save").addEventListener("click",saveForm);
+  document.getElementById("btn-export").addEventListener("click",exportData);
+  document.getElementById("import-file").addEventListener("change",e=>{ if(e.target.files[0]){ importData(e.target.files[0]); e.target.value=""; } });
+
+  // Geocoder
+  document.getElementById("btn-geocode").addEventListener("click",async()=>{
+    const addr=document.getElementById("f-addr").value.trim();
+    if(!addr){alert("Escribe la dirección primero.");return;}
+    const st=document.getElementById("geo-status");
+    st.style.color="#94A3B8"; st.textContent="⏳ Buscando coordenadas…";
+    try{
+      const q=encodeURIComponent(addr+", New York");
+      const r=await fetch(`https://photon.komoot.io/api/?q=${q}&limit=5&lang=en`);
+      const d=await r.json();
+      const nyRes=d.features.filter(f=>{ const p=f.properties; return p.state==="New York"||p.city==="New York"||p.county==="New York County"; });
+      const result=nyRes.length?nyRes[0]:d.features[0];
+      if(!result){st.style.color="#DC2626";st.textContent="❌ No encontrado. Intenta con la dirección completa.";return;}
+      const [lng,lat]=result.geometry.coordinates;
+      document.getElementById("f-lat").value=lat.toFixed(6);
+      document.getElementById("f-lng").value=lng.toFixed(6);
+      const p=result.properties;
+      st.style.color="#15803D";
+      st.textContent=`✓ ${[p.name,p.street,p.city].filter(Boolean).join(", ")||"Coordenadas encontradas"}`;
+    }catch(e){
+      st.style.color="#D97706";
+      const q=encodeURIComponent(document.getElementById("f-addr").value+", New York, NY");
+      st.innerHTML=`⚠ Sin conexión. <a href="https://maps.google.com/?q=${q}" target="_blank" style="color:#7C3AED;font-weight:600;">Buscar en Google Maps</a> → clic derecho → coordenadas.`;
+    }
+  });
+
+  // Public API
+  return { render, getProgress };
+})();
+
+// ════════════════════════════════════════════════════════════════
+//  BOOT — each tool initializes independently
+// ════════════════════════════════════════════════════════════════
+
+// Migrate old storage keys → current key (preserves all progress)
+(function migrate() {
+  const OLD_KEYS = ["getup-v2","getup-v3","getup-v4","getup-pipeline-progress-v1"];
+  const NEW_KEY  = "getup-pipeline-progress-v2";
+  if (localStorage.getItem(NEW_KEY)) return; // already migrated
+  for (const key of OLD_KEYS) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try {
+      const data = JSON.parse(raw);
+      const prog = {};
+      // Old format was array of full clients
+      if (Array.isArray(data)) {
+        data.forEach(c => {
+          prog[c.id] = { stage: c.stage||0, notes: c.notes||"", date: c.date||"" };
+          if (!GETUP_SEED.find(s => s.id === c.id)) {
+            prog[c.id]._custom = { name:c.name, addr:c.addr, city:c.city, lat:c.lat, lng:c.lng, type:c.type };
+          }
+        });
+      } else {
+        // New format was already progress object
+        Object.assign(prog, data);
+      }
+      localStorage.setItem(NEW_KEY, JSON.stringify(prog));
+      return;
+    } catch(e) {}
+  }
+})();
+
+renderMap();   // Map tool boots on its own
+PIPE.render(); // Pipeline tool boots on its own
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+# Reporte Ventas - San José\n\nDashboard de ventas LatinFood · Florida & Nueva York.\n\n## Uso mensual\n1. Agregar datos al Excel\n2. Ejecutar: `python generar_data.py`\n3. Subir `data.js` al repo\n4. El sitio se actualiza automáticamente en GitHub Pages\n

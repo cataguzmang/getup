@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garden of the Andes – Reporte Inventario GOA</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green-dark:  #2d5a27;
+    --green-mid:   #4a8c3f;
+    --green-light: #7ab648;
+    --green-pale:  #e8f5e0;
+    --gold:        #c8a84b;
+    --gold-light:  #f5ecd0;
+    --text:        #1e2e1a;
+    --text-muted:  #6b7c63;
+    --bg:          #f4f8f1;
+    --white:       #ffffff;
+    --border:      #d4e4cc;
+    --shadow:      0 2px 12px rgba(45,90,39,.10);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+    color: #fff;
+    padding: 24px 32px 20px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .header-brand { display: flex; align-items: center; gap: 14px; }
+  .leaf-icon {
+    width: 44px; height: 44px;
+    background: var(--gold);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .leaf-icon span { transform: rotate(45deg); font-size: 22px; }
+  .header-title h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: .3px; }
+  .header-title p  { font-size: .82rem; opacity: .82; margin-top: 2px; }
+  .header-meta { text-align: right; font-size: .82rem; opacity: .80; line-height: 1.6; }
+  .header-meta strong { opacity: 1; font-size: .95rem; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 48px; }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px;
+    position: relative; overflow: hidden;
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%; background: var(--green-light);
+  }
+  .kpi-card.gold::before { background: var(--gold); }
+  .kpi-label { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
+  .kpi-value { font-size: 2.1rem; font-weight: 800; color: var(--green-dark); line-height: 1.1; }
+  .kpi-card.gold .kpi-value { color: #8a6a1a; }
+  .kpi-sub   { font-size: .80rem; color: var(--text-muted); }
+
+  .section-title {
+    font-size: .7rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
+  }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px; margin-bottom: 28px;
+  }
+  @media (max-width: 860px) { .charts-row { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 24px; box-shadow: var(--shadow);
+  }
+
+  .table-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+    overflow: hidden; margin-bottom: 28px;
+  }
+  .table-card-header {
+    padding: 16px 22px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  thead tr { background: var(--green-pale); }
+  th {
+    padding: 11px 16px; text-align: left;
+    font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--green-dark); white-space: nowrap;
+  }
+  th.num, td.num { text-align: right; }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .product-row { cursor: pointer; transition: background .12s; }
+  .product-row:hover { background: var(--green-pale); }
+  .product-row td:first-child { font-weight: 600; }
+
+  .toggle-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border);
+    background: none; font-size: .72rem; cursor: pointer;
+    color: var(--text-muted); transition: background .15s;
+  }
+  .toggle-btn:hover { background: var(--green-pale); }
+  .arrow { transition: transform .2s; display: inline-block; }
+  .arrow.open { transform: rotate(90deg); }
+
+  .sp-row { display: none; }
+  .sp-row.visible { display: table-row; }
+  .sp-row td { background: #f9fcf6; font-size: .82rem; color: var(--text-muted); padding: 9px 16px; }
+  .sp-row td:first-child { padding-left: 36px; font-style: italic; }
+
+  .sku-badge {
+    display: inline-block; padding: 2px 8px;
+    border-radius: 10px; font-size: .68rem; font-weight: 700;
+    background: var(--green-pale); color: var(--green-dark);
+    margin-right: 6px;
+  }
+
+  .bar-inline { display: flex; align-items: center; gap: 10px; }
+  .bar-track {
+    flex: 1; height: 7px; background: var(--border);
+    border-radius: 4px; overflow: hidden; min-width: 80px;
+  }
+  .bar-fill { height: 100%; background: var(--green-light); border-radius: 4px; }
+
+  .total-row td {
+    font-weight: 700; background: var(--green-pale);
+    border-top: 2px solid var(--green-mid); color: var(--green-dark);
+  }
+
+  .sp-summary-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  .sp-rank { font-weight: 700; color: var(--text-muted); }
+  .pct-badge {
+    display: inline-block; padding: 1px 7px; border-radius: 10px;
+    font-size: .72rem; font-weight: 600;
+    background: var(--gold-light); color: #7a5a10;
+  }
+</style>
+</head>
+<body>
+<script src="data.js"></script>
+
+<header>
+  <div class="header-brand">
+    <div class="leaf-icon"><span>🌿</span></div>
+    <div class="header-title">
+      <h1>Garden of the Andes</h1>
+      <p>Reporte de Inventario — Distribuidor: Latinfoods</p>
+    </div>
+  </div>
+  <div class="header-meta">
+    <strong id="report-date"></strong><br>
+    Cantidades ordenadas por sabor
+  </div>
+</header>
+
+<main>
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <div class="section-title">Unidades por sabor</div>
+      <canvas id="barChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="section-title">Ranking de vendedores</div>
+      <canvas id="spChart"></canvas>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Detalle por producto</div>
+      <small style="color:var(--text-muted)">Clic en una fila para ver detalle por vendedor</small>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sabor</th>
+          <th class="num">Unidades</th>
+          <th class="num">% del total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="product-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="sp-summary-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Vendedores</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Vendedor</th>
+          <th class="num">Unidades</th>
+          <th class="num">% del total</th>
+        </tr>
+      </thead>
+      <tbody id="sp-tbody"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+const d = reportData;
+
+// Date
+const rawDate = d.meta.date.split(' ')[0];
+document.getElementById('report-date').textContent =
+  new Date(rawDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+
+// ── Merge variants into single product per SKU ────────────────────────
+const skuMap = {};
+d.products.forEach(p => {
+  const baseName = p.name.replace(/ \(2\)$/, '').trim();
+  if (!skuMap[p.sku]) {
+    skuMap[p.sku] = { sku: p.sku, name: baseName, total: 0, salespeople: {} };
+  }
+  skuMap[p.sku].total += p.total;
+  p.salespeople.forEach(sp => {
+    if (!skuMap[p.sku].salespeople[sp.name]) skuMap[p.sku].salespeople[sp.name] = 0;
+    skuMap[p.sku].salespeople[sp.name] += sp.total;
+  });
+});
+
+const products = Object.values(skuMap)
+  .map(p => ({ ...p, salespeople: Object.entries(p.salespeople).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total) }))
+  .sort((a, b) => b.total - a.total);
+
+const grand = products.reduce((s, p) => s + p.total, 0);
+
+// ── Salespeople aggregate ─────────────────────────────────────────────
+const spMap = {};
+products.forEach(p => p.salespeople.forEach(sp => {
+  if (!spMap[sp.name]) spMap[sp.name] = 0;
+  spMap[sp.name] += sp.total;
+}));
+const spList = Object.entries(spMap).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total);
+const topSp = spList[0];
+const topProduct = products[0];
+
+// ── KPI cards ─────────────────────────────────────────────────────────
+const kpis = [
+  { label: 'Total unidades', value: grand, sub: `${products.length} sabores únicos` },
+  { label: 'Sabor más pedido', value: topProduct.total, sub: topProduct.name, gold: true },
+  { label: 'Promedio por sabor', value: Math.round(grand / products.length), sub: 'unidades / sabor' },
+  { label: 'Vendedor top', value: topSp.total, sub: topSp.name, gold: true },
+];
+document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+  <div class="kpi-card ${k.gold ? 'gold' : ''}">
+    <div class="kpi-label">${k.label}</div>
+    <div class="kpi-value">${k.value}</div>
+    <div class="kpi-sub">${k.sub}</div>
+  </div>`).join('');
+
+// ── Bar chart ─────────────────────────────────────────────────────────
+const shortName = name => name.replace(' Herbal Tea', '').replace('Pure ', '');
+const palette = [
+  '#2d5a27','#3d7a32','#4a8c3f','#5ea050','#7ab648',
+  '#94c96a','#aad98a','#c0e8a8','#d4f0c2'
+];
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: products.map(p => shortName(p.name)),
+    datasets: [{
+      label: 'Unidades',
+      data: products.map(p => p.total),
+      backgroundColor: products.map((_, i) => palette[i % palette.length]),
+      borderRadius: 5,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} unidades` } }
+    },
+    scales: {
+      x: { grid: { color: '#e8f5e0' }, ticks: { font: { size: 11 } } },
+      y: { ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+// ── Salespeople doughnut ──────────────────────────────────────────────
+new Chart(document.getElementById('spChart'), {
+  type: 'doughnut',
+  data: {
+    labels: spList.map(s => s.name.split(' ')[0]),
+    datasets: [{
+      data: spList.map(s => s.total),
+      backgroundColor: ['#2d5a27','#c8a84b','#4a8c3f','#e8a020','#7ab648','#b8d898'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '60%',
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 10 } } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} u. (${Math.round(ctx.parsed/grand*100)}%)` } }
+    }
+  }
+});
+
+// ── Product table ─────────────────────────────────────────────────────
+const maxTotal = products[0].total;
+const tbody = document.getElementById('product-tbody');
+
+products.forEach((p, idx) => {
+  const pct = Math.round(p.total / grand * 100);
+  const tr = document.createElement('tr');
+  tr.className = 'product-row';
+  tr.innerHTML = `
+    <td><span class="sku-badge">${p.sku}</span>${p.name}</td>
+    <td class="num">
+      <div class="bar-inline">
+        <strong>${p.total}</strong>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.total/maxTotal*100)}%"></div></div>
+      </div>
+    </td>
+    <td class="num">${pct}%</td>
+    <td>
+      <button class="toggle-btn" onclick="toggleSp(${idx},this)">
+        <span class="arrow">▶</span> ${p.salespeople.length} vendedor${p.salespeople.length !== 1 ? 'es' : ''}
+      </button>
+    </td>`;
+  tbody.appendChild(tr);
+
+  p.salespeople.forEach(sp => {
+    const spTr = document.createElement('tr');
+    spTr.className = `sp-row sp-group-${idx}`;
+    spTr.innerHTML = `
+      <td>${sp.name}</td>
+      <td class="num">${sp.total}</td>
+      <td class="num">${Math.round(sp.total/p.total*100)}% del sabor</td>
+      <td></td>`;
+    tbody.appendChild(spTr);
+  });
+});
+
+const totalTr = document.createElement('tr');
+totalTr.className = 'total-row';
+totalTr.innerHTML = `<td>TOTAL</td><td class="num">${grand}</td><td class="num">100%</td><td></td>`;
+tbody.appendChild(totalTr);
+
+function toggleSp(idx, btn) {
+  const rows = document.querySelectorAll(`.sp-group-${idx}`);
+  const arrow = btn.querySelector('.arrow');
+  const open = arrow.classList.toggle('open');
+  rows.forEach(r => r.classList.toggle('visible', open));
+}
+
+// ── Salespeople table ─────────────────────────────────────────────────
+const spTbody = document.getElementById('sp-tbody');
+spList.forEach((sp, i) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="sp-rank">${i + 1}</td>
+    <td>${sp.name}</td>
+    <td class="num"><strong>${sp.total}</strong></td>
+    <td class="num"><span class="pct-badge">${Math.round(sp.total/grand*100)}%</span></td>`;
+  spTbody.appendChild(tr);
+});
+</script>
+</body>
+</html>
