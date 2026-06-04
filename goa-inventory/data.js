@@ -1,645 +1,384 @@
 const reportData = {
   "meta": {
-    "date": "2026-05-08 00:00:00",
     "brand": "Garden of the Andes",
-    "distributor": "Latinfoods"
+    "distributor": "LatinFood US Corp",
+    "periodStart": "2026-05-04",
+    "periodEnd": "2026-05-27",
+    "periodLabel": "Mayo 2026",
+    "lineItems": 54,
+    "source": "Latin-GOA-MAY.xlsx"
   },
-  "channels": [
-    "Vendors",
-    "Team NY",
-    "Inside Sales NY"
-  ],
+  "totals": {
+    "units": 64,
+    "revenue": 1092.5,
+    "orders": 11,
+    "customers": 10,
+    "salespeople": 5,
+    "freeUnits": 11
+  },
   "products": [
     {
-      "id": "GOA01",
-      "sku": "GOA01",
-      "name": "Green Tea Herbal Tea",
-      "vendors": 1,
-      "teamNY": 13,
-      "insideSalesNY": 0,
-      "total": 14,
-      "salespeople": [
-        {
-          "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 4,
-          "insideSalesNY": 0,
-          "total": 4
-        },
-        {
-          "name": "Luisa Fernanda",
-          "vendors": 1,
-          "teamNY": 0,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 5,
-          "insideSalesNY": 0,
-          "total": 5
-        }
-      ]
-    },
-    {
-      "id": "GOA01",
-      "sku": "GOA01",
-      "name": "Green Tea Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 9,
-      "insideSalesNY": 0,
-      "total": 9,
-      "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 6,
-          "insideSalesNY": 0,
-          "total": 6
-        }
-      ]
-    },
-    {
-      "id": "GOA02",
       "sku": "GOA02",
       "name": "Pure Chamoline Herbal Tea",
-      "vendors": 1,
-      "teamNY": 23,
-      "insideSalesNY": 0,
-      "total": 24,
+      "units": 14,
+      "revenue": 174.8,
+      "orders": 8,
       "salespeople": [
         {
-          "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
+          "name": "Mireya Fernandez",
+          "units": 10,
+          "revenue": 131.1
         },
         {
           "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 6,
-          "insideSalesNY": 0,
-          "total": 6
+          "units": 2,
+          "revenue": 0.0
         },
         {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 8,
-          "insideSalesNY": 0,
-          "total": 8
+          "name": "Daniela Davila",
+          "units": 1,
+          "revenue": 21.85
         },
         {
           "name": "Luisa Fernanda",
-          "vendors": 1,
-          "teamNY": 0,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 8,
-          "insideSalesNY": 0,
-          "total": 8
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
-      "id": "GOA02",
-      "sku": "GOA02",
-      "name": "Pure Chamoline Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 15,
-      "insideSalesNY": 0,
-      "total": 15,
-      "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 6,
-          "insideSalesNY": 0,
-          "total": 6
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 7,
-          "insideSalesNY": 0,
-          "total": 7
-        }
-      ]
-    },
-    {
-      "id": "GOA03",
       "sku": "GOA03",
       "name": "Ginger Lemongrass Herbal Tea",
-      "vendors": 0,
-      "teamNY": 12,
-      "insideSalesNY": 1,
-      "total": 13,
+      "units": 10,
+      "revenue": 174.8,
+      "orders": 8,
       "salespeople": [
+        {
+          "name": "Mireya Fernandez",
+          "units": 7,
+          "revenue": 109.25
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 2,
+          "revenue": 43.7
+        },
         {
           "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Douglas Lovos",
-          "vendors": 0,
-          "teamNY": 0,
-          "insideSalesNY": 1,
-          "total": 1
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 4,
-          "insideSalesNY": 0,
-          "total": 4
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 4,
-          "insideSalesNY": 0,
-          "total": 4
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
-      "id": "GOA03",
-      "sku": "GOA03",
-      "name": "Ginger Lemongrass Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 10,
-      "insideSalesNY": 0,
-      "total": 10,
+      "sku": "GOA01",
+      "name": "Green Tea Herbal Tea",
+      "units": 9,
+      "revenue": 152.95,
+      "orders": 7,
       "salespeople": [
         {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
           "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 6,
-          "insideSalesNY": 0,
-          "total": 6
+          "units": 7,
+          "revenue": 109.25
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 2,
+          "revenue": 43.7
         }
       ]
     },
     {
-      "id": "GOA04",
-      "sku": "GOA04",
-      "name": "Lemon Verbena Herbal Tea",
-      "vendors": 0,
-      "teamNY": 10,
-      "insideSalesNY": 0,
-      "total": 10,
-      "salespeople": [
-        {
-          "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 5,
-          "insideSalesNY": 0,
-          "total": 5
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        }
-      ]
-    },
-    {
-      "id": "GOA04",
-      "sku": "GOA04",
-      "name": "Lemon Verbena Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 7,
-      "insideSalesNY": 0,
-      "total": 7,
-      "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 4,
-          "insideSalesNY": 0,
-          "total": 4
-        }
-      ]
-    },
-    {
-      "id": "GOA05",
       "sku": "GOA05",
       "name": "Rosehip & Hibiscus Herbal Tea",
-      "vendors": 0,
-      "teamNY": 17,
-      "insideSalesNY": 0,
-      "total": 17,
+      "units": 9,
+      "revenue": 109.25,
+      "orders": 6,
       "salespeople": [
+        {
+          "name": "Mireya Fernandez",
+          "units": 7,
+          "revenue": 65.55
+        },
         {
           "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
+          "units": 1,
+          "revenue": 21.85
         },
         {
           "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 8,
-          "insideSalesNY": 0,
-          "total": 8
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 7,
-          "insideSalesNY": 0,
-          "total": 7
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
-      "id": "GOA05",
-      "sku": "GOA05",
-      "name": "Rosehip & Hibiscus Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 10,
-      "insideSalesNY": 0,
-      "total": 10,
+      "sku": "GOA04",
+      "name": "Lemon Verbena Herbal Tea",
+      "units": 6,
+      "revenue": 131.1,
+      "orders": 6,
       "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
         {
           "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 6,
-          "insideSalesNY": 0,
-          "total": 6
-        }
-      ]
-    },
-    {
-      "id": "GOA06",
-      "sku": "GOA06",
-      "name": "Lemon Balm Herbal Tea",
-      "vendors": 0,
-      "teamNY": 7,
-      "insideSalesNY": 0,
-      "total": 7,
-      "salespeople": [
-        {
-          "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
+          "units": 5,
+          "revenue": 109.25
         },
         {
           "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
-      "id": "GOA06",
-      "sku": "GOA06",
-      "name": "Lemon Balm Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 6,
-      "insideSalesNY": 0,
-      "total": 6,
-      "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        }
-      ]
-    },
-    {
-      "id": "GOA07",
-      "sku": "GOA07",
-      "name": "Assorted Herbal Tea",
-      "vendors": 0,
-      "teamNY": 9,
-      "insideSalesNY": 0,
-      "total": 9,
-      "salespeople": [
-        {
-          "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        }
-      ]
-    },
-    {
-      "id": "GOA07",
-      "sku": "GOA07",
-      "name": "Assorted Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 4,
-      "insideSalesNY": 0,
-      "total": 4,
-      "salespeople": [
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        }
-      ]
-    },
-    {
-      "id": "GOA08",
-      "sku": "GOA08",
-      "name": "Black Tea Herbal Tea",
-      "vendors": 0,
-      "teamNY": 8,
-      "insideSalesNY": 0,
-      "total": 8,
-      "salespeople": [
-        {
-          "name": "Daniela Davila",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
-        },
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 5,
-          "insideSalesNY": 0,
-          "total": 5
-        }
-      ]
-    },
-    {
-      "id": "GOA08",
-      "sku": "GOA08",
-      "name": "Black Tea Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 2,
-      "insideSalesNY": 0,
-      "total": 2,
-      "salespeople": [
-        {
-          "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 2,
-          "insideSalesNY": 0,
-          "total": 2
-        }
-      ]
-    },
-    {
-      "id": "GOA09",
       "sku": "GOA09",
       "name": "Chai Herbal Tea",
-      "vendors": 0,
-      "teamNY": 7,
-      "insideSalesNY": 0,
-      "total": 7,
+      "units": 6,
+      "revenue": 131.1,
+      "orders": 5,
       "salespeople": [
         {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
-        {
-          "name": "Luis Soler",
-          "vendors": 0,
-          "teamNY": 3,
-          "insideSalesNY": 0,
-          "total": 3
-        },
-        {
           "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
+          "units": 5,
+          "revenue": 109.25
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
-      "id": "GOA09",
-      "sku": "GOA09",
-      "name": "Chai Herbal Tea (2)",
-      "vendors": 0,
-      "teamNY": 6,
-      "insideSalesNY": 0,
-      "total": 6,
+      "sku": "GOA06",
+      "name": "Lemon Balm Herbal Tea",
+      "units": 4,
+      "revenue": 87.4,
+      "orders": 4,
       "salespeople": [
         {
-          "name": "Katherine Osorio Duque",
-          "vendors": 0,
-          "teamNY": 1,
-          "insideSalesNY": 0,
-          "total": 1
+          "name": "Mireya Fernandez",
+          "units": 3,
+          "revenue": 65.55
         },
         {
+          "name": "Katherine Osorio Duque",
+          "units": 1,
+          "revenue": 21.85
+        }
+      ]
+    },
+    {
+      "sku": "GOA07",
+      "name": "Assorted Herbal Tea",
+      "units": 4,
+      "revenue": 87.4,
+      "orders": 3,
+      "salespeople": [
+        {
           "name": "Mireya Fernandez",
-          "vendors": 0,
-          "teamNY": 5,
-          "insideSalesNY": 0,
-          "total": 5
+          "units": 3,
+          "revenue": 65.55
+        },
+        {
+          "name": "Luis Soler",
+          "units": 1,
+          "revenue": 21.85
+        }
+      ]
+    },
+    {
+      "sku": "GOA08",
+      "name": "Black Tea Herbal Tea",
+      "units": 2,
+      "revenue": 43.7,
+      "orders": 2,
+      "salespeople": [
+        {
+          "name": "Mireya Fernandez",
+          "units": 2,
+          "revenue": 43.7
         }
       ]
     }
   ],
-  "totals": {
-    "vendors": 2,
-    "teamNY": 175,
-    "insideSalesNY": 1,
-    "grand": 178
+  "salespeople": [
+    {
+      "name": "Mireya Fernandez",
+      "units": 49,
+      "revenue": 808.45,
+      "orders": 5,
+      "customers": 5,
+      "freeUnits": 9
+    },
+    {
+      "name": "Katherine Osorio Duque",
+      "units": 10,
+      "revenue": 174.8,
+      "orders": 3,
+      "customers": 2,
+      "freeUnits": 2
+    },
+    {
+      "name": "Daniela Davila",
+      "units": 3,
+      "revenue": 65.55,
+      "orders": 1,
+      "customers": 1,
+      "freeUnits": 0
+    },
+    {
+      "name": "Luis Soler",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1,
+      "customers": 1,
+      "freeUnits": 0
+    },
+    {
+      "name": "Luisa Fernanda",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1,
+      "customers": 1,
+      "freeUnits": 0
+    }
+  ],
+  "customers": [
+    {
+      "name": "Fine fare (Harlem)",
+      "units": 17,
+      "revenue": 284.05,
+      "orders": 1
+    },
+    {
+      "name": "Food Bazaar # 14 -West NY",
+      "units": 9,
+      "revenue": 152.95,
+      "orders": 2
+    },
+    {
+      "name": "Súper Fresh Irvington",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "name": "Associated Supermarket - Lindenwold",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "name": "Cherry valley market place 309",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "name": "City fresh Market (Harlem) 1",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "name": "Red delicious deli",
+      "units": 3,
+      "revenue": 65.55,
+      "orders": 1
+    },
+    {
+      "name": "Market Fresh - Middletown",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "name": "Sabores De Mi Tierra LLC",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "name": "Mayta's Market International LLC",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    }
+  ],
+  "daily": [
+    {
+      "date": "2026-05-04",
+      "units": 33,
+      "revenue": 546.25,
+      "orders": 3
+    },
+    {
+      "date": "2026-05-06",
+      "units": 16,
+      "revenue": 262.2,
+      "orders": 2
+    },
+    {
+      "date": "2026-05-07",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-05-08",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-05-14",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "date": "2026-05-20",
+      "units": 3,
+      "revenue": 65.55,
+      "orders": 1
+    },
+    {
+      "date": "2026-05-21",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-05-27",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    }
+  ],
+  "incentives": {
+    "freeUnitsBySalesperson": [
+      {
+        "name": "Katherine Osorio D",
+        "free": 2
+      },
+      {
+        "name": "Mireya Fernandez",
+        "free": 9
+      }
+    ],
+    "costItems": [
+      {
+        "label": "NEW CUSTOMERS",
+        "amount": 156.09
+      },
+      {
+        "label": "Muestras FOOD BAZAAR",
+        "amount": 13.5
+      }
+    ],
+    "totalDescuentos": 311.59
   }
 };

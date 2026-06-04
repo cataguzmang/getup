@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garden of the Andes – Reporte Inventario GOA</title>
+<title>Garden of the Andes – Reporte de Ventas GOA</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
@@ -43,11 +43,11 @@
   .header-meta { text-align: right; font-size: .82rem; opacity: .80; line-height: 1.6; }
   .header-meta strong { opacity: 1; font-size: .95rem; }
 
-  main { max-width: 1100px; margin: 0 auto; padding: 28px 24px 48px; }
+  main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 48px; }
 
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
     gap: 16px; margin-bottom: 28px;
   }
   .kpi-card {
@@ -65,7 +65,8 @@
   }
   .kpi-card.gold::before { background: var(--gold); }
   .kpi-label { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
-  .kpi-value { font-size: 2.1rem; font-weight: 800; color: var(--green-dark); line-height: 1.1; }
+  .kpi-value { font-size: 2.0rem; font-weight: 800; color: var(--green-dark); line-height: 1.1; }
+  .kpi-value.sm { font-size: 1.25rem; }   /* valores de texto (ej. nombre del vendedor) */
   .kpi-card.gold .kpi-value { color: #8a6a1a; }
   .kpi-sub   { font-size: .80rem; color: var(--text-muted); }
 
@@ -76,15 +77,28 @@
 
   .charts-row {
     display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 16px; margin-bottom: 28px;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-bottom: 16px;
   }
-  @media (max-width: 860px) { .charts-row { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
 
   .chart-card {
     background: var(--white); border: 1px solid var(--border);
     border-radius: 12px; padding: 22px 24px; box-shadow: var(--shadow);
+    margin-bottom: 16px;
   }
+  /* Contenedor de altura fija: evita el bucle de redimensionado infinito de
+     Chart.js cuando se usa maintainAspectRatio:false. */
+  .chart-wrap { position: relative; height: 260px; width: 100%; }
+  .chart-wrap.rank { height: 330px; }              /* barras de ranking (más series) */
+  @media (max-width: 560px) { .chart-wrap.rank { height: 280px; } }
+  .chart-toolbar { display: flex; gap: 6px; margin-bottom: 14px; }
+  .chart-toolbar button {
+    padding: 3px 12px; border-radius: 20px; border: 1px solid var(--border);
+    background: none; font-size: .74rem; font-weight: 600; cursor: pointer;
+    color: var(--text-muted); transition: all .15s;
+  }
+  .chart-toolbar button.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
 
   .table-card {
     background: var(--white); border: 1px solid var(--border);
@@ -96,7 +110,8 @@
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
   }
 
-  table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: .875rem; min-width: 520px; }
   thead tr { background: var(--green-pale); }
   th {
     padding: 11px 16px; text-align: left;
@@ -136,7 +151,7 @@
   .bar-inline { display: flex; align-items: center; gap: 10px; }
   .bar-track {
     flex: 1; height: 7px; background: var(--border);
-    border-radius: 4px; overflow: hidden; min-width: 80px;
+    border-radius: 4px; overflow: hidden; min-width: 70px;
   }
   .bar-fill { height: 100%; background: var(--green-light); border-radius: 4px; }
 
@@ -145,15 +160,49 @@
     border-top: 2px solid var(--green-mid); color: var(--green-dark);
   }
 
-  .sp-summary-card {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: 12px; box-shadow: var(--shadow); overflow: hidden;
-  }
   .sp-rank { font-weight: 700; color: var(--text-muted); }
   .pct-badge {
     display: inline-block; padding: 1px 7px; border-radius: 10px;
     font-size: .72rem; font-weight: 600;
     background: var(--gold-light); color: #7a5a10;
+  }
+  .free-badge {
+    display: inline-block; padding: 1px 7px; border-radius: 10px;
+    font-size: .72rem; font-weight: 600;
+    background: var(--green-pale); color: var(--green-dark);
+  }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+
+  .incentive-list { list-style: none; }
+  .incentive-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: .87rem;
+  }
+  .incentive-list li:last-child { border-bottom: none; }
+  .incentive-list .amount { font-weight: 700; color: var(--green-dark); }
+  .incentive-total {
+    display: flex; justify-content: space-between; padding: 12px 0 2px;
+    margin-top: 6px; border-top: 2px solid var(--green-mid);
+    font-weight: 700; color: var(--green-dark);
+  }
+  .muted-note { font-size: .74rem; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+
+  /* ── Responsive: tablet y móvil ──────────────────────────────────── */
+  @media (max-width: 768px) {
+    header { padding: 18px 20px 16px; }
+    .header-meta { text-align: left; }
+    main { padding: 20px 14px 40px; }
+    .kpi-grid { gap: 12px; }
+    .kpi-value { font-size: 1.7rem; }
+    .chart-card { padding: 18px 16px; }
+  }
+  @media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .kpi-card { padding: 14px 14px; }
+    .kpi-value { font-size: 1.5rem; }
+    .header-title h1 { font-size: 1.15rem; }
   }
 </style>
 </head>
@@ -165,12 +214,12 @@
     <div class="leaf-icon"><span>🌿</span></div>
     <div class="header-title">
       <h1>Garden of the Andes</h1>
-      <p>Reporte de Inventario — Distribuidor: Latinfoods</p>
+      <p>Latin Foods</p>
     </div>
   </div>
   <div class="header-meta">
-    <strong id="report-date"></strong><br>
-    Cantidades ordenadas por sabor
+    <strong id="report-period"></strong><br>
+    <span id="report-range"></span>
   </div>
 </header>
 
@@ -178,217 +227,352 @@
   <div class="kpi-grid" id="kpi-grid"></div>
 
   <div class="charts-row">
-    <div class="chart-card">
-      <div class="section-title">Unidades por sabor</div>
-      <canvas id="barChart"></canvas>
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Ventas por SKU — Ingresos</div>
+      <div class="chart-wrap rank"><canvas id="revenueChart"></canvas></div>
     </div>
-    <div class="chart-card">
-      <div class="section-title">Ranking de vendedores</div>
-      <canvas id="spChart"></canvas>
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Ranking de vendedores por ingresos</div>
+      <div class="chart-wrap rank"><canvas id="spChart"></canvas></div>
     </div>
   </div>
 
+  <div class="charts-row">
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Ventas por SKU — Unidades (cajas)</div>
+      <div class="chart-wrap rank"><canvas id="unitsChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Tendencia de ventas en el periodo</div>
+      <div class="chart-wrap rank"><canvas id="trendChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Detalle por producto -->
   <div class="table-card">
     <div class="table-card-header">
       <div class="section-title" style="margin:0">Detalle por producto</div>
-      <small style="color:var(--text-muted)">Clic en una fila para ver detalle por vendedor</small>
+      <small style="color:var(--text-muted)">Clic en una fila para ver el detalle por vendedor</small>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Sabor</th>
-          <th class="num">Unidades</th>
-          <th class="num">% del total</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="product-tbody"></tbody>
-    </table>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Sabor</th>
+            <th class="num">Unidades</th>
+            <th class="num">Ingresos</th>
+            <th class="num">Órdenes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="product-tbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="sp-summary-card">
+  <!-- Vendedores -->
+  <div class="table-card">
     <div class="table-card-header">
       <div class="section-title" style="margin:0">Vendedores</div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Vendedor</th>
-          <th class="num">Unidades</th>
-          <th class="num">% del total</th>
-        </tr>
-      </thead>
-      <tbody id="sp-tbody"></tbody>
-    </table>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Vendedor</th>
+            <th class="num">Unidades</th>
+            <th class="num">Ingresos</th>
+            <th class="num">Órdenes</th>
+            <th class="num">Clientes</th>
+            <th class="num">Cajas gratis</th>
+          </tr>
+        </thead>
+        <tbody id="sp-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Clientes -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Top clientes</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Cliente</th>
+            <th class="num">Órdenes</th>
+            <th class="num">Unidades</th>
+            <th class="num">Ingresos</th>
+          </tr>
+        </thead>
+        <tbody id="cust-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Incentivos -->
+  <div class="two-col">
+    <div class="table-card" style="margin:0">
+      <div class="table-card-header">
+        <div class="section-title" style="margin:0">Cajas gratis por vendedor</div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Vendedor</th><th class="num">Cajas gratis</th></tr></thead>
+          <tbody id="free-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Incentivos y muestras (costos)</div>
+      <ul class="incentive-list" id="cost-list"></ul>
+      <div class="incentive-total">
+        <span>Total descuentos</span>
+        <span id="cost-total"></span>
+      </div>
+    </div>
   </div>
 </main>
 
 <script>
 const d = reportData;
 
-// Date
-const rawDate = d.meta.date.split(' ')[0];
-document.getElementById('report-date').textContent =
-  new Date(rawDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+// ── Helpers ───────────────────────────────────────────────────────────
+// Formateo numérico centralizado en locale en-US (miles con coma, decimal con punto).
+const usdFmt  = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }); // $1,000.00
+const usdFmt0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }); // $1,000
+const numFmt  = new Intl.NumberFormat('en-US'); // 1,000  /  1,000.5
+const money  = n => usdFmt.format(n || 0);   // moneda con 2 decimales
+const money0 = n => usdFmt0.format(n || 0);  // moneda redondeada (KPIs, ticks)
+const qty    = n => numFmt.format(n || 0);    // cantidades no monetarias
+const fmtDate = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+const fmtDay = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+const shortName = name => name.replace(' Herbal Tea', '').replace('Pure ', '');
+const firstName = name => name.split(' ')[0];
 
-// ── Merge variants into single product per SKU ────────────────────────
-const skuMap = {};
-d.products.forEach(p => {
-  const baseName = p.name.replace(/ \(2\)$/, '').trim();
-  if (!skuMap[p.sku]) {
-    skuMap[p.sku] = { sku: p.sku, name: baseName, total: 0, salespeople: {} };
-  }
-  skuMap[p.sku].total += p.total;
-  p.salespeople.forEach(sp => {
-    if (!skuMap[p.sku].salespeople[sp.name]) skuMap[p.sku].salespeople[sp.name] = 0;
-    skuMap[p.sku].salespeople[sp.name] += sp.total;
-  });
-});
+const palette = ['#2d5a27','#3d7a32','#4a8c3f','#5ea050','#7ab648','#94c96a','#aad98a','#c0e8a8','#d4f0c2'];
 
-const products = Object.values(skuMap)
-  .map(p => ({ ...p, salespeople: Object.entries(p.salespeople).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total) }))
-  .sort((a, b) => b.total - a.total);
+// ── Header ────────────────────────────────────────────────────────────
+document.getElementById('report-period').textContent = d.meta.periodLabel;
+document.getElementById('report-range').textContent = `${fmtDay(d.meta.periodStart)} – ${fmtDay(d.meta.periodEnd)}`;
 
-const grand = products.reduce((s, p) => s + p.total, 0);
-
-// ── Salespeople aggregate ─────────────────────────────────────────────
-const spMap = {};
-products.forEach(p => p.salespeople.forEach(sp => {
-  if (!spMap[sp.name]) spMap[sp.name] = 0;
-  spMap[sp.name] += sp.total;
-}));
-const spList = Object.entries(spMap).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total);
-const topSp = spList[0];
-const topProduct = products[0];
-
-// ── KPI cards ─────────────────────────────────────────────────────────
+// ── KPIs ──────────────────────────────────────────────────────────────
+const t = d.totals;
+const topSp = d.salespeople[0];
 const kpis = [
-  { label: 'Total unidades', value: grand, sub: `${products.length} sabores únicos` },
-  { label: 'Sabor más pedido', value: topProduct.total, sub: topProduct.name, gold: true },
-  { label: 'Promedio por sabor', value: Math.round(grand / products.length), sub: 'unidades / sabor' },
-  { label: 'Vendedor top', value: topSp.total, sub: topSp.name, gold: true },
+  { label: 'Ingresos totales', value: money0(t.revenue), sub: d.meta.periodLabel, gold: true },
+  { label: 'Unidades vendidas', value: qty(t.units), sub: `${qty(d.products.length)} SKUs` },
+  { label: 'Clientes activos', value: qty(t.customers), sub: `${qty(t.orders)} órdenes` },
+  { label: 'Vendedor top', value: topSp.name, sub: `${money0(topSp.revenue)} vendidos`, gold: true, small: true },
 ];
 document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
   <div class="kpi-card ${k.gold ? 'gold' : ''}">
     <div class="kpi-label">${k.label}</div>
-    <div class="kpi-value">${k.value}</div>
+    <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}</div>
     <div class="kpi-sub">${k.sub}</div>
   </div>`).join('');
 
-// ── Bar chart ─────────────────────────────────────────────────────────
-const shortName = name => name.replace(' Herbal Tea', '').replace('Pure ', '');
-const palette = [
-  '#2d5a27','#3d7a32','#4a8c3f','#5ea050','#7ab648',
-  '#94c96a','#aad98a','#c0e8a8','#d4f0c2'
-];
+// ── Plugin inline (sin dependencias): dibuja el valor al final de cada barra ──
+const barValueLabel = {
+  id: 'barValueLabel',
+  afterDatasetsDraw(chart, _args, opts) {
+    const fmt = opts.formatter || (v => v);
+    const { ctx, chartArea } = chart;
+    ctx.save();
+    ctx.font = '600 11px "Segoe UI", system-ui, sans-serif';
+    ctx.fillStyle = '#1e2e1a';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    chart.getDatasetMeta(0).data.forEach((bar, i) => {
+      const text = fmt(chart.data.datasets[0].data[i]);
+      let x = bar.x + 6;
+      // Mantener la etiqueta dentro de la cuadrícula del gráfico
+      const w = ctx.measureText(text).width;
+      if (x + w > chartArea.right) x = chartArea.right - w - 2;
+      ctx.fillText(text, x, bar.y);
+    });
+    ctx.restore();
+  }
+};
 
-new Chart(document.getElementById('barChart'), {
-  type: 'bar',
+// ── Fábrica de barras horizontales: etiqueta de valor en la barra + hover ──
+// `items` = [{ label, value, meta? }]; siempre se ordena de mayor a menor por valor,
+// de forma independiente a cualquier otro gráfico.
+function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
+  const sorted = [...items].sort((a, b) => b.value - a.value);
+  const labels = sorted.map(i => i.label);
+  const data = sorted.map(i => i.value);
+  const callbacks = { label: tooltipLabel };
+  if (extraTooltip) callbacks.afterLabel = ctx => extraTooltip(sorted[ctx.dataIndex].meta);
+  return new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    plugins: [barValueLabel],
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: labels.map((_, i) => palette[i % palette.length]),
+        borderRadius: 5, borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks },
+        barValueLabel: { formatter: fmt },
+      },
+      scales: {
+        // Holgura en el eje X para que la etiqueta de valor quepa dentro de la cuadrícula
+        x: { grid: { color: '#e8f5e0' }, suggestedMax: Math.max(...data) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
+        y: { ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+// Ventas por SKU — Ingresos
+horizontalBarChart(
+  'revenueChart',
+  d.products.map(p => ({ label: shortName(p.name), value: p.revenue })),
+  money0,
+  ctx => ` ${money(ctx.parsed.x)}`
+);
+
+// Ventas por SKU — Unidades (cajas)
+horizontalBarChart(
+  'unitsChart',
+  d.products.map(p => ({ label: shortName(p.name), value: p.units })),
+  qty,
+  ctx => ` ${qty(ctx.parsed.x)} unidades`
+);
+
+// Ranking de vendedores por ingresos
+horizontalBarChart(
+  'spChart',
+  d.salespeople.map(s => ({ label: firstName(s.name), value: s.revenue, meta: s })),
+  money0,
+  ctx => ` ${money(ctx.parsed.x)} (${qty(Math.round(ctx.parsed.x / t.revenue * 100))}%)`,
+  s => `${qty(s.units)} u. · ${qty(s.orders)} órdenes · ${qty(s.customers)} clientes`
+);
+
+// ── Line: tendencia diaria ────────────────────────────────────────────
+new Chart(document.getElementById('trendChart'), {
+  type: 'line',
   data: {
-    labels: products.map(p => shortName(p.name)),
+    labels: d.daily.map(x => fmtDay(x.date)),
     datasets: [{
-      label: 'Unidades',
-      data: products.map(p => p.total),
-      backgroundColor: products.map((_, i) => palette[i % palette.length]),
-      borderRadius: 5,
-      borderSkipped: false,
+      label: 'Ingresos', data: d.daily.map(x => x.revenue),
+      borderColor: '#2d5a27', backgroundColor: 'rgba(122,182,72,.18)',
+      fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#c8a84b', borderWidth: 2,
     }]
   },
   options: {
-    indexAxis: 'y',
-    responsive: true,
+    responsive: true, maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} unidades` } }
+      tooltip: { callbacks: {
+        title: items => fmtDate(d.daily[items[0].dataIndex].date),
+        label: ctx => ` ${money(ctx.parsed.y)} · ${qty(d.daily[ctx.dataIndex].units)} u. · ${qty(d.daily[ctx.dataIndex].orders)} órdenes`
+      } }
     },
     scales: {
-      x: { grid: { color: '#e8f5e0' }, ticks: { font: { size: 11 } } },
-      y: { ticks: { font: { size: 11 } } }
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
     }
   }
 });
 
-// ── Salespeople doughnut ──────────────────────────────────────────────
-new Chart(document.getElementById('spChart'), {
-  type: 'doughnut',
-  data: {
-    labels: spList.map(s => s.name.split(' ')[0]),
-    datasets: [{
-      data: spList.map(s => s.total),
-      backgroundColor: ['#2d5a27','#c8a84b','#4a8c3f','#e8a020','#7ab648','#b8d898'],
-      borderWidth: 2, borderColor: '#fff'
-    }]
-  },
-  options: {
-    responsive: true,
-    cutout: '60%',
-    plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 10 } } },
-      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} u. (${Math.round(ctx.parsed/grand*100)}%)` } }
-    }
-  }
-});
-
-// ── Product table ─────────────────────────────────────────────────────
-const maxTotal = products[0].total;
-const tbody = document.getElementById('product-tbody');
-
-products.forEach((p, idx) => {
-  const pct = Math.round(p.total / grand * 100);
+// ── Tabla de productos (expandible por vendedor; clic en toda la fila) ──
+const pbody = document.getElementById('product-tbody');
+d.products.forEach((p, idx) => {
   const tr = document.createElement('tr');
   tr.className = 'product-row';
+  tr.setAttribute('onclick', `toggleSp(${idx}, this)`);
   tr.innerHTML = `
     <td><span class="sku-badge">${p.sku}</span>${p.name}</td>
-    <td class="num">
-      <div class="bar-inline">
-        <strong>${p.total}</strong>
-        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(p.total/maxTotal*100)}%"></div></div>
-      </div>
-    </td>
-    <td class="num">${pct}%</td>
+    <td class="num">${qty(p.units)}</td>
+    <td class="num"><strong>${money(p.revenue)}</strong></td>
+    <td class="num">${qty(p.orders)}</td>
     <td>
-      <button class="toggle-btn" onclick="toggleSp(${idx},this)">
-        <span class="arrow">▶</span> ${p.salespeople.length} vendedor${p.salespeople.length !== 1 ? 'es' : ''}
-      </button>
+      <span class="toggle-btn"><span class="arrow">▶</span> ${p.salespeople.length} vend.</span>
     </td>`;
-  tbody.appendChild(tr);
+  pbody.appendChild(tr);
 
   p.salespeople.forEach(sp => {
     const spTr = document.createElement('tr');
     spTr.className = `sp-row sp-group-${idx}`;
     spTr.innerHTML = `
       <td>${sp.name}</td>
-      <td class="num">${sp.total}</td>
-      <td class="num">${Math.round(sp.total/p.total*100)}% del sabor</td>
+      <td class="num">${qty(sp.units)}</td>
+      <td class="num">${money(sp.revenue)}</td>
+      <td class="num"></td>
       <td></td>`;
-    tbody.appendChild(spTr);
+    pbody.appendChild(spTr);
   });
 });
+const ptotal = document.createElement('tr');
+ptotal.className = 'total-row';
+ptotal.innerHTML = `<td>TOTAL</td><td class="num">${qty(t.units)}</td><td class="num">${money(t.revenue)}</td><td class="num">${qty(t.orders)}</td><td></td>`;
+pbody.appendChild(ptotal);
 
-const totalTr = document.createElement('tr');
-totalTr.className = 'total-row';
-totalTr.innerHTML = `<td>TOTAL</td><td class="num">${grand}</td><td class="num">100%</td><td></td>`;
-tbody.appendChild(totalTr);
-
-function toggleSp(idx, btn) {
+function toggleSp(idx, rowEl) {
   const rows = document.querySelectorAll(`.sp-group-${idx}`);
-  const arrow = btn.querySelector('.arrow');
+  const arrow = rowEl.querySelector('.arrow');
   const open = arrow.classList.toggle('open');
   rows.forEach(r => r.classList.toggle('visible', open));
 }
 
-// ── Salespeople table ─────────────────────────────────────────────────
-const spTbody = document.getElementById('sp-tbody');
-spList.forEach((sp, i) => {
+// ── Tabla de vendedores ───────────────────────────────────────────────
+const sbody = document.getElementById('sp-tbody');
+d.salespeople.forEach((sp, i) => {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td class="sp-rank">${i + 1}</td>
     <td>${sp.name}</td>
-    <td class="num"><strong>${sp.total}</strong></td>
-    <td class="num"><span class="pct-badge">${Math.round(sp.total/grand*100)}%</span></td>`;
-  spTbody.appendChild(tr);
+    <td class="num">${qty(sp.units)}</td>
+    <td class="num"><strong>${money(sp.revenue)}</strong></td>
+    <td class="num">${qty(sp.orders)}</td>
+    <td class="num">${qty(sp.customers)}</td>
+    <td class="num">${sp.freeUnits ? `<span class="free-badge">${qty(sp.freeUnits)}</span>` : '—'}</td>`;
+  sbody.appendChild(tr);
 });
+
+// ── Tabla de clientes ─────────────────────────────────────────────────
+const cbody = document.getElementById('cust-tbody');
+d.customers.forEach((c, i) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="sp-rank">${i + 1}</td>
+    <td>${c.name}</td>
+    <td class="num">${qty(c.orders)}</td>
+    <td class="num">${qty(c.units)}</td>
+    <td class="num"><strong>${money(c.revenue)}</strong></td>`;
+  cbody.appendChild(tr);
+});
+
+// ── Incentivos ────────────────────────────────────────────────────────
+const fbody = document.getElementById('free-tbody');
+const freeRows = d.incentives.freeUnitsBySalesperson;
+if (freeRows.length) {
+  freeRows.forEach(f => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${f.name}</td><td class="num"><span class="free-badge">${qty(f.free)}</span></td>`;
+    fbody.appendChild(tr);
+  });
+} else {
+  fbody.innerHTML = `<tr><td colspan="2" style="color:var(--text-muted)">Sin datos</td></tr>`;
+}
+
+const clist = document.getElementById('cost-list');
+clist.innerHTML = d.incentives.costItems.map(ci =>
+  `<li><span>${ci.label}</span><span class="amount">${money(ci.amount)}</span></li>`
+).join('') || `<li style="color:var(--text-muted)">Sin ítems de costo</li>`;
+document.getElementById('cost-total').textContent = money(d.incentives.totalDescuentos);
 </script>
 </body>
 </html>
