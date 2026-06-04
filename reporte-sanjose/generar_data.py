@@ -45,6 +45,24 @@ def load_rows():
         company, state, customer, order, date, cod_prod, product, qty_del, qty_inv, qty_ord, salesperson, total, unit_price = row
         if not date or not state:
             continue
+
+        qty = qty_del or 0
+        # Skip lines where nothing was delivered (qty_delivered = 0): these are
+        # undelivered/cancelled order lines, not real sales or promo boxes.
+        if qty <= 0:
+            continue
+
+        # The Excel mixes two column layouts:
+        #   - Historical rows (Oct 2025 – Apr 2026): "Total" = line total, "Unit Price" = price per box
+        #   - Recent rows (from May 2026):           columns swapped (Unit Price = line total, Total = price/box)
+        # Robust rule: for a delivered line, line_total = max(Total, Unit Price),
+        # because line_total = qty * price_per_box >= price_per_box for qty >= 1.
+        a = total or 0
+        b = unit_price or 0
+        is_promo = (a == 0 and b == 0)          # free box: both columns are 0
+        line_rev = max(a, b)                    # extended line revenue
+        box_price = line_rev / qty if qty > 0 else 0.0   # price for a single box
+
         rows.append({
             'company': company or '',
             'state': state,
@@ -52,30 +70,39 @@ def load_rows():
             'order': order or '',
             'date': date if isinstance(date, datetime) else datetime(date.year, date.month, date.day),
             'product': (product or '').strip(),
-            'qty': qty_del or 0,
-            'total': total or 0,
-            'unit_price': unit_price or 0,
+            'qty': qty,
+            'line_rev': line_rev,
+            'box_price': box_price,
+            'is_promo': is_promo,
             'salesperson': (salesperson or '').strip(),
         })
     return rows
 
 
 def get_order_unit_prices(rows):
-    """Per order: determine the unit_price from paid lines (total > 0)."""
+    """Per order: determine the per-box price from paid (non-promo) lines."""
     order_prices = defaultdict(float)
     for r in rows:
-        if r['total'] > 0 and r['unit_price'] > 0:
-            order_prices[r['order']] = r['unit_price']
+        if not r['is_promo'] and r['box_price'] > 0:
+            order_prices[r['order']] = r['box_price']
     # fallback: average price per product across all paid rows
     product_prices = defaultdict(list)
     for r in rows:
-        if r['unit_price'] > 0:
-            product_prices[r['product']].append(r['unit_price'])
+        if not r['is_promo'] and r['box_price'] > 0:
+            product_prices[r['product']].append(r['box_price'])
     product_avg = {p: sum(v)/len(v) for p, v in product_prices.items()}
-    return order_prices, product_avg
+    # global average as last-resort fallback so promo boxes are never valued at 0
+    all_prices = [r['box_price'] for r in rows if not r['is_promo'] and r['box_price'] > 0]
+    global_avg = sum(all_prices) / len(all_prices) if all_prices else 0.0
+    return order_prices, product_avg, global_avg
 
 
-def build_monthly_state_data(rows, months, order_prices, product_avg):
+def promo_box_price(r, order_prices, product_avg, global_avg):
+    """Per-box price used to value a promo (free) box."""
+    return order_prices.get(r['order']) or product_avg.get(r['product']) or global_avg
+
+
+def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg):
     """Build D.fl and D.ny arrays (one value per month per metric)."""
     state_month = defaultdict(lambda: defaultdict(lambda: {
         'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'orders': set()
@@ -88,14 +115,13 @@ def build_monthly_state_data(rows, months, order_prices, product_avg):
         s = 'fl' if r['state'] == 'Florida' else 'ny'
         d = state_month[s][ym]
         d['cajas'] += r['qty']
-        if r['total'] > 0:
-            d['rev'] += r['total']
+        if not r['is_promo']:
+            d['rev'] += r['line_rev']
             d['orders'].add(r['order'])
-        elif r['qty'] > 0 and r['unit_price'] == 0:
-            # promo box: total=0, unit_price=0, qty>0
+        else:
+            # promo box: free (both amount columns are 0)
             d['pc'] += r['qty']
-            price = order_prices.get(r['order'], product_avg.get(r['product'], 0))
-            d['pv'] += r['qty'] * price
+            d['pv'] += r['qty'] * promo_box_price(r, order_prices, product_avg, global_avg)
             d['orders'].add(r['order'])
 
     result = {}
@@ -113,7 +139,7 @@ def build_monthly_state_data(rows, months, order_prices, product_avg):
     return result
 
 
-def build_period_data(rows, months, order_prices, product_avg, month_set=None):
+def build_period_data(rows, months, order_prices, product_avg, global_avg, month_set=None):
     """Build summary, states, customerChart, salesChart, customerTable, productsCards for a given month set."""
     if month_set is None:
         month_set = set(months)
@@ -126,14 +152,13 @@ def build_period_data(rows, months, order_prices, product_avg, month_set=None):
         s = r['state']
         d = state_data[s]
         d['cajas'] += r['qty']
-        if r['total'] > 0:
-            d['rev'] += r['total']
+        if not r['is_promo']:
+            d['rev'] += r['line_rev']
             d['orders'].add(r['order'])
-        elif r['qty'] > 0 and r['unit_price'] == 0:
-            # promo box: total=0, unit_price=0, qty>0
+        else:
+            # promo box: free (both amount columns are 0)
             d['pc'] += r['qty']
-            price = order_prices.get(r['order'], product_avg.get(r['product'], 0))
-            d['pv'] += r['qty'] * price
+            d['pv'] += r['qty'] * promo_box_price(r, order_prices, product_avg, global_avg)
             d['orders'].add(r['order'])
 
     total_rev = sum(d['rev'] for d in state_data.values())
@@ -173,9 +198,9 @@ def build_period_data(rows, months, order_prices, product_avg, month_set=None):
         c = r['customer']
         cust_data[c]['state'] = r['state']
         cust_data[c]['cajas'] += r['qty']
-        if r['total'] > 0:
-            cust_data[c]['rev'] += r['total']
-        elif r['qty'] > 0:
+        if not r['is_promo']:
+            cust_data[c]['rev'] += r['line_rev']
+        else:
             cust_data[c]['pc'] += r['qty']
 
     custs_sorted = sorted(cust_data.items(), key=lambda x: -x[1]['rev'])
@@ -202,8 +227,8 @@ def build_period_data(rows, months, order_prices, product_avg, month_set=None):
     # --- salesperson aggregation ---
     sales_data = defaultdict(float)
     for r in filtered:
-        if r['total'] > 0:
-            sales_data[r['salesperson']] += r['total']
+        if not r['is_promo']:
+            sales_data[r['salesperson']] += r['line_rev']
     sales_sorted = sorted(sales_data.items(), key=lambda x: -x[1])
     sales_chart = [{'n': n, 'v': round(v, 2)} for n, v in sales_sorted[:10]]
 
@@ -212,9 +237,9 @@ def build_period_data(rows, months, order_prices, product_avg, month_set=None):
     for r in filtered:
         p = r['product']
         prod_data[p]['cajas'] += r['qty']
-        if r['total'] > 0:
-            prod_data[p]['rev'] += r['total']
-        elif r['qty'] > 0:
+        if not r['is_promo']:
+            prod_data[p]['rev'] += r['line_rev']
+        else:
             prod_data[p]['pc'] += r['qty']
 
     products_sorted = sorted(prod_data.items(), key=lambda x: -x[1]['rev'])
@@ -259,22 +284,22 @@ def main():
     all_months = sorted(set(month_key(r['date']) for r in rows))
     n = len(all_months)
 
-    order_prices, product_avg = get_order_unit_prices(rows)
+    order_prices, product_avg, global_avg = get_order_unit_prices(rows)
 
     # Build D (time series)
-    D = build_monthly_state_data(rows, all_months, order_prices, product_avg)
+    D = build_monthly_state_data(rows, all_months, order_prices, product_avg, global_avg)
 
     # Build GENERAL_DATA
     general_data = {}
 
     # ALL
-    general_data['ALL'] = build_period_data(rows, all_months, order_prices, product_avg,
+    general_data['ALL'] = build_period_data(rows, all_months, order_prices, product_avg, global_avg,
                                             month_set=set(all_months))
 
     # Per month
     for ym in all_months:
         label = month_label_short(ym)
-        general_data[label] = build_period_data(rows, all_months, order_prices, product_avg,
+        general_data[label] = build_period_data(rows, all_months, order_prices, product_avg, global_avg,
                                                 month_set={ym})
 
     # Find first month per product (for dynamic note in product cards)
