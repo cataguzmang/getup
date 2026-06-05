@@ -2,3 +2,6 @@
 *.xls
 __pycache__/
 *.pyc
+
+# Datos comerciales reales de GOA/Altagama — NO subir a repo público
+Inventarios-GOA-altagama/
