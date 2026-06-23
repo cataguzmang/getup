@@ -399,6 +399,35 @@ def _find_cost_label(row):
     return None
 
 
+def build_view(lines, incentives):
+    """Vista agregada (misma forma para la general y para cada mes)."""
+    products = aggregate_products(lines)
+    salespeople = aggregate_salespeople(lines)
+    customers = aggregate_customers(lines)
+    daily = aggregate_daily(lines)
+
+    free_map = {f["name"].lower(): f["free"] for f in incentives["freeUnitsBySalesperson"]}
+    for s in salespeople:
+        s["freeUnits"] = next(
+            (v for k, v in free_map.items()
+             if k in s["name"].lower() or s["name"].lower().startswith(k[:8])),
+            0,
+        )
+
+    totals = {
+        "units": sum(p["units"] for p in products),
+        "revenue": round(sum(p["revenue"] for p in products), 2),
+        "orders": len({ln["order"] for ln in lines}),
+        "customers": len({ln["customer"] for ln in lines}),
+        "salespeople": len(salespeople),
+        "freeUnits": sum(f["free"] for f in incentives["freeUnitsBySalesperson"]),
+    }
+    return {
+        "totals": totals, "products": products, "salespeople": salespeople,
+        "customers": customers, "daily": daily, "incentives": incentives,
+    }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Orquestación
 # ─────────────────────────────────────────────────────────────────────────────

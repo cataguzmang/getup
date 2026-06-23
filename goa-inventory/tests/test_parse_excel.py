@@ -54,3 +54,20 @@ def test_load_all_sources_dedup_por_orden(tmp_path):
     assert len(lines) == 2
     assert "S1" in dups                      # se reporta el duplicado
     assert sorted(sources) == ["1.xlsx", "2.xlsx"]
+
+
+def test_build_view_totales_e_incentivos():
+    dt = datetime.datetime
+    lines = pe.parse_transactions([HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana", qty=2, total=43.70),
+        line(dt(2026, 2, 25), "S2", "[GOA01] Green Tea", "Tienda B", "Ana", qty=1, total=21.85),
+        line(dt(2026, 2, 25), "S3", "[GOA02] Pure Chamoline", "Tienda A", "Luis", qty=1, total=21.85)])
+    inc = {"freeUnitsBySalesperson": [{"name": "Ana", "free": 5}],
+           "costItems": [], "totalDescuentos": 70.95}
+    v = pe.build_view(lines, inc)
+    assert v["totals"]["units"] == 4
+    assert v["totals"]["revenue"] == 87.40
+    assert v["totals"]["orders"] == 3
+    assert v["totals"]["customers"] == 2          # Tienda A y Tienda B
+    ana = next(s for s in v["salespeople"] if s["name"] == "Ana")
+    assert ana["freeUnits"] == 5                   # inyectado desde incentivos
