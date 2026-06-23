@@ -85,3 +85,21 @@ def test_build_months_separa_por_mes():
     assert months[0]["label"] == "Febrero 2026"
     assert months[1]["totals"]["orders"] == 2             # S2 y S3
     assert months[0]["periodStart"] == "2026-02-24"
+
+
+def test_merge_views_suma_y_une():
+    dt = datetime.datetime
+    feb = pe.build_view(pe.parse_transactions([HEADER,
+        line(dt(2026, 2, 1), "S1", "[GOA01] Green Tea", "Tienda A", "Ana")]),
+        pe.empty_incentives())
+    mar = pe.build_view(pe.parse_transactions([HEADER,
+        line(dt(2026, 3, 1), "S2", "[GOA01] Green Tea", "Tienda A", "Ana"),
+        line(dt(2026, 3, 2), "S3", "[GOA02] Pure Chamoline", "Tienda B", "Luis")]),
+        pe.empty_incentives())
+    g = pe.merge_views([feb, mar])
+    assert g["totals"]["units"] == 3
+    assert g["totals"]["orders"] == 3                 # suma (órdenes únicas por mes)
+    assert g["totals"]["customers"] == 2              # unión: Tienda A (feb+mar) + Tienda B
+    green = next(p for p in g["products"] if p["sku"] == "GOA01")
+    assert green["units"] == 2                         # GOA01 en feb y mar
+    assert len(g["daily"]) == 3                        # concatenado

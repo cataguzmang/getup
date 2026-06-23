@@ -450,6 +450,64 @@ def build_months(lines, incentives_by_month):
     return out
 
 
+def merge_views(views):
+    """Combina varias vistas (general + meses conservados) en una sola."""
+    # Productos por SKU (con desglose por vendedor)
+    prods = {}
+    for v in views:
+        for p in v["products"]:
+            t = prods.setdefault(p["sku"], {
+                "sku": p["sku"], "name": p["name"],
+                "units": 0, "revenue": 0.0, "orders": 0, "_sp": {}})
+            t["units"] += p["units"]; t["revenue"] += p["revenue"]; t["orders"] += p["orders"]
+            for sp in p["salespeople"]:
+                s = t["_sp"].setdefault(sp["name"], {"units": 0, "revenue": 0.0})
+                s["units"] += sp["units"]; s["revenue"] += sp["revenue"]
+    products = []
+    for t in prods.values():
+        sps = [{"name": n, "units": s["units"], "revenue": round(s["revenue"], 2)}
+               for n, s in t["_sp"].items()]
+        sps.sort(key=lambda s: (-s["units"], -s["revenue"]))
+        products.append({"sku": t["sku"], "name": t["name"], "units": t["units"],
+                         "revenue": round(t["revenue"], 2), "orders": t["orders"],
+                         "salespeople": sps})
+    products.sort(key=lambda p: (-p["units"], -p["revenue"]))
+
+    # Vendedores por nombre
+    sps = {}
+    for v in views:
+        for s in v["salespeople"]:
+            t = sps.setdefault(s["name"], {"name": s["name"], "units": 0, "revenue": 0.0,
+                                           "orders": 0, "customers": 0, "freeUnits": 0})
+            t["units"] += s["units"]; t["revenue"] += s["revenue"]; t["orders"] += s["orders"]
+            t["customers"] += s["customers"]; t["freeUnits"] += s.get("freeUnits", 0)
+    salespeople = [{**t, "revenue": round(t["revenue"], 2)} for t in sps.values()]
+    salespeople.sort(key=lambda s: (-s["revenue"], -s["units"]))
+
+    # Clientes por nombre
+    cs = {}
+    for v in views:
+        for c in v["customers"]:
+            t = cs.setdefault(c["name"], {"name": c["name"], "units": 0, "revenue": 0.0, "orders": 0})
+            t["units"] += c["units"]; t["revenue"] += c["revenue"]; t["orders"] += c["orders"]
+    customers = [{**t, "revenue": round(t["revenue"], 2)} for t in cs.values()]
+    customers.sort(key=lambda c: (-c["revenue"], -c["units"]))
+
+    daily = sorted((d for v in views for d in v["daily"]), key=lambda d: d["date"])
+    incentives = merge_incentives([v["incentives"] for v in views])
+
+    totals = {
+        "units": sum(p["units"] for p in products),
+        "revenue": round(sum(p["revenue"] for p in products), 2),
+        "orders": sum(v["totals"]["orders"] for v in views),
+        "customers": len(cs),
+        "salespeople": len(sps),
+        "freeUnits": sum(f["free"] for f in incentives["freeUnitsBySalesperson"]),
+    }
+    return {"totals": totals, "products": products, "salespeople": salespeople,
+            "customers": customers, "daily": daily, "incentives": incentives}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Orquestación
 # ─────────────────────────────────────────────────────────────────────────────
