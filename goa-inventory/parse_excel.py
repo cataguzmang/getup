@@ -544,42 +544,28 @@ def carry_forward(months, prev_report):
 # Orquestación
 # ─────────────────────────────────────────────────────────────────────────────
 def build_report():
-    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
-    ws = wb[SHEET_NAME] if SHEET_NAME in wb.sheetnames else wb.active
-    rows = list(ws.iter_rows(values_only=True))
-
-    lines = parse_transactions(rows)
+    lines, inc_by_month, sources, dup_orders = load_all_sources(SOURCES_DIR)
     if not lines:
-        raise RuntimeError("No se detectaron líneas de transacción. ¿Cambió el formato?")
+        raise RuntimeError("No se detectaron líneas en fuentes/. ¿Pusiste los Excel?")
 
-    products = aggregate_products(lines)
-    salespeople = aggregate_salespeople(lines)
-    customers = aggregate_customers(lines)
-    daily = aggregate_daily(lines)
-    incentives = parse_incentives(rows)
+    months = build_months(lines, inc_by_month)
+    prev = load_previous_report(OUTPUT_FILE)
+    months, carried = carry_forward(months, prev)
 
-    # Inyecta cajas gratis en cada vendedor (cruce con bloque de incentivos)
-    free_map = {f["name"].lower(): f["free"] for f in incentives["freeUnitsBySalesperson"]}
-    for s in salespeople:
-        # match tolerante por prefijo (el bloque usa nombres abreviados)
-        s["freeUnits"] = next(
-            (v for k, v in free_map.items() if k in s["name"].lower() or s["name"].lower().startswith(k[:8])),
-            0,
-        )
+    # Vista general: desde las líneas presentes; si hay meses conservados, se combinan.
+    general = build_view(lines, merge_incentives(list(inc_by_month.values())))
+    if carried:
+        carried_views = [
+            {k: m[k] for k in ("totals", "products", "salespeople",
+                               "customers", "daily", "incentives")}
+            for m in months if m["key"] in carried
+        ]
+        general = merge_views([general] + carried_views)
 
-    dates = sorted({ln["date"] for ln in lines})
-    period_start, period_end = dates[0], dates[-1]
-    start_month = int(period_start.split("-")[1])
-    period_label = f"{MESES_ES[start_month].capitalize()} {period_start.split('-')[0]}"
-
-    totals = {
-        "units": sum(p["units"] for p in products),
-        "revenue": round(sum(p["revenue"] for p in products), 2),
-        "orders": len({ln["order"] for ln in lines}),
-        "customers": len({ln["customer"] for ln in lines}),
-        "salespeople": len(salespeople),
-        "freeUnits": sum(f["free"] for f in incentives["freeUnitsBySalesperson"]),
-    }
+    period_start = min(m["periodStart"] for m in months)
+    period_end = max(m["periodEnd"] for m in months)
+    period_label = (months[0]["label"] if len(months) == 1
+                    else f"{months[0]['label']} – {months[-1]['label']}")
 
     return {
         "meta": {
@@ -589,14 +575,12 @@ def build_report():
             "periodEnd": period_end,
             "periodLabel": period_label,
             "lineItems": len(lines),
-            "source": EXCEL_FILE.name,
+            "sources": sources,
+            "carriedForward": carried,
+            "duplicateOrders": dup_orders,
         },
-        "totals": totals,
-        "products": products,
-        "salespeople": salespeople,
-        "customers": customers,
-        "daily": daily,
-        "incentives": incentives,
+        **general,
+        "months": months,
     }
 
 
@@ -604,18 +588,19 @@ def main():
     report = build_report()
     js = "const reportData = " + json.dumps(report, indent=2, ensure_ascii=False) + ";\n"
     OUTPUT_FILE.write_text(js, encoding="utf-8")
-    t = report["totals"]
+
+    m, t = report["meta"], report["totals"]
     print("✓ data.js generado")
-    print(f"  Periodo:    {report['meta']['periodLabel']} "
-          f"({report['meta']['periodStart']} → {report['meta']['periodEnd']})")
-    print(f"  Líneas:     {report['meta']['lineItems']}")
-    print(f"  Productos:  {len(report['products'])} SKUs")
-    print(f"  Vendedores: {len(report['salespeople'])}")
-    print(f"  Clientes:   {t['customers']}")
-    print(f"  Órdenes:    {t['orders']}")
-    print(f"  Unidades:   {t['units']}")
-    print(f"  Ingresos:   ${t['revenue']:,.2f}")
-    print(f"  Cajas gratis (incentivos): {t['freeUnits']}")
+    print(f"  Periodo:    {m['periodLabel']} ({m['periodStart']} → {m['periodEnd']})")
+    print(f"  Fuentes:    {', '.join(m['sources']) or '(ninguna)'}")
+    print(f"  Meses:      {', '.join(mo['key'] for mo in report['months'])}")
+    print(f"  Líneas:     {m['lineItems']}")
+    print(f"  Ingresos:   ${t['revenue']:,.2f}   Unidades: {t['units']}   Órdenes: {t['orders']}")
+    if m["duplicateOrders"]:
+        print(f"  ⚠ Órdenes duplicadas omitidas: {', '.join(m['duplicateOrders'])}")
+    if m["carriedForward"]:
+        print(f"  ⚠ Meses conservados del histórico (sin Excel en fuentes/): "
+              f"{', '.join(m['carriedForward'])}")
 
 
 if __name__ == "__main__":

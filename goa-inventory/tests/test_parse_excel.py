@@ -129,3 +129,24 @@ def test_load_previous_report_parsea_datajs(tmp_path):
     rep = pe.load_previous_report(p)
     assert rep == {"months": []}
     assert pe.load_previous_report(tmp_path / "noexiste.js") is None
+
+
+def test_build_report_integra_general_y_meses(tmp_path, monkeypatch):
+    dt = datetime.datetime
+    folder = tmp_path / "fuentes"
+    folder.mkdir()
+    make_xlsx(folder / "feb.xlsx", [HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana")])
+    make_xlsx(folder / "mar.xlsx", [HEADER,
+        line(dt(2026, 3, 1), "S2", "[GOA02] Pure Chamoline", "Tienda B", "Luis"),
+        line(dt(2026, 3, 2), "S3", "[GOA01] Green Tea", "Tienda A", "Luis")])
+    monkeypatch.setattr(pe, "SOURCES_DIR", folder)
+    monkeypatch.setattr(pe, "OUTPUT_FILE", tmp_path / "data.js")
+
+    report = pe.build_report()
+    assert [m["key"] for m in report["months"]] == ["2026-02", "2026-03"]
+    # La suma de los meses cuadra con el total general
+    assert report["totals"]["units"] == sum(m["totals"]["units"] for m in report["months"])
+    assert report["totals"]["orders"] == 3
+    assert report["meta"]["sources"] == ["feb.xlsx", "mar.xlsx"]
+    assert report["meta"]["carriedForward"] == []
