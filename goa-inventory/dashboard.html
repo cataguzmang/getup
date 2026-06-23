@@ -75,6 +75,19 @@
     text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
   }
 
+  .month-selector {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px;
+  }
+  .month-selector button {
+    padding: 7px 16px; border-radius: 22px; border: 1px solid var(--border);
+    background: var(--white); font-size: .82rem; font-weight: 600; cursor: pointer;
+    color: var(--text-muted); transition: all .15s; box-shadow: var(--shadow);
+  }
+  .month-selector button:hover { border-color: var(--green-mid); color: var(--green-dark); }
+  .month-selector button.active {
+    background: var(--green-dark); color: #fff; border-color: var(--green-dark);
+  }
+
   .charts-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -224,6 +237,7 @@
 </header>
 
 <main>
+  <div class="month-selector" id="month-selector"></div>
   <div class="kpi-grid" id="kpi-grid"></div>
 
   <div class="charts-row">
@@ -342,41 +356,19 @@
 const d = reportData;
 
 // ── Helpers ───────────────────────────────────────────────────────────
-// Formateo numérico centralizado en locale en-US (miles con coma, decimal con punto).
-const usdFmt  = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }); // $1,000.00
-const usdFmt0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }); // $1,000
-const numFmt  = new Intl.NumberFormat('en-US'); // 1,000  /  1,000.5
-const money  = n => usdFmt.format(n || 0);   // moneda con 2 decimales
-const money0 = n => usdFmt0.format(n || 0);  // moneda redondeada (KPIs, ticks)
-const qty    = n => numFmt.format(n || 0);    // cantidades no monetarias
+const usdFmt  = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const usdFmt0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const numFmt  = new Intl.NumberFormat('en-US');
+const money  = n => usdFmt.format(n || 0);
+const money0 = n => usdFmt0.format(n || 0);
+const qty    = n => numFmt.format(n || 0);
 const fmtDate = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const fmtDay = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
 const shortName = name => name.replace(' Herbal Tea', '').replace('Pure ', '');
 const firstName = name => name.split(' ')[0];
-
 const palette = ['#2d5a27','#3d7a32','#4a8c3f','#5ea050','#7ab648','#94c96a','#aad98a','#c0e8a8','#d4f0c2'];
 
-// ── Header ────────────────────────────────────────────────────────────
-document.getElementById('report-period').textContent = d.meta.periodLabel;
-document.getElementById('report-range').textContent = `${fmtDay(d.meta.periodStart)} – ${fmtDay(d.meta.periodEnd)}`;
-
-// ── KPIs ──────────────────────────────────────────────────────────────
-const t = d.totals;
-const topSp = d.salespeople[0];
-const kpis = [
-  { label: 'Ingresos totales', value: money0(t.revenue), sub: d.meta.periodLabel, gold: true },
-  { label: 'Unidades vendidas', value: qty(t.units), sub: `${qty(d.products.length)} SKUs` },
-  { label: 'Clientes activos', value: qty(t.customers), sub: `${qty(t.orders)} órdenes` },
-  { label: 'Vendedor top', value: topSp.name, sub: `${money0(topSp.revenue)} vendidos`, gold: true, small: true },
-];
-document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
-  <div class="kpi-card ${k.gold ? 'gold' : ''}">
-    <div class="kpi-label">${k.label}</div>
-    <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}</div>
-    <div class="kpi-sub">${k.sub}</div>
-  </div>`).join('');
-
-// ── Plugin inline (sin dependencias): dibuja el valor al final de cada barra ──
+// Plugin inline: dibuja el valor al final de cada barra
 const barValueLabel = {
   id: 'barValueLabel',
   afterDatasetsDraw(chart, _args, opts) {
@@ -390,7 +382,6 @@ const barValueLabel = {
     chart.getDatasetMeta(0).data.forEach((bar, i) => {
       const text = fmt(chart.data.datasets[0].data[i]);
       let x = bar.x + 6;
-      // Mantener la etiqueta dentro de la cuadrícula del gráfico
       const w = ctx.measureText(text).width;
       if (x + w > chartArea.right) x = chartArea.right - w - 2;
       ctx.fillText(text, x, bar.y);
@@ -399,16 +390,15 @@ const barValueLabel = {
   }
 };
 
-// ── Fábrica de barras horizontales: etiqueta de valor en la barra + hover ──
-// `items` = [{ label, value, meta? }]; siempre se ordena de mayor a menor por valor,
-// de forma independiente a cualquier otro gráfico.
+let charts = {};
+
 function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
   const sorted = [...items].sort((a, b) => b.value - a.value);
   const labels = sorted.map(i => i.label);
   const data = sorted.map(i => i.value);
   const callbacks = { label: tooltipLabel };
   if (extraTooltip) callbacks.afterLabel = ctx => extraTooltip(sorted[ctx.dataIndex].meta);
-  return new Chart(document.getElementById(canvasId), {
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
     type: 'bar',
     plugins: [barValueLabel],
     data: {
@@ -427,98 +417,160 @@ function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
         barValueLabel: { formatter: fmt },
       },
       scales: {
-        // Holgura en el eje X para que la etiqueta de valor quepa dentro de la cuadrícula
-        x: { grid: { color: '#e8f5e0' }, suggestedMax: Math.max(...data) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
+        x: { grid: { color: '#e8f5e0' }, suggestedMax: Math.max(...data, 0) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
         y: { ticks: { font: { size: 11 } } }
       }
     }
   });
 }
 
-// Ventas por SKU — Ingresos
-horizontalBarChart(
-  'revenueChart',
-  d.products.map(p => ({ label: shortName(p.name), value: p.revenue })),
-  money0,
-  ctx => ` ${money(ctx.parsed.x)}`
-);
+// ── Render de una vista (general o un mes) ────────────────────────────
+function render(view, header) {
+  const t = view.totals;
 
-// Ventas por SKU — Unidades (cajas)
-horizontalBarChart(
-  'unitsChart',
-  d.products.map(p => ({ label: shortName(p.name), value: p.units })),
-  qty,
-  ctx => ` ${qty(ctx.parsed.x)} unidades`
-);
+  // Encabezado
+  document.getElementById('report-period').textContent = header.periodLabel;
+  document.getElementById('report-range').textContent = `${fmtDay(header.periodStart)} – ${fmtDay(header.periodEnd)}`;
 
-// Ranking de vendedores por ingresos
-horizontalBarChart(
-  'spChart',
-  d.salespeople.map(s => ({ label: firstName(s.name), value: s.revenue, meta: s })),
-  money0,
-  ctx => ` ${money(ctx.parsed.x)} (${qty(Math.round(ctx.parsed.x / t.revenue * 100))}%)`,
-  s => `${qty(s.units)} u. · ${qty(s.orders)} órdenes · ${qty(s.customers)} clientes`
-);
+  // KPIs
+  const topSp = view.salespeople[0] || { name: '—', revenue: 0 };
+  const kpis = [
+    { label: 'Ingresos totales', value: money0(t.revenue), sub: header.periodLabel, gold: true },
+    { label: 'Unidades vendidas', value: qty(t.units), sub: `${qty(view.products.length)} SKUs` },
+    { label: 'Clientes activos', value: qty(t.customers), sub: `${qty(t.orders)} órdenes` },
+    { label: 'Vendedor top', value: topSp.name, sub: `${money0(topSp.revenue)} vendidos`, gold: true, small: true },
+  ];
+  document.getElementById('kpi-grid').innerHTML = kpis.map(k => `
+    <div class="kpi-card ${k.gold ? 'gold' : ''}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+    </div>`).join('');
 
-// ── Line: tendencia diaria ────────────────────────────────────────────
-new Chart(document.getElementById('trendChart'), {
-  type: 'line',
-  data: {
-    labels: d.daily.map(x => fmtDay(x.date)),
-    datasets: [{
-      label: 'Ingresos', data: d.daily.map(x => x.revenue),
-      borderColor: '#2d5a27', backgroundColor: 'rgba(122,182,72,.18)',
-      fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#c8a84b', borderWidth: 2,
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: {
-        title: items => fmtDate(d.daily[items[0].dataIndex].date),
-        label: ctx => ` ${money(ctx.parsed.y)} · ${qty(d.daily[ctx.dataIndex].units)} u. · ${qty(d.daily[ctx.dataIndex].orders)} órdenes`
-      } }
+  // Destruir gráficos previos
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  // Ventas por SKU — Ingresos
+  horizontalBarChart('revenueChart',
+    view.products.map(p => ({ label: shortName(p.name), value: p.revenue })),
+    money0, ctx => ` ${money(ctx.parsed.x)}`);
+
+  // Ventas por SKU — Unidades
+  horizontalBarChart('unitsChart',
+    view.products.map(p => ({ label: shortName(p.name), value: p.units })),
+    qty, ctx => ` ${qty(ctx.parsed.x)} unidades`);
+
+  // Ranking de vendedores por ingresos
+  horizontalBarChart('spChart',
+    view.salespeople.map(s => ({ label: firstName(s.name), value: s.revenue, meta: s })),
+    money0,
+    ctx => ` ${money(ctx.parsed.x)} (${qty(Math.round(ctx.parsed.x / (t.revenue || 1) * 100))}%)`,
+    s => `${qty(s.units)} u. · ${qty(s.orders)} órdenes · ${qty(s.customers)} clientes`);
+
+  // Tendencia
+  charts.trendChart = new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: view.daily.map(x => fmtDay(x.date)),
+      datasets: [{
+        label: 'Ingresos', data: view.daily.map(x => x.revenue),
+        borderColor: '#2d5a27', backgroundColor: 'rgba(122,182,72,.18)',
+        fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#c8a84b', borderWidth: 2,
+      }]
     },
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-      y: { grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: items => fmtDate(view.daily[items[0].dataIndex].date),
+          label: ctx => ` ${money(ctx.parsed.y)} · ${qty(view.daily[ctx.dataIndex].units)} u. · ${qty(view.daily[ctx.dataIndex].orders)} órdenes`
+        } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+        y: { grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
+      }
     }
-  }
-});
+  });
 
-// ── Tabla de productos (expandible por vendedor; clic en toda la fila) ──
-const pbody = document.getElementById('product-tbody');
-d.products.forEach((p, idx) => {
-  const tr = document.createElement('tr');
-  tr.className = 'product-row';
-  tr.setAttribute('onclick', `toggleSp(${idx}, this)`);
-  tr.innerHTML = `
-    <td><span class="sku-badge">${p.sku}</span>${p.name}</td>
-    <td class="num">${qty(p.units)}</td>
-    <td class="num"><strong>${money(p.revenue)}</strong></td>
-    <td class="num">${qty(p.orders)}</td>
-    <td>
-      <span class="toggle-btn"><span class="arrow">▶</span> ${p.salespeople.length} vend.</span>
-    </td>`;
-  pbody.appendChild(tr);
+  // Tabla de productos (expandible por vendedor)
+  const pbody = document.getElementById('product-tbody');
+  pbody.innerHTML = '';
+  view.products.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    tr.className = 'product-row';
+    tr.setAttribute('onclick', `toggleSp(${idx}, this)`);
+    tr.innerHTML = `
+      <td><span class="sku-badge">${p.sku}</span>${p.name}</td>
+      <td class="num">${qty(p.units)}</td>
+      <td class="num"><strong>${money(p.revenue)}</strong></td>
+      <td class="num">${qty(p.orders)}</td>
+      <td><span class="toggle-btn"><span class="arrow">▶</span> ${p.salespeople.length} vend.</span></td>`;
+    pbody.appendChild(tr);
+    p.salespeople.forEach(sp => {
+      const spTr = document.createElement('tr');
+      spTr.className = `sp-row sp-group-${idx}`;
+      spTr.innerHTML = `
+        <td>${sp.name}</td>
+        <td class="num">${qty(sp.units)}</td>
+        <td class="num">${money(sp.revenue)}</td>
+        <td class="num"></td>
+        <td></td>`;
+      pbody.appendChild(spTr);
+    });
+  });
+  const ptotal = document.createElement('tr');
+  ptotal.className = 'total-row';
+  ptotal.innerHTML = `<td>TOTAL</td><td class="num">${qty(t.units)}</td><td class="num">${money(t.revenue)}</td><td class="num">${qty(t.orders)}</td><td></td>`;
+  pbody.appendChild(ptotal);
 
-  p.salespeople.forEach(sp => {
-    const spTr = document.createElement('tr');
-    spTr.className = `sp-row sp-group-${idx}`;
-    spTr.innerHTML = `
+  // Tabla de vendedores
+  const sbody = document.getElementById('sp-tbody');
+  sbody.innerHTML = '';
+  view.salespeople.forEach((sp, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="sp-rank">${i + 1}</td>
       <td>${sp.name}</td>
       <td class="num">${qty(sp.units)}</td>
-      <td class="num">${money(sp.revenue)}</td>
-      <td class="num"></td>
-      <td></td>`;
-    pbody.appendChild(spTr);
+      <td class="num"><strong>${money(sp.revenue)}</strong></td>
+      <td class="num">${qty(sp.orders)}</td>
+      <td class="num">${qty(sp.customers)}</td>
+      <td class="num">${sp.freeUnits ? `<span class="free-badge">${qty(sp.freeUnits)}</span>` : '—'}</td>`;
+    sbody.appendChild(tr);
   });
-});
-const ptotal = document.createElement('tr');
-ptotal.className = 'total-row';
-ptotal.innerHTML = `<td>TOTAL</td><td class="num">${qty(t.units)}</td><td class="num">${money(t.revenue)}</td><td class="num">${qty(t.orders)}</td><td></td>`;
-pbody.appendChild(ptotal);
+
+  // Tabla de clientes
+  const cbody = document.getElementById('cust-tbody');
+  cbody.innerHTML = '';
+  view.customers.forEach((c, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="sp-rank">${i + 1}</td>
+      <td>${c.name}</td>
+      <td class="num">${qty(c.orders)}</td>
+      <td class="num">${qty(c.units)}</td>
+      <td class="num"><strong>${money(c.revenue)}</strong></td>`;
+    cbody.appendChild(tr);
+  });
+
+  // Incentivos
+  const fbody = document.getElementById('free-tbody');
+  const freeRows = view.incentives.freeUnitsBySalesperson;
+  if (freeRows.length) {
+    fbody.innerHTML = freeRows.map(f =>
+      `<tr><td>${f.name}</td><td class="num"><span class="free-badge">${qty(f.free)}</span></td></tr>`).join('');
+  } else {
+    fbody.innerHTML = `<tr><td colspan="2" style="color:var(--text-muted)">Sin datos</td></tr>`;
+  }
+  const clist = document.getElementById('cost-list');
+  clist.innerHTML = view.incentives.costItems.map(ci =>
+    `<li><span>${ci.label}</span><span class="amount">${money(ci.amount)}</span></li>`
+  ).join('') || `<li style="color:var(--text-muted)">Sin ítems de costo</li>`;
+  document.getElementById('cost-total').textContent = money(view.incentives.totalDescuentos);
+}
 
 function toggleSp(idx, rowEl) {
   const rows = document.querySelectorAll(`.sp-group-${idx}`);
@@ -527,52 +579,29 @@ function toggleSp(idx, rowEl) {
   rows.forEach(r => r.classList.toggle('visible', open));
 }
 
-// ── Tabla de vendedores ───────────────────────────────────────────────
-const sbody = document.getElementById('sp-tbody');
-d.salespeople.forEach((sp, i) => {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td class="sp-rank">${i + 1}</td>
-    <td>${sp.name}</td>
-    <td class="num">${qty(sp.units)}</td>
-    <td class="num"><strong>${money(sp.revenue)}</strong></td>
-    <td class="num">${qty(sp.orders)}</td>
-    <td class="num">${qty(sp.customers)}</td>
-    <td class="num">${sp.freeUnits ? `<span class="free-badge">${qty(sp.freeUnits)}</span>` : '—'}</td>`;
-  sbody.appendChild(tr);
+// ── Selector de mes ───────────────────────────────────────────────────
+const VIEWS = [
+  { id: 'all', label: 'Todos', view: d,
+    header: { periodLabel: d.meta.periodLabel, periodStart: d.meta.periodStart, periodEnd: d.meta.periodEnd } },
+  ...d.months.map(m => ({
+    id: m.key, label: m.label.split(' ')[0], view: m,
+    header: { periodLabel: m.label, periodStart: m.periodStart, periodEnd: m.periodEnd } }))
+];
+
+const selector = document.getElementById('month-selector');
+selector.innerHTML = VIEWS.map((v, i) =>
+  `<button data-i="${i}" class="${i === 0 ? 'active' : ''}">${v.label}</button>`).join('');
+selector.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  selector.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const v = VIEWS[+btn.dataset.i];
+  render(v.view, v.header);
 });
 
-// ── Tabla de clientes ─────────────────────────────────────────────────
-const cbody = document.getElementById('cust-tbody');
-d.customers.forEach((c, i) => {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td class="sp-rank">${i + 1}</td>
-    <td>${c.name}</td>
-    <td class="num">${qty(c.orders)}</td>
-    <td class="num">${qty(c.units)}</td>
-    <td class="num"><strong>${money(c.revenue)}</strong></td>`;
-  cbody.appendChild(tr);
-});
-
-// ── Incentivos ────────────────────────────────────────────────────────
-const fbody = document.getElementById('free-tbody');
-const freeRows = d.incentives.freeUnitsBySalesperson;
-if (freeRows.length) {
-  freeRows.forEach(f => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${f.name}</td><td class="num"><span class="free-badge">${qty(f.free)}</span></td>`;
-    fbody.appendChild(tr);
-  });
-} else {
-  fbody.innerHTML = `<tr><td colspan="2" style="color:var(--text-muted)">Sin datos</td></tr>`;
-}
-
-const clist = document.getElementById('cost-list');
-clist.innerHTML = d.incentives.costItems.map(ci =>
-  `<li><span>${ci.label}</span><span class="amount">${money(ci.amount)}</span></li>`
-).join('') || `<li style="color:var(--text-muted)">Sin ítems de costo</li>`;
-document.getElementById('cost-total').textContent = money(d.incentives.totalDescuentos);
+// Render inicial: vista general
+render(VIEWS[0].view, VIEWS[0].header);
 </script>
 </body>
 </html>
