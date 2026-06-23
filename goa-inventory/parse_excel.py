@@ -30,9 +30,9 @@ import openpyxl
 # Configuración
 # ─────────────────────────────────────────────────────────────────────────────
 HERE = Path(__file__).parent
-EXCEL_FILE = HERE / "Latin-GOA-MAY.xlsx"
+SOURCES_DIR = HERE / "fuentes"
 OUTPUT_FILE = HERE / "data.js"
-SHEET_NAME = "GOA"
+SHEET_CANDIDATES = ("GOA", "Sheet1")  # orden de preferencia; si no, la primera hoja
 
 BRAND = "Garden of the Andes"
 DISTRIBUTOR = "LatinFood US Corp"
@@ -80,6 +80,105 @@ def split_sku(variant):
     return m.group(1), clean_str(m.group(2))
 
 
+def month_key(date_iso):
+    """'2026-02-24' -> '2026-02'."""
+    return date_iso[:7]
+
+
+def month_label(key):
+    """'2026-02' -> 'Febrero 2026'."""
+    y, m = key.split("-")
+    return f"{MESES_ES[int(m)].capitalize()} {y}"
+
+
+def list_source_files(folder):
+    """Todos los .xlsx de la carpeta, en orden de nombre, sin temporales (~$)."""
+    folder = Path(folder)
+    if not folder.exists():
+        return []
+    return sorted(p for p in folder.glob("*.xlsx") if not p.name.startswith("~$"))
+
+
+def read_sheet_rows(path):
+    """Filas (values_only) de la hoja preferida: GOA → Sheet1 → primera."""
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = None
+    for name in SHEET_CANDIDATES:
+        if name in wb.sheetnames:
+            ws = wb[name]
+            break
+    if ws is None:
+        ws = wb.active
+    return list(ws.iter_rows(values_only=True))
+
+
+def empty_incentives():
+    return {"freeUnitsBySalesperson": [], "costItems": [], "totalDescuentos": 0.0}
+
+
+def merge_incentives(incs):
+    """Combina varios bloques de incentivos en uno."""
+    free, cost, total = {}, [], 0.0
+    for inc in incs:
+        for f in inc.get("freeUnitsBySalesperson", []):
+            free[f["name"]] = free.get(f["name"], 0) + f["free"]
+        cost.extend(inc.get("costItems", []))
+        total += inc.get("totalDescuentos", 0.0)
+    return {
+        "freeUnitsBySalesperson": [{"name": n, "free": v} for n, v in free.items()],
+        "costItems": cost,
+        "totalDescuentos": round(total, 2),
+    }
+
+
+def dominant_month(lines):
+    """Mes más frecuente entre las líneas (para atribuir incentivos del archivo)."""
+    counts = {}
+    for ln in lines:
+        counts[ln["month"]] = counts.get(ln["month"], 0) + 1
+    return max(counts, key=counts.get)
+
+
+def load_all_sources(folder):
+    """Lee todas las fuentes, dedup por orden entre archivos, e incentivos por mes.
+
+    Devuelve: (lines, incentives_by_month, source_names, dup_orders).
+    La PRIMERA aparición de un número de orden gana; las demás se reportan.
+    """
+    seen_orders = set()
+    lines = []
+    incentives_by_month = {}
+    dup_orders = []
+    sources = []
+
+    for path in list_source_files(folder):
+        try:
+            rows = read_sheet_rows(path)
+        except Exception as e:                       # archivo corrupto / sin hoja
+            print(f"  ⚠ No se pudo leer {path.name}: {e} (se omite)")
+            continue
+        sources.append(path.name)
+        file_lines = parse_transactions(rows)
+        kept = []
+        for ln in file_lines:
+            if ln["order"] in seen_orders:
+                dup_orders.append(ln["order"])
+                continue
+            kept.append(ln)
+        for ln in kept:
+            seen_orders.add(ln["order"])
+        lines.extend(kept)
+
+        inc = parse_incentives(rows)
+        has_inc = inc["freeUnitsBySalesperson"] or inc["costItems"] or inc["totalDescuentos"]
+        if has_inc and kept:
+            m = dominant_month(kept)
+            incentives_by_month[m] = merge_incentives(
+                [incentives_by_month.get(m, empty_incentives()), inc])
+
+    return lines, incentives_by_month, sources, sorted(set(dup_orders))
+
+
 def is_transaction_row(row):
     """
     Una línea de pedido real tiene fecha en col A y un SKU [GOAxx] en la col
@@ -108,6 +207,7 @@ def parse_transactions(rows):
         date = row[COL_DATE]
         lines.append({
             "date": date.date().isoformat(),
+            "month": month_key(date.date().isoformat()),
             "order": clean_str(row[COL_ORDER]),
             "sku": sku,
             "product": name,
@@ -240,7 +340,7 @@ def parse_incentives(rows):
             start = i
             break
     if start is None:
-        return {"freeUnitsBySalesperson": [], "costItems": [], "totalDescuentos": 0.0}
+        return empty_incentives()
 
     # En ese encabezado: B=SOLD, C=FREE → localiza la columna FREE dinámicamente
     header = rows[start]
@@ -299,37 +399,20 @@ def _find_cost_label(row):
     return None
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Orquestación
-# ─────────────────────────────────────────────────────────────────────────────
-def build_report():
-    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
-    ws = wb[SHEET_NAME] if SHEET_NAME in wb.sheetnames else wb.active
-    rows = list(ws.iter_rows(values_only=True))
-
-    lines = parse_transactions(rows)
-    if not lines:
-        raise RuntimeError("No se detectaron líneas de transacción. ¿Cambió el formato?")
-
+def build_view(lines, incentives):
+    """Vista agregada (misma forma para la general y para cada mes)."""
     products = aggregate_products(lines)
     salespeople = aggregate_salespeople(lines)
     customers = aggregate_customers(lines)
     daily = aggregate_daily(lines)
-    incentives = parse_incentives(rows)
 
-    # Inyecta cajas gratis en cada vendedor (cruce con bloque de incentivos)
     free_map = {f["name"].lower(): f["free"] for f in incentives["freeUnitsBySalesperson"]}
     for s in salespeople:
-        # match tolerante por prefijo (el bloque usa nombres abreviados)
         s["freeUnits"] = next(
-            (v for k, v in free_map.items() if k in s["name"].lower() or s["name"].lower().startswith(k[:8])),
+            (v for k, v in free_map.items()
+             if k in s["name"].lower() or s["name"].lower().startswith(k[:8])),
             0,
         )
-
-    dates = sorted({ln["date"] for ln in lines})
-    period_start, period_end = dates[0], dates[-1]
-    start_month = int(period_start.split("-")[1])
-    period_label = f"{MESES_ES[start_month].capitalize()} {period_start.split('-')[0]}"
 
     totals = {
         "units": sum(p["units"] for p in products),
@@ -339,6 +422,150 @@ def build_report():
         "salespeople": len(salespeople),
         "freeUnits": sum(f["free"] for f in incentives["freeUnitsBySalesperson"]),
     }
+    return {
+        "totals": totals, "products": products, "salespeople": salespeople,
+        "customers": customers, "daily": daily, "incentives": incentives,
+    }
+
+
+def build_months(lines, incentives_by_month):
+    """Una vista por mes, en orden cronológico, con metadatos de periodo."""
+    by_month = {}
+    for ln in lines:
+        by_month.setdefault(ln["month"], []).append(ln)
+
+    out = []
+    for key in sorted(by_month):
+        month_lines = by_month[key]
+        inc = incentives_by_month.get(key, empty_incentives())
+        view = build_view(month_lines, inc)
+        dates = sorted(ln["date"] for ln in month_lines)
+        out.append({
+            "key": key,
+            "label": month_label(key),
+            "periodStart": dates[0],
+            "periodEnd": dates[-1],
+            **view,
+        })
+    return out
+
+
+def merge_views(views):
+    """Combina varias vistas (general + meses conservados) en una sola."""
+    # Productos por SKU (con desglose por vendedor)
+    prods = {}
+    for v in views:
+        for p in v["products"]:
+            t = prods.setdefault(p["sku"], {
+                "sku": p["sku"], "name": p["name"],
+                "units": 0, "revenue": 0.0, "orders": 0, "_sp": {}})
+            t["units"] += p["units"]; t["revenue"] += p["revenue"]; t["orders"] += p["orders"]
+            for sp in p["salespeople"]:
+                s = t["_sp"].setdefault(sp["name"], {"units": 0, "revenue": 0.0})
+                s["units"] += sp["units"]; s["revenue"] += sp["revenue"]
+    products = []
+    for t in prods.values():
+        sps = [{"name": n, "units": s["units"], "revenue": round(s["revenue"], 2)}
+               for n, s in t["_sp"].items()]
+        sps.sort(key=lambda s: (-s["units"], -s["revenue"]))
+        products.append({"sku": t["sku"], "name": t["name"], "units": t["units"],
+                         "revenue": round(t["revenue"], 2), "orders": t["orders"],
+                         "salespeople": sps})
+    products.sort(key=lambda p: (-p["units"], -p["revenue"]))
+
+    # Vendedores por nombre
+    sps = {}
+    for v in views:
+        for s in v["salespeople"]:
+            t = sps.setdefault(s["name"], {"name": s["name"], "units": 0, "revenue": 0.0,
+                                           "orders": 0, "customers": 0, "freeUnits": 0})
+            t["units"] += s["units"]; t["revenue"] += s["revenue"]; t["orders"] += s["orders"]
+            t["customers"] += s["customers"]; t["freeUnits"] += s.get("freeUnits", 0)
+    salespeople = [{**t, "revenue": round(t["revenue"], 2)} for t in sps.values()]
+    salespeople.sort(key=lambda s: (-s["revenue"], -s["units"]))
+
+    # Clientes por nombre
+    cs = {}
+    for v in views:
+        for c in v["customers"]:
+            t = cs.setdefault(c["name"], {"name": c["name"], "units": 0, "revenue": 0.0, "orders": 0})
+            t["units"] += c["units"]; t["revenue"] += c["revenue"]; t["orders"] += c["orders"]
+    customers = [{**t, "revenue": round(t["revenue"], 2)} for t in cs.values()]
+    customers.sort(key=lambda c: (-c["revenue"], -c["units"]))
+
+    daily = sorted((d for v in views for d in v["daily"]), key=lambda d: d["date"])
+    incentives = merge_incentives([v["incentives"] for v in views])
+
+    totals = {
+        "units": sum(p["units"] for p in products),
+        "revenue": round(sum(p["revenue"] for p in products), 2),
+        "orders": sum(v["totals"]["orders"] for v in views),
+        "customers": len(cs),
+        "salespeople": len(sps),
+        "freeUnits": sum(f["free"] for f in incentives["freeUnitsBySalesperson"]),
+    }
+    return {"totals": totals, "products": products, "salespeople": salespeople,
+            "customers": customers, "daily": daily, "incentives": incentives}
+
+
+def load_previous_report(path):
+    """Parsea el `reportData` del data.js anterior; None si no existe o no se puede."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    txt = path.read_text(encoding="utf-8")
+    m = re.search(r"const reportData = (.*);\s*$", txt, re.S)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except Exception:
+        return None
+
+
+def carry_forward(months, prev_report):
+    """Conserva del data.js anterior los meses que ya no están en las fuentes.
+
+    Devuelve (months_ordenados, carried_keys).
+    """
+    if not prev_report or "months" not in prev_report:
+        return months, []
+    present = {m["key"] for m in months}
+    carried = []
+    for pm in prev_report["months"]:
+        if pm["key"] not in present:
+            months.append(pm)
+            carried.append(pm["key"])
+    months.sort(key=lambda m: m["key"])
+    return months, sorted(carried)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Orquestación
+# ─────────────────────────────────────────────────────────────────────────────
+def build_report():
+    lines, inc_by_month, sources, dup_orders = load_all_sources(SOURCES_DIR)
+    if not lines:
+        raise RuntimeError("No se detectaron líneas en fuentes/. ¿Pusiste los Excel?")
+
+    months = build_months(lines, inc_by_month)
+    prev = load_previous_report(OUTPUT_FILE)
+    months, carried = carry_forward(months, prev)
+
+    # Vista general: desde las líneas presentes; si hay meses conservados, se combinan.
+    general = build_view(lines, merge_incentives(list(inc_by_month.values())))
+    if carried:
+        carried_views = [
+            {k: m[k] for k in ("totals", "products", "salespeople",
+                               "customers", "daily", "incentives")}
+            for m in months if m["key"] in carried
+        ]
+        general = merge_views([general] + carried_views)
+
+    period_start = min(m["periodStart"] for m in months)
+    period_end = max(m["periodEnd"] for m in months)
+    period_label = (months[0]["label"] if len(months) == 1
+                    else f"{months[0]['label']} – {months[-1]['label']}")
 
     return {
         "meta": {
@@ -348,14 +575,12 @@ def build_report():
             "periodEnd": period_end,
             "periodLabel": period_label,
             "lineItems": len(lines),
-            "source": EXCEL_FILE.name,
+            "sources": sources,
+            "carriedForward": carried,
+            "duplicateOrders": dup_orders,
         },
-        "totals": totals,
-        "products": products,
-        "salespeople": salespeople,
-        "customers": customers,
-        "daily": daily,
-        "incentives": incentives,
+        **general,
+        "months": months,
     }
 
 
@@ -363,18 +588,19 @@ def main():
     report = build_report()
     js = "const reportData = " + json.dumps(report, indent=2, ensure_ascii=False) + ";\n"
     OUTPUT_FILE.write_text(js, encoding="utf-8")
-    t = report["totals"]
+
+    m, t = report["meta"], report["totals"]
     print("✓ data.js generado")
-    print(f"  Periodo:    {report['meta']['periodLabel']} "
-          f"({report['meta']['periodStart']} → {report['meta']['periodEnd']})")
-    print(f"  Líneas:     {report['meta']['lineItems']}")
-    print(f"  Productos:  {len(report['products'])} SKUs")
-    print(f"  Vendedores: {len(report['salespeople'])}")
-    print(f"  Clientes:   {t['customers']}")
-    print(f"  Órdenes:    {t['orders']}")
-    print(f"  Unidades:   {t['units']}")
-    print(f"  Ingresos:   ${t['revenue']:,.2f}")
-    print(f"  Cajas gratis (incentivos): {t['freeUnits']}")
+    print(f"  Periodo:    {m['periodLabel']} ({m['periodStart']} → {m['periodEnd']})")
+    print(f"  Fuentes:    {', '.join(m['sources']) or '(ninguna)'}")
+    print(f"  Meses:      {', '.join(mo['key'] for mo in report['months'])}")
+    print(f"  Líneas:     {m['lineItems']}")
+    print(f"  Ingresos:   ${t['revenue']:,.2f}   Unidades: {t['units']}   Órdenes: {t['orders']}")
+    if m["duplicateOrders"]:
+        print(f"  ⚠ Órdenes duplicadas omitidas: {', '.join(m['duplicateOrders'])}")
+    if m["carriedForward"]:
+        print(f"  ⚠ Meses conservados del histórico (sin Excel en fuentes/): "
+              f"{', '.join(m['carriedForward'])}")
 
 
 if __name__ == "__main__":
