@@ -30,9 +30,9 @@ import openpyxl
 # Configuración
 # ─────────────────────────────────────────────────────────────────────────────
 HERE = Path(__file__).parent
-EXCEL_FILE = HERE / "Latin-GOA-MAY.xlsx"
+SOURCES_DIR = HERE / "fuentes"
 OUTPUT_FILE = HERE / "data.js"
-SHEET_NAME = "GOA"
+SHEET_CANDIDATES = ("GOA", "Sheet1")  # orden de preferencia; si no, la primera hoja
 
 BRAND = "Garden of the Andes"
 DISTRIBUTOR = "LatinFood US Corp"
@@ -78,6 +78,27 @@ def split_sku(variant):
     if not m:
         return None, clean_str(variant)
     return m.group(1), clean_str(m.group(2))
+
+
+def list_source_files(folder):
+    """Todos los .xlsx de la carpeta, en orden de nombre, sin temporales (~$)."""
+    folder = Path(folder)
+    if not folder.exists():
+        return []
+    return sorted(p for p in folder.glob("*.xlsx") if not p.name.startswith("~$"))
+
+
+def read_sheet_rows(path):
+    """Filas (values_only) de la hoja preferida: GOA → Sheet1 → primera."""
+    wb = openpyxl.load_workbook(path, data_only=True)
+    ws = None
+    for name in SHEET_CANDIDATES:
+        if name in wb.sheetnames:
+            ws = wb[name]
+            break
+    if ws is None:
+        ws = wb.active
+    return list(ws.iter_rows(values_only=True))
 
 
 def is_transaction_row(row):
