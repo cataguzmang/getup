@@ -5,3 +5,5 @@ __pycache__/
 
 # Datos comerciales reales de GOA/Altagama — NO subir a repo público
 Inventarios-GOA-altagama/
+.pytest_cache/
+tests/__pycache__/
