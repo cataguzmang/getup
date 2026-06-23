@@ -112,6 +112,73 @@ def read_sheet_rows(path):
     return list(ws.iter_rows(values_only=True))
 
 
+def empty_incentives():
+    return {"freeUnitsBySalesperson": [], "costItems": [], "totalDescuentos": 0.0}
+
+
+def merge_incentives(incs):
+    """Combina varios bloques de incentivos en uno."""
+    free, cost, total = {}, [], 0.0
+    for inc in incs:
+        for f in inc.get("freeUnitsBySalesperson", []):
+            free[f["name"]] = free.get(f["name"], 0) + f["free"]
+        cost.extend(inc.get("costItems", []))
+        total += inc.get("totalDescuentos", 0.0)
+    return {
+        "freeUnitsBySalesperson": [{"name": n, "free": v} for n, v in free.items()],
+        "costItems": cost,
+        "totalDescuentos": round(total, 2),
+    }
+
+
+def dominant_month(lines):
+    """Mes más frecuente entre las líneas (para atribuir incentivos del archivo)."""
+    counts = {}
+    for ln in lines:
+        counts[ln["month"]] = counts.get(ln["month"], 0) + 1
+    return max(counts, key=counts.get)
+
+
+def load_all_sources(folder):
+    """Lee todas las fuentes, dedup por orden entre archivos, e incentivos por mes.
+
+    Devuelve: (lines, incentives_by_month, source_names, dup_orders).
+    La PRIMERA aparición de un número de orden gana; las demás se reportan.
+    """
+    seen_orders = set()
+    lines = []
+    incentives_by_month = {}
+    dup_orders = []
+    sources = []
+
+    for path in list_source_files(folder):
+        sources.append(path.name)
+        try:
+            rows = read_sheet_rows(path)
+        except Exception as e:                       # archivo corrupto / sin hoja
+            print(f"  ⚠ No se pudo leer {path.name}: {e} (se omite)")
+            continue
+        file_lines = parse_transactions(rows)
+        kept = []
+        for ln in file_lines:
+            if ln["order"] in seen_orders:
+                dup_orders.append(ln["order"])
+                continue
+            kept.append(ln)
+        for ln in kept:
+            seen_orders.add(ln["order"])
+        lines.extend(kept)
+
+        inc = parse_incentives(rows)
+        has_inc = inc["freeUnitsBySalesperson"] or inc["costItems"] or inc["totalDescuentos"]
+        if has_inc and kept:
+            m = dominant_month(kept)
+            incentives_by_month[m] = merge_incentives(
+                [incentives_by_month.get(m, empty_incentives()), inc])
+
+    return lines, incentives_by_month, sources, sorted(set(dup_orders))
+
+
 def is_transaction_row(row):
     """
     Una línea de pedido real tiene fecha en col A y un SKU [GOAxx] en la col

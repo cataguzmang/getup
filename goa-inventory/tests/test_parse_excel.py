@@ -37,3 +37,20 @@ def test_parse_transactions_agrega_mes():
 def test_month_label_en_espanol():
     assert pe.month_label("2026-02") == "Febrero 2026"
     assert pe.month_label("2026-05") == "Mayo 2026"
+
+
+def test_load_all_sources_dedup_por_orden(tmp_path):
+    dt = datetime.datetime
+    # archivo 1: orden S1 (feb)
+    make_xlsx(tmp_path / "1.xlsx", [HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana")])
+    # archivo 2: repite S1 y agrega S2 (mar)
+    make_xlsx(tmp_path / "2.xlsx", [HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana"),
+        line(dt(2026, 3, 1), "S2", "[GOA02] Pure Chamoline", "Tienda B", "Luis")])
+    lines, inc_by_month, sources, dups = pe.load_all_sources(tmp_path)
+    orders = sorted({ln["order"] for ln in lines})
+    assert orders == ["S1", "S2"]          # S1 no se cuenta dos veces
+    assert len(lines) == 2
+    assert "S1" in dups                      # se reporta el duplicado
+    assert sorted(sources) == ["1.xlsx", "2.xlsx"]
