@@ -80,6 +80,17 @@ def split_sku(variant):
     return m.group(1), clean_str(m.group(2))
 
 
+def month_key(date_iso):
+    """'2026-02-24' -> '2026-02'."""
+    return date_iso[:7]
+
+
+def month_label(key):
+    """'2026-02' -> 'Febrero 2026'."""
+    y, m = key.split("-")
+    return f"{MESES_ES[int(m)].capitalize()} {y}"
+
+
 def list_source_files(folder):
     """Todos los .xlsx de la carpeta, en orden de nombre, sin temporales (~$)."""
     folder = Path(folder)
@@ -129,6 +140,7 @@ def parse_transactions(rows):
         date = row[COL_DATE]
         lines.append({
             "date": date.date().isoformat(),
+            "month": month_key(date.date().isoformat()),
             "order": clean_str(row[COL_ORDER]),
             "sku": sku,
             "product": name,
