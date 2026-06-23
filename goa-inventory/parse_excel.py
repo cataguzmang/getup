@@ -428,6 +428,28 @@ def build_view(lines, incentives):
     }
 
 
+def build_months(lines, incentives_by_month):
+    """Una vista por mes, en orden cronológico, con metadatos de periodo."""
+    by_month = {}
+    for ln in lines:
+        by_month.setdefault(ln["month"], []).append(ln)
+
+    out = []
+    for key in sorted(by_month):
+        month_lines = by_month[key]
+        inc = incentives_by_month.get(key, empty_incentives())
+        view = build_view(month_lines, inc)
+        dates = sorted(ln["date"] for ln in month_lines)
+        out.append({
+            "key": key,
+            "label": month_label(key),
+            "periodStart": dates[0],
+            "periodEnd": dates[-1],
+            **view,
+        })
+    return out
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Orquestación
 # ─────────────────────────────────────────────────────────────────────────────

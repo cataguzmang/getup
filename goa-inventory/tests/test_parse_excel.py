@@ -71,3 +71,17 @@ def test_build_view_totales_e_incentivos():
     assert v["totals"]["customers"] == 2          # Tienda A y Tienda B
     ana = next(s for s in v["salespeople"] if s["name"] == "Ana")
     assert ana["freeUnits"] == 5                   # inyectado desde incentivos
+
+
+def test_build_months_separa_por_mes():
+    dt = datetime.datetime
+    lines = pe.parse_transactions([HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana"),
+        line(dt(2026, 3, 1), "S2", "[GOA02] Pure Chamoline", "Tienda B", "Luis"),
+        line(dt(2026, 3, 2), "S3", "[GOA01] Green Tea", "Tienda C", "Luis")])
+    months = pe.build_months(lines, {})
+    keys = [m["key"] for m in months]
+    assert keys == ["2026-02", "2026-03"]                 # cronológico
+    assert months[0]["label"] == "Febrero 2026"
+    assert months[1]["totals"]["orders"] == 2             # S2 y S3
+    assert months[0]["periodStart"] == "2026-02-24"
