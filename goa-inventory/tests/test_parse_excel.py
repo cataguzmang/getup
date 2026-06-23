@@ -150,3 +150,81 @@ def test_build_report_integra_general_y_meses(tmp_path, monkeypatch):
     assert report["totals"]["orders"] == 3
     assert report["meta"]["sources"] == ["feb.xlsx", "mar.xlsx"]
     assert report["meta"]["carriedForward"] == []
+
+
+def test_carry_forward_via_build_report(tmp_path, monkeypatch):
+    """Integración: carry-forward a través de build_report/main.
+
+    Crea dos fuentes (feb y mar), corre main() para que escriba data.js con
+    ambos meses, elimina la fuente de marzo y vuelve a correr build_report().
+    Verifica que:
+      - meta["carriedForward"] contiene la clave "2026-03".
+      - Marzo sigue presente en months.
+      - Los totales generales reconcilian: units y orders coinciden con la suma
+        de los meses.
+    """
+    dt = datetime.datetime
+    folder = tmp_path / "fuentes"
+    folder.mkdir()
+    output = tmp_path / "data.js"
+
+    # Fuente de febrero
+    make_xlsx(folder / "feb.xlsx", [HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana", qty=2, total=43.70)])
+    # Fuente de marzo
+    mar_path = folder / "mar.xlsx"
+    make_xlsx(mar_path, [HEADER,
+        line(dt(2026, 3, 1), "S2", "[GOA02] Pure Chamoline", "Tienda B", "Luis")])
+
+    monkeypatch.setattr(pe, "SOURCES_DIR", folder)
+    monkeypatch.setattr(pe, "OUTPUT_FILE", output)
+
+    # Primera ejecución: escribe data.js con ambos meses
+    pe.main()
+    assert output.exists()
+
+    # Elimina la fuente de marzo para simular que ya no está disponible
+    mar_path.unlink()
+
+    # Segunda ejecución: solo hay feb, pero marzo debe conservarse del histórico
+    report = pe.build_report()
+    month_keys = [m["key"] for m in report["months"]]
+    assert "2026-03" in month_keys, "Marzo debe conservarse por carry-forward"
+    assert report["meta"]["carriedForward"] == ["2026-03"]
+
+    # Totales generales concilian con la suma de los meses
+    assert report["totals"]["units"] == sum(m["totals"]["units"] for m in report["months"])
+    assert report["totals"]["orders"] == sum(m["totals"]["orders"] for m in report["months"])
+
+
+def test_archivo_corrupto_no_levanta_excepcion(tmp_path, monkeypatch):
+    """Integración: un archivo .xlsx corrupto no debe detener el pipeline.
+
+    Coloca un archivo inválido junto a uno válido. Verifica que build_report()
+    no lanza excepción, que el mes del archivo válido aparece en el reporte y
+    que el archivo corrupto NO queda listado en meta["sources"] (Fix 2).
+    """
+    dt = datetime.datetime
+    folder = tmp_path / "fuentes"
+    folder.mkdir()
+    output = tmp_path / "data.js"
+
+    # Fuente válida
+    make_xlsx(folder / "feb.xlsx", [HEADER,
+        line(dt(2026, 2, 24), "S1", "[GOA01] Green Tea", "Tienda A", "Ana")])
+
+    # Archivo corrupto (no es un xlsx real)
+    (folder / "bad.xlsx").write_text("not a real xlsx", encoding="utf-8")
+
+    monkeypatch.setattr(pe, "SOURCES_DIR", folder)
+    monkeypatch.setattr(pe, "OUTPUT_FILE", output)
+
+    # No debe levantar excepción
+    report = pe.build_report()
+
+    # El mes del archivo válido está presente
+    assert any(m["key"] == "2026-02" for m in report["months"])
+
+    # El archivo corrupto NO aparece en meta["sources"]
+    assert "bad.xlsx" not in report["meta"]["sources"]
+    assert "feb.xlsx" in report["meta"]["sources"]

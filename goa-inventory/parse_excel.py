@@ -152,12 +152,12 @@ def load_all_sources(folder):
     sources = []
 
     for path in list_source_files(folder):
-        sources.append(path.name)
         try:
             rows = read_sheet_rows(path)
         except Exception as e:                       # archivo corrupto / sin hoja
             print(f"  ⚠ No se pudo leer {path.name}: {e} (se omite)")
             continue
+        sources.append(path.name)
         file_lines = parse_transactions(rows)
         kept = []
         for ln in file_lines:
@@ -340,7 +340,7 @@ def parse_incentives(rows):
             start = i
             break
     if start is None:
-        return {"freeUnitsBySalesperson": [], "costItems": [], "totalDescuentos": 0.0}
+        return empty_incentives()
 
     # En ese encabezado: B=SOLD, C=FREE → localiza la columna FREE dinámicamente
     header = rows[start]
