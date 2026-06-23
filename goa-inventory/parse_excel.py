@@ -508,6 +508,38 @@ def merge_views(views):
             "customers": customers, "daily": daily, "incentives": incentives}
 
 
+def load_previous_report(path):
+    """Parsea el `reportData` del data.js anterior; None si no existe o no se puede."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    txt = path.read_text(encoding="utf-8")
+    m = re.search(r"const reportData = (.*);\s*$", txt, re.S)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except Exception:
+        return None
+
+
+def carry_forward(months, prev_report):
+    """Conserva del data.js anterior los meses que ya no están en las fuentes.
+
+    Devuelve (months_ordenados, carried_keys).
+    """
+    if not prev_report or "months" not in prev_report:
+        return months, []
+    present = {m["key"] for m in months}
+    carried = []
+    for pm in prev_report["months"]:
+        if pm["key"] not in present:
+            months.append(pm)
+            carried.append(pm["key"])
+    months.sort(key=lambda m: m["key"])
+    return months, sorted(carried)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Orquestación
 # ─────────────────────────────────────────────────────────────────────────────

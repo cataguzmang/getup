@@ -103,3 +103,29 @@ def test_merge_views_suma_y_une():
     green = next(p for p in g["products"] if p["sku"] == "GOA01")
     assert green["units"] == 2                         # GOA01 en feb y mar
     assert len(g["daily"]) == 3                        # concatenado
+
+
+def test_carry_forward_conserva_mes_ausente(tmp_path):
+    prev = {"months": [
+        {"key": "2026-01", "label": "Enero 2026", "periodStart": "2026-01-05",
+         "periodEnd": "2026-01-20", "totals": {"units": 9}, "products": [],
+         "salespeople": [], "customers": [], "daily": [], "incentives": pe.empty_incentives()},
+        {"key": "2026-02", "label": "Febrero 2026", "totals": {"units": 1}, "products": [],
+         "salespeople": [], "customers": [], "daily": [], "incentives": pe.empty_incentives()},
+    ]}
+    months = [{"key": "2026-02", "label": "Febrero 2026", "totals": {"units": 1},
+               "products": [], "salespeople": [], "customers": [], "daily": [],
+               "incentives": pe.empty_incentives()}]
+    merged, carried = pe.carry_forward(months, prev)
+    keys = [m["key"] for m in merged]
+    assert keys == ["2026-01", "2026-02"]    # enero conservado, ordenado
+    assert carried == ["2026-01"]
+
+
+def test_load_previous_report_parsea_datajs(tmp_path):
+    import json
+    p = tmp_path / "data.js"
+    p.write_text("const reportData = " + json.dumps({"months": []}) + ";\n", encoding="utf-8")
+    rep = pe.load_previous_report(p)
+    assert rep == {"months": []}
+    assert pe.load_previous_report(tmp_path / "noexiste.js") is None
