@@ -6,19 +6,32 @@ para que el reporte HTML tenga datos actualizados cada mes.
 Uso: python generar_data.py
 """
 
-import openpyxl
+import re
 import json
+from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
 
-EXCEL_FILE = "Historico Ventas Latin Food - San Jose.xlsx"
-OUTPUT_FILE = "data.js"
+import openpyxl
+
+HERE = Path(__file__).parent
+SOURCES_DIR = HERE / "fuentes"
+OUTPUT_FILE = HERE / "data.js"
 
 MES_CORTO = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',
              7:'Jul',8:'Ago',9:'Sep',10:'Oct',11:'Nov',12:'Dic'}
 MES_LARGO = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',
              6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',
              10:'Octubre',11:'Noviembre',12:'Diciembre'}
+
+# Formato canónico: Order Date · Order · Product Variant · Customer · Salesperson ·
+# Company · Qty Delivered · Qty Invoiced · Qty Ordered · Unit Price · Total
+SKU_RE = re.compile(r"^\s*\[[A-Z]{2,4}\d+\]\s*")
+STATE_BY_COMPANY = {
+    "latinfood florida": "Florida",
+    "latinfood us corp.": "Nueva York",
+    "latinfood us corp": "Nueva York",
+}
 
 
 def month_key(date):
@@ -37,45 +50,74 @@ def month_label_btn(ym):
     return f"{MES_CORTO[m]} {y}"
 
 
+def _source_files():
+    if not SOURCES_DIR.exists():
+        return []
+    return sorted(p for p in SOURCES_DIR.glob("*.xlsx") if not p.name.startswith("~$"))
+
+
+def _state_from_company(company):
+    if not isinstance(company, str):
+        return None
+    return STATE_BY_COMPANY.get(re.sub(r"\s+", " ", company).strip().lower())
+
+
+def _is_tx(row):
+    """Fila de pedido real: datetime en col A y SKU [XXX##] en col C (Product Variant)."""
+    return (
+        isinstance(row[0], datetime)
+        and isinstance(row[2], str)
+        and SKU_RE.match(row[2]) is not None
+    )
+
+
+def _product_name(variant):
+    """'[GET01] Jack Mackerel in Brine ' -> 'Jack Mackerel in Brine'."""
+    return SKU_RE.sub("", str(variant)).strip()
+
+
 def load_rows():
-    wb = openpyxl.load_workbook(EXCEL_FILE)
-    ws = wb['Historico']
+    """Lee todos los fuentes/*.xlsx (formato canónico) y devuelve las filas de pedido
+    limpias. Ignora el bloque de incentivos, subtotales y separadores."""
     rows = []
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        company, state, customer, order, date, cod_prod, product, qty_del, qty_inv, qty_ord, salesperson, total, unit_price = row
-        if not date or not state:
-            continue
+    for path in _source_files():
+        wb = openpyxl.load_workbook(path, data_only=True)
+        ws = wb.worksheets[0]
+        for row in ws.iter_rows(values_only=True):
+            if not _is_tx(row):
+                continue
+            date, order, variant, customer, salesperson, company = row[:6]
+            qty_del, unit_price, total = row[6], row[9], row[10]
 
-        qty = qty_del or 0
-        # Skip lines where nothing was delivered (qty_delivered = 0): these are
-        # undelivered/cancelled order lines, not real sales or promo boxes.
-        if qty <= 0:
-            continue
+            state = _state_from_company(company)
+            if not state:
+                continue
+            qty = qty_del or 0
+            if qty <= 0:                       # entregado 0 → no es venta ni promo real
+                continue
 
-        # The Excel mixes two column layouts:
-        #   - Historical rows (Oct 2025 – Apr 2026): "Total" = line total, "Unit Price" = price per box
-        #   - Recent rows (from May 2026):           columns swapped (Unit Price = line total, Total = price/box)
-        # Robust rule: for a delivered line, line_total = max(Total, Unit Price),
-        # because line_total = qty * price_per_box >= price_per_box for qty >= 1.
-        a = total or 0
-        b = unit_price or 0
-        is_promo = (a == 0 and b == 0)          # free box: both columns are 0
-        line_rev = max(a, b)                    # extended line revenue
-        box_price = line_rev / qty if qty > 0 else 0.0   # price for a single box
+            # Regla de montos ACTUAL (se conserva en SP2; su arreglo es SP3):
+            # el Excel mezcla dos orientaciones (mayo 2026 viene intercambiado),
+            # line_total = max(Total, Unit Price).
+            a = total or 0
+            b = unit_price or 0
+            is_promo = (a == 0 and b == 0)
+            line_rev = max(a, b)
+            box_price = line_rev / qty if qty > 0 else 0.0
 
-        rows.append({
-            'company': company or '',
-            'state': state,
-            'customer': (customer or '').strip(),
-            'order': order or '',
-            'date': date if isinstance(date, datetime) else datetime(date.year, date.month, date.day),
-            'product': (product or '').strip(),
-            'qty': qty,
-            'line_rev': line_rev,
-            'box_price': box_price,
-            'is_promo': is_promo,
-            'salesperson': (salesperson or '').strip(),
-        })
+            rows.append({
+                'company': company or '',
+                'state': state,
+                'customer': (customer or '').strip(),
+                'order': order or '',
+                'date': date,
+                'product': _product_name(variant),
+                'qty': qty,
+                'line_rev': line_rev,
+                'box_price': box_price,
+                'is_promo': is_promo,
+                'salesperson': (salesperson or '').strip(),
+            })
     return rows
 
 
@@ -277,7 +319,7 @@ def find_product_first_months(rows, months):
 
 
 def main():
-    print(f"Leyendo {EXCEL_FILE}...")
+    print("Leyendo fuentes/...")
     rows = load_rows()
 
     # Determine sorted month list
@@ -320,7 +362,7 @@ def main():
 
     # Serialize to JS
     js = f"""// AUTO-GENERADO por generar_data.py — no editar manualmente
-// Fuente: {EXCEL_FILE}
+// Fuente: fuentes/*.xlsx
 // Generado: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 
 const MONTHS = {json.dumps(months_short, ensure_ascii=False)};
