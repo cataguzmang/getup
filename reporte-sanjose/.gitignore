@@ -16,7 +16,7 @@ venv/
 *.pdf
 
 # Excepción: fixtures de test versionados (JSON de referencia)
-!tests/reference_pre_sp2.json
+!tests/reference_sp3.json
 
 # Claude Code
 .claude/

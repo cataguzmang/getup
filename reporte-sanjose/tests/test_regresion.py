@@ -1,16 +1,11 @@
 """
-Regresión de SP2 (plomería). Dos garantías distintas:
+Regresión de SP3a. La base ahora son los números CORREGIDOS (reference_sp3.json):
+regla de montos por mes, cajas gratis bien detectadas, valuación de promos estable,
+descuentos → revenue neto, y clientes nuevos calculados.
 
-1. PLOMERÍA FIEL — correr el pipeline nuevo SOLO con el histórico migrado reproduce
-   IDÉNTICO el data.js viejo (referencia). Prueba que migración + refactor no cambió nada.
-
-2. CON JUNIO — al sumar junio, los campos NO-promo de los meses históricos quedan
-   idénticos y aparece "Jun 26". Los valores `pv` (inversión en promos) de meses
-   históricos pueden moverse centavos porque la valuación de cajas gratis usa el
-   promedio de precios de TODO el pool cargado (acoplamiento conocido; su revisión es SP3).
+- Guarda contra cambios accidentales futuros (todos los meses, todo GENERAL_DATA/D).
+- Verifica que junio trae descuentos → revNeto y clientes nuevos calculados.
 """
-
-import copy
 import json
 import re
 from pathlib import Path
@@ -20,80 +15,36 @@ import pytest
 import generar_data as g
 
 SANJOSE = Path(__file__).resolve().parent.parent
-SRC_HISTORICO = SANJOSE / "Historico Ventas Latin Food - San Jose.xlsx"
-HIST = SANJOSE / "fuentes" / "San-Jose-historico-hasta-2026-05.xlsx"
-REF = json.load(open(Path(__file__).parent / "reference_pre_sp2.json", encoding="utf-8"))
-
-HIST_MONTHS = ["Oct 25", "Nov 25", "Dic 25", "Ene 26", "Feb 26", "Mar 26", "Abr 26", "May 26"]
+FUENTES = SANJOSE / "fuentes"
+REF = json.load(open(Path(__file__).parent / "reference_sp3.json", encoding="utf-8"))
 
 
 def _parse_data_js(text):
     def grab(name, pat):
         return json.loads(re.search(r"\b" + name + r" = (" + pat + r");", text, re.S).group(1))
-    return {
-        "MONTHS": grab("MONTHS", r"\[.*?\]"),
-        "D": grab("D", r"\{.*?\}"),
-        "GENERAL_DATA": grab("GENERAL_DATA", r"\{.*\}"),
-    }
+    return {"MONTHS": grab("MONTHS", r"\[.*?\]"),
+            "D": grab("D", r"\{.*?\}"),
+            "GENERAL_DATA": grab("GENERAL_DATA", r"\{.*\}")}
 
 
-def _strip_pv(view):
-    """Copia de una vista-mes sin los campos de inversión en promos (pv)."""
-    v = copy.deepcopy(view)
-    v.get("summary", {}).pop("pv", None)
-    for s in v.get("states", {}).values():
-        s.pop("pv", None)
-    return v
-
-
-def _run(monkeypatch, tmp_path, sources_dir):
-    monkeypatch.setattr(g, "SOURCES_DIR", sources_dir)
+@pytest.mark.skipif(not (FUENTES / "San-Jose-historico-hasta-2026-05.xlsx").exists(),
+                    reason="faltan fuentes reales (correr migrar_historico.py + split_excel.py)")
+def test_regresion_vs_base_sp3(tmp_path, monkeypatch):
     monkeypatch.setattr(g, "OUTPUT_FILE", tmp_path / "data.js")
     g.main()
-    return _parse_data_js((tmp_path / "data.js").read_text(encoding="utf-8"))
-
-
-@pytest.mark.skipif(not SRC_HISTORICO.exists(),
-                    reason="falta el Historico original (datos privados no versionados)")
-def test_regresion_plomeria_historico_solo(tmp_path, monkeypatch):
-    """Solo el histórico → data.js IDÉNTICO a la referencia (plomería fiel).
-
-    Migra en caliente desde el Historico original, así corre siempre que exista la
-    fuente privada (no depende de haber corrido migrar_historico.py a mano)."""
-    import migrar_historico as mig
-    src = tmp_path / "fuentes"
-    src.mkdir()
-    mig.migrate(src=SRC_HISTORICO, out=src / "San-Jose-historico.xlsx")
-    out = _run(monkeypatch, tmp_path, src)
-
+    out = _parse_data_js((tmp_path / "data.js").read_text(encoding="utf-8"))
     assert out["MONTHS"] == REF["MONTHS"]
-    for m in HIST_MONTHS:
-        assert out["GENERAL_DATA"][m] == REF["GENERAL_DATA"][m], f"cambió {m}"
-    for estado in ("fl", "ny"):
-        for metrica, serie_ref in REF["D"][estado].items():
-            assert out["D"][estado][metrica] == serie_ref, f"D.{estado}.{metrica} cambió"
+    assert out["GENERAL_DATA"] == REF["GENERAL_DATA"]
+    assert out["D"] == REF["D"]
 
 
-@pytest.mark.skipif(not HIST.exists(),
-                    reason="falta el histórico migrado (correr migrar_historico.py)")
-def test_regresion_con_junio_agrega_mes(tmp_path, monkeypatch):
-    """Con el fuentes/ real (histórico + junio): agrega Jun 26; los campos no-pv de los
-    meses históricos quedan idénticos; pv histórico solo se mueve centavos (deuda SP3)."""
-    out = _run(monkeypatch, tmp_path, g.SOURCES_DIR)  # SOURCES_DIR real por defecto
-
-    assert "Jun 26" in out["MONTHS"]
-    assert len(out["D"]["fl"]["rev"]) == 9
-
-    # Campos NO-promo de los meses históricos: idénticos
-    for m in HIST_MONTHS:
-        assert _strip_pv(out["GENERAL_DATA"][m]) == _strip_pv(REF["GENERAL_DATA"][m]), \
-            f"cambió algo no-pv en {m}"
-    for estado in ("fl", "ny"):
-        for metrica in ("rev", "cajas", "pc", "ord"):
-            assert out["D"][estado][metrica][:8] == REF["D"][estado][metrica], \
-                f"D.{estado}.{metrica} histórico cambió"
-
-    # pv histórico: solo se mueve por el pool de promedios de promos (acoplamiento SP3)
-    for estado in ("fl", "ny"):
-        for i in range(8):
-            assert abs(out["D"][estado]["pv"][i] - REF["D"][estado]["pv"][i]) < 1.0
+@pytest.mark.skipif(not (FUENTES / "San-Jose-2026-06.xlsx").exists(),
+                    reason="falta el fuentes de junio")
+def test_junio_tiene_descuentos_y_neto(tmp_path, monkeypatch):
+    monkeypatch.setattr(g, "OUTPUT_FILE", tmp_path / "data.js")
+    g.main()
+    out = _parse_data_js((tmp_path / "data.js").read_text(encoding="utf-8"))
+    jun = out["GENERAL_DATA"]["Jun 26"]["summary"]
+    assert jun["descuentos"] > 0
+    assert jun["revNeto"] == round(jun["rev"] - jun["descuentos"], 2)
+    assert jun["clientesNuevos"] >= 0
