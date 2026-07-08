@@ -13,6 +13,7 @@ HEADER = [
 
 def _pad(row):
     """Rellena la fila a 11 columnas con None (como hace openpyxl al leer)."""
+    assert len(row) <= len(HEADER), f"fila con {len(row)} columnas (máx {len(HEADER)}): {row!r}"
     return list(row) + [None] * (len(HEADER) - len(row))
 
 
