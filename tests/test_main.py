@@ -45,6 +45,12 @@ def test_main_writes_canonical_files(tmp_path, monkeypatch, capsys):
     assert list(ws.iter_rows(values_only=True))[0] == tuple(sx.HEADER)
     assert ws.max_row == 3  # header + 2 líneas
 
+    # El bloque de incentivos de la hoja de MIA debe viajar al archivo de San José
+    get_ws = openpyxl.load_workbook(get).active
+    cells = [c for r in get_ws.iter_rows(values_only=True) for c in r]
+    assert "SOLD" in cells
+    assert "Alexandra Jimenez" in cells
+
     out = capsys.readouterr().out
     assert "GOA" in out and "San José" in out
     assert "pendiente" in out  # GET no se buildea en SP1
@@ -71,3 +77,16 @@ def test_main_only_filters_brands(tmp_path, monkeypatch):
     sx.main(["--no-build", "--only", "GOA"])
     assert (tmp_path / "goa-inventory" / "fuentes" / "GOA-2026-06.xlsx").exists()
     assert not (tmp_path / "reporte-sanjose" / "fuentes" / "San-Jose-2026-06.xlsx").exists()
+
+
+def test_main_returns_1_when_generator_fails(tmp_path, monkeypatch, capsys):
+    """Si el generador de una marca lista falla, main devuelve 1 (no silencia)."""
+    monkeypatch.setattr(sx, "ROOT", tmp_path)
+    _seed_entrada(tmp_path)
+    folder = tmp_path / sx.BRANDS["GOA"].folder  # GOA es la única sp1_ready
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / sx.BRANDS["GOA"].generator).write_text(
+        "import sys; sys.exit(2)\n", encoding="utf-8")
+    rc = sx.main(["--only", "GOA"])
+    assert rc == 1
+    assert "generador falló" in capsys.readouterr().out

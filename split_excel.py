@@ -219,6 +219,12 @@ def run_generator(brand):
 
 
 def main(argv=None):
+    # El resumen imprime ✓/⚠/↻/é; en un pipe Windows-cp1252 esto reventaría.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):
+        pass
+
     args = parse_args(argv)
     only = {c.strip().upper() for c in args.only.split(",") if c.strip()}
 
@@ -230,6 +236,7 @@ def main(argv=None):
     data = collect(files)
     print(f"✓ split_excel.py — {', '.join(f.name for f in files)}\n")
 
+    build_failed = False
     for code, brand in BRANDS.items():
         if only and code not in only:
             continue
@@ -258,6 +265,7 @@ def main(argv=None):
             if rc == 0:
                 print("    ↻ data.js regenerado ✓")
             else:
+                build_failed = True
                 print(f"    ✗ generador falló (rc={rc}):\n{log}")
 
     if data.unmatched:
@@ -269,7 +277,7 @@ def main(argv=None):
     else:
         print("\n  ⚠ SKUs no mapeados: (ninguno)")
 
-    return 0
+    return 1 if build_failed else 0
 
 
 if __name__ == "__main__":
