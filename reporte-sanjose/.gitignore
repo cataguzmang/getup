@@ -15,6 +15,9 @@ venv/
 *.xlsx
 *.pdf
 
+# Excepción: fixtures de test versionados (JSON de referencia)
+!tests/reference_pre_sp2.json
+
 # Claude Code
 .claude/
 .claudecodeignore

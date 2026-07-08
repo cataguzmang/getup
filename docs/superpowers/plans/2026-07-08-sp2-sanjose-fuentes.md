@@ -550,12 +550,17 @@ def test_regresion_reproduce_historico(tmp_path, monkeypatch):
     # Los meses históricos deben reproducirse IDÉNTICOS
     for m in HIST_MONTHS:
         assert out["GENERAL_DATA"][m] == REF["GENERAL_DATA"][m], f"cambió {m}"
-    assert out["D"]["fl"][:8] == REF["D"]["fl"], "D.fl histórico cambió"
-    assert out["D"]["ny"][:8] == REF["D"]["ny"], "D.ny histórico cambió"
 
-    # Y junio 2026 debe aparecer como mes nuevo
+    # D["fl"]/D["ny"] son dicts de arrays por métrica (rev, cajas, pv, pc, ord),
+    # una entrada por mes. Los primeros 8 valores (meses históricos) deben ser idénticos.
+    for estado in ("fl", "ny"):
+        for metrica, serie_ref in REF["D"][estado].items():
+            assert out["D"][estado][metrica][:8] == serie_ref, \
+                f"D.{estado}.{metrica} histórico cambió"
+
+    # Y junio 2026 debe aparecer como mes nuevo (novena entrada en cada serie)
     assert "Jun 26" in out["MONTHS"]
-    assert len(out["D"]["fl"]) == 9
+    assert len(out["D"]["fl"]["rev"]) == 9
 ```
 
 - [ ] **Step 4: Correr la regresión**
