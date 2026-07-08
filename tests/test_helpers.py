@@ -1,6 +1,6 @@
 import datetime
 
-from helpers import tx, subtotal, HEADER
+from helpers import tx, subtotal
 import split_excel as sx
 
 D = datetime.datetime
