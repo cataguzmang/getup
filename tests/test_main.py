@@ -60,7 +60,12 @@ def test_main_writes_unmatched(tmp_path, monkeypatch):
     monkeypatch.setattr(sx, "ROOT", tmp_path)
     _seed_entrada(tmp_path)
     sx.main(["--no-build"])
-    assert (tmp_path / "unmatched" / "unmatched.xlsx").exists()
+    # El XYZ sembrado es de junio → archivo namespaced por mes
+    out = tmp_path / "unmatched" / "unmatched-2026-06.xlsx"
+    assert out.exists()
+    cells = [c for r in openpyxl.load_workbook(out).active.iter_rows(values_only=True)
+             for c in r]
+    assert "[XYZ01] mystery" in cells
 
 
 def test_main_no_input(tmp_path, monkeypatch, capsys):

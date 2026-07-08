@@ -50,3 +50,14 @@ def test_write_canonical_creates_missing_dirs(tmp_path):
     out = tmp_path / "nueva" / "fuentes" / "GOA-2026-06.xlsx"
     sx.write_canonical(out, [], [], "GOA")
     assert out.exists()
+
+
+def test_write_canonical_overwrites_not_appends(tmp_path):
+    """Reprocesar el mismo mes sobrescribe: no duplica filas."""
+    rows = [[D(2026, 6, 24), "S1", "[GOA02] x", "c", "sp",
+             "LatinFood US Corp.", 1, 1, 1, 21.85, 21.85]]
+    out = tmp_path / "GOA-2026-06.xlsx"
+    sx.write_canonical(out, rows, [], "GOA")
+    sx.write_canonical(out, rows, [], "GOA")  # segunda corrida, mismo archivo
+    ws = openpyxl.load_workbook(out).active
+    assert ws.max_row == 2  # cabecera + 1 fila, no 3

@@ -153,7 +153,8 @@ def collect(input_files):
                 prev = incentives[dom_code].get(dom_month, [])
                 incentives[dom_code][dom_month] = prev + block
             elif block:
-                print(f"  ⚠ Bloque de incentivos en '{ws.title}' sin filas de pedido; se omite")
+                print(f"  ⚠ Bloque de incentivos en '{ws.title}' sin filas de pedido "
+                      f"de marca conocida; se omite")
 
     # Convertir defaultdicts a dicts normales para asserts predecibles
     return Collected(
@@ -269,11 +270,19 @@ def main(argv=None):
                 print(f"    ✗ generador falló (rc={rc}):\n{log}")
 
     if data.unmatched:
-        out = ROOT / "unmatched" / "unmatched.xlsx"
-        write_canonical(out, data.unmatched, [], "unmatched")
-        prefixes = sorted({sku_prefix(r[COL_VARIANT]) or "?" for r in data.unmatched})
-        print(f"\n  ⚠ {len(data.unmatched)} líneas sin marca → unmatched/unmatched.xlsx  "
-              f"(prefijos: {', '.join(prefixes)})")
+        # Namespaced por mes (como los archivos de marca) para que un mes no pise
+        # los SKUs sin mapear del anterior antes de que alguien los triage.
+        by_month = defaultdict(list)
+        for r in data.unmatched:
+            by_month[month_key(r[COL_DATE])].append(r)
+        written = []
+        for mk in sorted(by_month):
+            out = ROOT / "unmatched" / f"unmatched-{mk}.xlsx"
+            write_canonical(out, by_month[mk], [], "unmatched")
+            written.append(out.name)
+        prefixes = sorted({sku_prefix(r[COL_VARIANT]) for r in data.unmatched})
+        print(f"\n  ⚠ {len(data.unmatched)} líneas sin marca → unmatched/ "
+              f"({', '.join(written)})  (prefijos: {', '.join(prefixes)})")
     else:
         print("\n  ⚠ SKUs no mapeados: (ninguno)")
 
