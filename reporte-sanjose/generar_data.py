@@ -304,7 +304,7 @@ def promo_box_price(r, order_prices, product_month_avg, month_avg):
             or 0.0)
 
 
-def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg):
+def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg, incentivos=None):
     """Build D.fl and D.ny arrays (one value per month per metric)."""
     state_month = defaultdict(lambda: defaultdict(lambda: {
         'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'orders': set()
@@ -326,25 +326,49 @@ def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg
             d['pv'] += r['qty'] * promo_box_price(r, order_prices, product_avg, global_avg)
             d['orders'].add(r['order'])
 
+    incentivos = incentivos or {}
+    state_name = {'fl': 'Florida', 'ny': 'Nueva York'}
     result = {}
     for state in ('fl', 'ny'):
-        result[state] = {
-            'rev': [], 'cajas': [], 'pv': [], 'pc': [], 'ord': []
-        }
+        result[state] = {'rev': [], 'cajas': [], 'pv': [], 'pc': [], 'ord': [],
+                         'descuentos': [], 'revNeto': []}
         for ym in months:
             d = state_month[state][ym]
+            dd = round(incentivos.get(ym, {}).get(state_name[state], {}).get('totalDescuentos', 0.0), 2)
             result[state]['rev'].append(round(d['rev'], 2))
             result[state]['cajas'].append(d['cajas'])
             result[state]['pv'].append(round(d['pv'], 2))
             result[state]['pc'].append(d['pc'])
             result[state]['ord'].append(len(d['orders']))
+            result[state]['descuentos'].append(dd)
+            result[state]['revNeto'].append(round(d['rev'] - dd, 2))
     return result
 
 
-def build_period_data(rows, months, order_prices, product_avg, global_avg, month_set=None):
+def build_period_data(rows, months, order_prices, product_avg, global_avg,
+                      incentivos=None, new_customers=None, month_set=None):
     """Build summary, states, customerChart, salesChart, customerTable, productsCards for a given month set."""
     if month_set is None:
         month_set = set(months)
+
+    incentivos = incentivos or {}
+    new_customers = new_customers or {}
+
+    # Descuentos del periodo, por estado y por producto (de los bloques de incentivos)
+    desc_by_state = defaultdict(float)
+    desc_by_product = defaultdict(lambda: {"cases": 0, "amount": 0.0, "state": ""})
+    for ym in month_set:
+        for state, inc in incentivos.get(ym, {}).items():
+            desc_by_state[state] += inc["totalDescuentos"]
+            for d in inc["descuentos"]:
+                k = (d["product"], state)
+                desc_by_product[k]["cases"] += d["cases"]
+                desc_by_product[k]["amount"] = round(desc_by_product[k]["amount"] + d["amount"], 2)
+                desc_by_product[k]["state"] = state
+    total_descuentos = round(sum(desc_by_state.values()), 2)
+
+    # Clientes nuevos del periodo
+    nuevos = [c for ym in month_set for c in new_customers.get(ym, [])]
 
     filtered = [r for r in rows if month_key(r['date']) in month_set]
 
@@ -377,22 +401,29 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg, month
         'pc': total_pc,
         'pv': round(total_pv, 2),
         'ord': total_ord,
-        'avg_price': avg_price
+        'avg_price': avg_price,
+        'descuentos': total_descuentos,
+        'revNeto': round(total_rev - total_descuentos, 2),
+        'clientesNuevos': len(nuevos),
     }
 
     states = {}
     for state_name, d in state_data.items():
+        dd = round(desc_by_state.get(state_name, 0.0), 2)
         states[state_name] = {
             'rev': round(d['rev'], 2),
             'cajas': d['cajas'],
             'pc': d['pc'],
             'pv': round(d['pv'], 2),
-            'ord': len(d['orders'])
+            'ord': len(d['orders']),
+            'descuentos': dd,
+            'revNeto': round(d['rev'] - dd, 2),
         }
-    if 'Florida' not in states:
-        states['Florida'] = {'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'ord': 0}
-    if 'Nueva York' not in states:
-        states['Nueva York'] = {'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'ord': 0}
+    for missing in ('Florida', 'Nueva York'):
+        if missing not in states:
+            dd = round(desc_by_state.get(missing, 0.0), 2)
+            states[missing] = {'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'ord': 0,
+                               'descuentos': dd, 'revNeto': round(-dd, 2)}
 
     # --- customer aggregation ---
     cust_data = defaultdict(lambda: {'rev': 0.0, 'cajas': 0, 'pc': 0, 'state': ''})
@@ -462,7 +493,12 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg, month
         'customerChart': customer_chart,
         'salesChart': sales_chart,
         'customerTable': customer_table,
-        'productsCards': products_cards
+        'productsCards': products_cards,
+        'descuentosPorProducto': [
+            {"product": p, "state": st, "cases": v["cases"], "amount": v["amount"]}
+            for (p, st), v in desc_by_product.items()
+        ],
+        'clientesNuevosLista': nuevos,
     }
 
 
@@ -487,22 +523,24 @@ def main():
     n = len(all_months)
 
     order_prices, product_avg, global_avg = get_order_unit_prices(rows)
+    incentivos = load_incentivos()
+    new_customers = new_customers_by_month(rows)
 
     # Build D (time series)
-    D = build_monthly_state_data(rows, all_months, order_prices, product_avg, global_avg)
+    D = build_monthly_state_data(rows, all_months, order_prices, product_avg, global_avg, incentivos)
 
     # Build GENERAL_DATA
     general_data = {}
 
     # ALL
     general_data['ALL'] = build_period_data(rows, all_months, order_prices, product_avg, global_avg,
-                                            month_set=set(all_months))
+                                            incentivos, new_customers, month_set=set(all_months))
 
     # Per month
     for ym in all_months:
         label = month_label_short(ym)
         general_data[label] = build_period_data(rows, all_months, order_prices, product_avg, global_avg,
-                                                month_set={ym})
+                                                incentivos, new_customers, month_set={ym})
 
     # Find first month per product (for dynamic note in product cards)
     prod_first = find_product_first_months(rows, all_months)
