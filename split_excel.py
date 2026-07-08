@@ -216,3 +216,61 @@ def run_generator(brand):
         encoding="utf-8", errors="replace", env=env,
     )
     return proc.returncode, proc.stdout + proc.stderr
+
+
+def main(argv=None):
+    args = parse_args(argv)
+    only = {c.strip().upper() for c in args.only.split(",") if c.strip()}
+
+    files = iter_input_files(args.input)
+    if not files:
+        print(f"✗ No hay .xlsx en {args.input}/. Pon ahí el Excel del distribuidor.")
+        return 1
+
+    data = collect(files)
+    print(f"✓ split_excel.py — {', '.join(f.name for f in files)}\n")
+
+    for code, brand in BRANDS.items():
+        if only and code not in only:
+            continue
+        months = data.rows.get(code, {})
+        if not months:
+            continue
+
+        print(f"  {code}  ({brand.name})")
+        for mk in sorted(months):
+            month_rows = months[mk]
+            block = data.incentives.get(code, {}).get(mk, [])
+            out = ROOT / brand.folder / "fuentes" / f"{brand.code}-{mk}.xlsx"
+            write_canonical(out, month_rows, block, brand.sheet)
+            st = data.stats.get(code, {}).get(mk, {})
+            st_txt = " ".join(f"{k}:{v}" for k, v in st.items())
+            inc_txt = " · +incentivos" if block else ""
+            rel = out.relative_to(ROOT).as_posix()
+            print(f"    → {rel}   ({len(month_rows)} líneas · {st_txt}{inc_txt})")
+
+        if not brand.sp1_ready:
+            print("    ⏸ data.js NO regenerado (pendiente su sub-proyecto)")
+        elif args.no_build:
+            print("    ⏸ build omitido (--no-build)")
+        else:
+            rc, log = run_generator(brand)
+            if rc == 0:
+                print("    ↻ data.js regenerado ✓")
+            else:
+                print(f"    ✗ generador falló (rc={rc}):\n{log}")
+
+    if data.unmatched:
+        out = ROOT / "unmatched" / "unmatched.xlsx"
+        write_canonical(out, data.unmatched, [], "unmatched")
+        prefixes = sorted({sku_prefix(r[COL_VARIANT]) or "?" for r in data.unmatched})
+        print(f"\n  ⚠ {len(data.unmatched)} líneas sin marca → unmatched/unmatched.xlsx  "
+              f"(prefijos: {', '.join(prefixes)})")
+    else:
+        print("\n  ⚠ SKUs no mapeados: (ninguno)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
