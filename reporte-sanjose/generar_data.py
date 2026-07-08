@@ -248,6 +248,31 @@ def _parse_incentive_segment(seg):
     }
 
 
+def new_customers_by_month(rows):
+    """Clientes que aparecen por primera vez en cada mes (excluye el primer mes cargado,
+    que no tiene historia previa). Devuelve {(y,m): [{name, state, salesperson}]}."""
+    months = sorted(set(month_key(r['date']) for r in rows))
+    if not months:
+        return {}
+    first_month = months[0]
+    def norm(name):
+        return re.sub(r"\s+", " ", str(name)).strip().lower()
+    first_seen = {}
+    for r in sorted(rows, key=lambda r: r['date']):
+        key = norm(r['customer'])
+        if key and key not in first_seen:
+            first_seen[key] = r
+    out = {}
+    for key, r in first_seen.items():
+        ym = month_key(r['date'])
+        if ym == first_month:
+            continue
+        out.setdefault(ym, []).append({
+            "name": r['customer'], "state": r['state'], "salesperson": r['salesperson'],
+        })
+    return out
+
+
 def get_order_unit_prices(rows):
     """Precios para valuar cajas gratis, SIN pool global (estable al agregar meses):
       - order_prices[order]         : precio de caja de una línea pagada del mismo orden
