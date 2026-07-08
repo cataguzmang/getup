@@ -77,10 +77,24 @@ def _product_name(variant):
     return SKU_RE.sub("", str(variant)).strip()
 
 
+def _detect_orientation(raw):
+    """Dado un grupo de filas crudas del mismo mes (tuplas (qty, total, unit_price)),
+    decide si viene 'normal' (Total = qty*UnitPrice) o 'swap' (UnitPrice = qty*Total).
+    Usa solo filas inequívocas (qty>1 y ambos montos != 0). Ante la duda, 'normal'."""
+    normal = swap = 0
+    for qty, total, unit in raw:
+        if qty and qty > 1 and total and unit:
+            if abs(total - qty * unit) < 0.01:
+                normal += 1
+            elif abs(unit - qty * total) < 0.01:
+                swap += 1
+    return "swap" if swap > normal else "normal"
+
+
 def load_rows():
-    """Lee todos los fuentes/*.xlsx (formato canónico) y devuelve las filas de pedido
-    limpias. Ignora el bloque de incentivos, subtotales y separadores."""
-    rows = []
+    """Lee todos los fuentes/*.xlsx (canónico), detecta la orientación de montos por
+    mes y devuelve las filas de pedido limpias. Ignora incentivos/separadores."""
+    raw_by_month = defaultdict(list)   # (y,m) -> [row_tuple]
     unmapped = set()
     for path in _source_files():
         wb = openpyxl.load_workbook(path, data_only=True)
@@ -88,29 +102,32 @@ def load_rows():
         for row in ws.iter_rows(values_only=True):
             if not _is_tx(row):
                 continue
+            raw_by_month[(row[0].year, row[0].month)].append(row)
+
+    rows = []
+    for ym, month_rows in raw_by_month.items():
+        orient = _detect_orientation(
+            [(r[6], r[10], r[9]) for r in month_rows])  # (qty_del, total, unit_price)
+        for row in month_rows:
             date, order, variant, customer, salesperson, company = row[:6]
             qty_del, unit_price, total = row[6], row[9], row[10]
-
             state = _state_from_company(company)
             if not state:
-                # Sin estado → se omite, pero se avisa: un Company nuevo/renombrado/vacío
-                # no debe drenar revenue en silencio (antes salía de la columna State).
                 label = company.strip() if isinstance(company, str) and company.strip() else "(sin Company)"
                 unmapped.add(label)
                 continue
             qty = qty_del or 0
-            if qty <= 0:                       # entregado 0 → no es venta ni promo real
+            if qty <= 0:
                 continue
-
-            # Regla de montos ACTUAL (se conserva en SP2; su arreglo es SP3):
-            # el Excel mezcla dos orientaciones (mayo 2026 viene intercambiado),
-            # line_total = max(Total, Unit Price).
             a = total or 0
             b = unit_price or 0
-            is_promo = (a == 0 and b == 0)
-            line_rev = max(a, b)
-            box_price = line_rev / qty if qty > 0 else 0.0
-
+            if orient == "swap":
+                line_rev = b            # Unit Price es el total de línea
+                box_price = a           # Total es el precio por caja
+            else:
+                line_rev = a            # normal
+                box_price = b
+            is_promo = (line_rev == 0)  # caja gratis: total de línea 0 (entrega > 0)
             rows.append({
                 'company': company or '',
                 'state': state,
