@@ -179,3 +179,34 @@ def write_canonical(path, rows, incentive_block, sheet_name):
         for row in incentive_block:
             ws.append(list(row))
     wb.save(path)
+
+
+def parse_args(argv=None):
+    p = argparse.ArgumentParser(description="Reparte el Excel del distribuidor por marca.")
+    p.add_argument("--input", default="entrada", help="Carpeta con los .xlsx sucios.")
+    p.add_argument("--no-build", action="store_true", help="No regenerar ningún data.js.")
+    p.add_argument("--only", default="", help="Limitar a códigos de marca (ej. GOA,KOM).")
+    return p.parse_args(argv)
+
+
+def iter_input_files(input_dir):
+    """Todos los .xlsx de la carpeta (sin temporales ~$), en orden de nombre."""
+    d = Path(input_dir)
+    if not d.is_absolute():
+        d = ROOT / d
+    if not d.exists():
+        return []
+    return sorted(p for p in d.glob("*.xlsx") if not p.name.startswith("~$"))
+
+
+def run_generator(brand):
+    """Corre el generador de la marca. Devuelve (returncode|None, log)."""
+    folder = ROOT / brand.folder
+    script = folder / brand.generator
+    if not script.exists():
+        return None, f"generador ausente ({brand.generator})"
+    proc = subprocess.run(
+        [sys.executable, brand.generator],
+        cwd=folder, capture_output=True, text=True,
+    )
+    return proc.returncode, proc.stdout + proc.stderr
