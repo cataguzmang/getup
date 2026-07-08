@@ -146,6 +146,95 @@ def load_rows():
     return rows
 
 
+def _parse_discount_label(text):
+    """'In Brine == > 3 cases' -> ('In Brine', 3). None si no reconoce producto."""
+    t = str(text).lower()
+    product = None
+    if "in brine" in t:
+        product = "In Brine"
+    elif "tomate" in t or "tomato" in t:
+        product = "Tomate"
+    if product is None:
+        return None
+    mnum = re.search(r"(\d+)\s*cases", t)
+    cases = int(mnum.group(1)) if mnum else 0
+    return product, cases
+
+
+def _last_number(row):
+    for cell in reversed(list(row)):
+        if isinstance(cell, (int, float)) and not isinstance(cell, bool) and cell == cell:
+            return float(cell)
+    return None
+
+
+def load_incentivos():
+    """Lee los bloques `__INCENTIVOS__` de los fuentes/ y los parsea por (mes, estado).
+    Defensivo: el bloque es manual e irregular; ante lo que no reconoce, deja vacío."""
+    out = {}
+    for path in _source_files():
+        wb = openpyxl.load_workbook(path, data_only=True)
+        ws = wb.worksheets[0]
+        allrows = list(ws.iter_rows(values_only=True))
+        tx_months = [(r[0].year, r[0].month) for r in allrows if _is_tx(r)]
+        if not tx_months:
+            continue
+        dom_month = max(set(tx_months), key=tx_months.count)
+        i = 0
+        while i < len(allrows):
+            row = allrows[i]
+            if isinstance(row[0], str) and row[0].strip() == "__INCENTIVOS__":
+                state = row[1]
+                seg = []
+                i += 1
+                while i < len(allrows) and not (
+                        isinstance(allrows[i][0], str) and allrows[i][0].strip() == "__INCENTIVOS__"):
+                    seg.append(allrows[i])
+                    i += 1
+                out.setdefault(dom_month, {})[state] = _parse_incentive_segment(seg)
+            else:
+                i += 1
+    return out
+
+
+def _parse_incentive_segment(seg):
+    """Parsea un segmento de incentivos en descuentos / free / sold / vendedores nuevos."""
+    descuentos = []
+    free_rep, sold_rep = {}, {}
+    vendedores_nuevos = []
+    in_new_customers = False
+    for row in seg:
+        col_a = row[0].strip() if isinstance(row[0], str) else row[0]
+        if isinstance(col_a, str) and col_a.upper() == "NEW CUSTOMERS":
+            in_new_customers = True
+            continue
+        if in_new_customers:
+            if isinstance(col_a, str) and col_a:
+                vendedores_nuevos.append(col_a)
+            continue
+        if isinstance(col_a, str) and col_a and col_a.upper() != "SOLD":
+            sold = row[1] if isinstance(row[1], (int, float)) and not isinstance(row[1], bool) else None
+            free = row[2] if isinstance(row[2], (int, float)) and not isinstance(row[2], bool) else None
+            if sold is not None:
+                sold_rep[col_a] = int(sold)
+            if free is not None:
+                free_rep[col_a] = int(free)
+        for cell in row:
+            lab = _parse_discount_label(cell) if isinstance(cell, str) else None
+            if lab:
+                amount = _last_number(row) or 0.0
+                descuentos.append({"product": lab[0], "cases": lab[1], "amount": round(amount, 2)})
+                break
+    total = round(sum(d["amount"] for d in descuentos), 2)
+    return {
+        "descuentos": descuentos,
+        "totalDescuentos": total,
+        "freeReportado": free_rep,
+        "soldReportado": sold_rep,
+        "vendedoresNuevos": vendedores_nuevos,
+    }
+
+
 def get_order_unit_prices(rows):
     """Precios para valuar cajas gratis, SIN pool global (estable al agregar meses):
       - order_prices[order]         : precio de caja de una línea pagada del mismo orden
