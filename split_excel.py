@@ -131,7 +131,7 @@ def collect(input_files):
 
         for ws in wb.worksheets:
             sheet_rows = list(ws.iter_rows(values_only=True))
-            tx_codes, tx_months = [], []
+            tx_codes, tx_months, tx_states = [], [], []
 
             for row in sheet_rows:
                 if not is_transaction_row(row):
@@ -145,13 +145,15 @@ def collect(input_files):
                 stats[prefix][mk][state_of(row, ws.title)] += 1
                 tx_codes.append(prefix)
                 tx_months.append(mk)
+                tx_states.append(state_of(row, ws.title))
 
             block = find_incentive_block(sheet_rows)
             if block and tx_codes:
                 dom_code = Counter(tx_codes).most_common(1)[0][0]
                 dom_month = Counter(tx_months).most_common(1)[0][0]
-                prev = incentives[dom_code].get(dom_month, [])
-                incentives[dom_code][dom_month] = prev + block
+                dom_state = Counter(tx_states).most_common(1)[0][0]
+                seg = {"state": dom_state, "rows": block}
+                incentives[dom_code].setdefault(dom_month, []).append(seg)
             elif block:
                 print(f"  ⚠ Bloque de incentivos en '{ws.title}' sin filas de pedido "
                       f"de marca conocida; se omite")
@@ -248,12 +250,17 @@ def main(argv=None):
         print(f"  {code}  ({brand.name})")
         for mk in sorted(months):
             month_rows = months[mk]
-            block = data.incentives.get(code, {}).get(mk, [])
+            segs = data.incentives.get(code, {}).get(mk, [])
+            block = []
+            for seg in segs:
+                block.append(["__INCENTIVOS__", seg["state"]] + [None] * (len(HEADER) - 2))
+                block.extend(seg["rows"])
+                block.append([None] * len(HEADER))   # separador entre segmentos
             out = ROOT / brand.folder / "fuentes" / f"{brand.code}-{mk}.xlsx"
             write_canonical(out, month_rows, block, brand.sheet)
             st = data.stats.get(code, {}).get(mk, {})
             st_txt = " ".join(f"{k}:{v}" for k, v in st.items())
-            inc_txt = " · +incentivos" if block else ""
+            inc_txt = " · +incentivos" if segs else ""
             rel = out.relative_to(ROOT).as_posix()
             print(f"    → {rel}   ({len(month_rows)} líneas · {st_txt}{inc_txt})")
 

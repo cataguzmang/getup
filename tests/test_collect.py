@@ -21,8 +21,11 @@ def test_collect_unmatched(messy_wb):
 
 def test_collect_incentives_attributed_to_get(messy_wb):
     data = sx.collect([messy_wb])
-    block = data.incentives["GET"]["2026-06"]
-    assert block and block[0][1] == "SOLD"
+    segs = data.incentives["GET"]["2026-06"]           # lista de segmentos
+    assert isinstance(segs, list) and len(segs) == 1
+    seg = segs[0]
+    assert seg["state"] == "Florida"                    # bloque de la hoja MIA
+    assert seg["rows"][0][1] == "SOLD"                   # ancla del bloque
     # GOA/KOM no traían bloque
     assert "GOA" not in data.incentives
     assert "KOM" not in data.incentives
