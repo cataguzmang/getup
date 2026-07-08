@@ -10,22 +10,32 @@ El dashboard incluye KPIs, ingresos mensuales, desempeño por cliente y proveedo
 
 ## Uso mensual
 
-1. Agregar los datos al Excel (`Historico Ventas Latin Food - San Jose.xlsx`).
-2. Ejecutar el generador de datos:
-   ```bash
-   python generar_data.py
-   ```
-3. Subir el `data.js` actualizado al repositorio.
-4. El sitio se actualiza automáticamente en GitHub Pages.
+San José ahora se alimenta del pipeline central: el Excel mensual del distribuidor se
+separa por marca con `split_excel.py` (en la raíz), que deja
+`fuentes/San-Jose-<AAAA-MM>.xlsx` (formato canónico) y regenera este `data.js`.
+
+1. Desde la raíz del repo, deja el Excel del distribuidor en `entrada/` y corre
+   `python split_excel.py` (regenera San José y las demás marcas listas).
+2. O, para regenerar solo San José desde sus `fuentes/`: `python generar_data.py`.
+3. Sube el `data.js` actualizado y el sitio se actualiza en GitHub Pages.
+
+El histórico Oct 2025 – May 2026 vive migrado en
+`fuentes/San-Jose-historico-hasta-2026-05.xlsx` (generado una vez con
+`migrar_historico.py`). El Excel `Historico Ventas Latin Food - San Jose.xlsx` original
+queda solo como respaldo.
+
+> El estado (Florida / Nueva York) se deriva de la columna `Company`.
 
 ## Archivos
 
 | Archivo | Descripción |
 | --- | --- |
 | `index.html` | Página del dashboard. |
-| `data.js` | Datos de ventas generados desde el Excel (autogenerado, no editar a mano). |
-| `generar_data.py` | Script que convierte el Excel en `data.js`. |
-| `Historico Ventas Latin Food - San Jose.xlsx` | Fuente de datos. |
+| `data.js` | Datos de ventas (autogenerado desde `fuentes/`, no editar a mano). |
+| `generar_data.py` | Convierte los `fuentes/*.xlsx` canónicos en `data.js`. |
+| `migrar_historico.py` | Migración única del Historico viejo → `fuentes/` (ya ejecutada). |
+| `fuentes/` | Excel canónicos por mes (no se suben al repo). |
+| `Historico Ventas Latin Food - San Jose.xlsx` | Fuente vieja, ahora solo respaldo. |
 
 ## Cómo se calculan las métricas
 
