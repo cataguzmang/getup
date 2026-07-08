@@ -48,3 +48,16 @@ def test_run_generator_runs_script(tmp_path, monkeypatch):
     rc, log = sx.run_generator(brand)
     assert rc == 0
     assert "ok generador" in log
+
+
+def test_run_generator_captures_utf8_cleanly(tmp_path, monkeypatch):
+    """El log del generador debe llegar en UTF-8, no como mojibake cp1252."""
+    monkeypatch.setattr(sx, "ROOT", tmp_path)
+    brand = sx.BRANDS["GOA"]
+    folder = tmp_path / brand.folder
+    folder.mkdir(parents=True)
+    (folder / brand.generator).write_text(
+        "print('✓ data.js generado · café')\n", encoding="utf-8")
+    rc, log = sx.run_generator(brand)
+    assert rc == 0
+    assert "✓ data.js generado · café" in log

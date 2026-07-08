@@ -12,6 +12,7 @@ Uso:
 
 import argparse
 import datetime
+import os
 import re
 import subprocess
 import sys
@@ -205,8 +206,13 @@ def run_generator(brand):
     script = folder / brand.generator
     if not script.exists():
         return None, f"generador ausente ({brand.generator})"
+    # Forzar UTF-8 en el hijo (PYTHONUTF8) y al decodificar el pipe: los
+    # generadores imprimen ✓/⚠/acentos que en Windows-cp1252 saldrían corruptos
+    # o harían fallar al hijo.
+    env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     proc = subprocess.run(
         [sys.executable, brand.generator],
         cwd=folder, capture_output=True, text=True,
+        encoding="utf-8", errors="replace", env=env,
     )
     return proc.returncode, proc.stdout + proc.stderr
