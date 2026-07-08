@@ -1,0 +1,10 @@
+# Datos comerciales — nunca subir al repo
+*.xlsx
+*.xls
+entrada/
+unmatched/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
