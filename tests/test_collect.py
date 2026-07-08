@@ -1,3 +1,6 @@
+import pytest
+
+from helpers import HEADER, make_workbook, D
 import split_excel as sx
 
 
@@ -35,5 +38,39 @@ def test_collect_skips_corrupt_file(tmp_path, capsys):
     bad = tmp_path / "roto.xlsx"
     bad.write_text("no soy un xlsx")
     data = sx.collect([bad])
-    assert data.rows == {} or all(not v for v in data.rows.values())
+    assert data.rows == {}
+    assert data.unmatched == []
     assert "No se pudo leer" in capsys.readouterr().out
+
+
+def test_collect_returns_plain_dicts_missing_key_raises(messy_wb):
+    """La conversión defaultdict→dict debe hacer que una marca ausente lance
+    KeyError, no auto-vivificar un {} silencioso."""
+    data = sx.collect([messy_wb])
+    with pytest.raises(KeyError):
+        data.rows["ROB"]
+    with pytest.raises(KeyError):
+        data.incentives["GOA"]
+
+
+def test_collect_counter_defaults_to_zero(messy_wb):
+    """stats guarda Counters: un estado nunca visto devuelve 0, no KeyError."""
+    data = sx.collect([messy_wb])
+    assert data.stats["GOA"]["2026-06"]["Florida"] == 0
+
+
+def test_collect_block_without_transactions_warns(tmp_path, capsys):
+    """Bloque de incentivos en una hoja sin filas de pedido: se avisa y no se
+    crea ninguna marca en incentives."""
+    wb = make_workbook(tmp_path / "solo-bloque.xlsx", {
+        "MIA Jun - Jack Mckarel": [
+            HEADER,
+            [D(2026, 5, 1), "SOLD", "FREE", "Descuentos",
+             None, None, None, None, None, None, None],
+            ["Alexandra Jimenez", 60, 10, "In Brine", 88.68,
+             None, None, None, None, None, None],
+        ],
+    })
+    data = sx.collect([wb])
+    assert data.incentives == {}
+    assert "sin filas de pedido" in capsys.readouterr().out
