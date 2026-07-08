@@ -161,3 +161,21 @@ def collect(input_files):
         unmatched=unmatched,
         stats={c: {mk: cnt for mk, cnt in m.items()} for c, m in stats.items()},
     )
+
+
+def write_canonical(path, rows, incentive_block, sheet_name):
+    """Escribe el .xlsx canónico: encabezado + filas de pedido (passthrough fiel)
+    + (separador en blanco + bloque de incentivos, si lo hay)."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = sheet_name
+    ws.append(HEADER)
+    for row in rows:
+        ws.append(list(row))
+    if incentive_block:
+        ws.append([None] * len(HEADER))
+        for row in incentive_block:
+            ws.append(list(row))
+    wb.save(path)
