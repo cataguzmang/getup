@@ -92,3 +92,14 @@ def state_of(row, sheet_name):
     parts = str(sheet_name).split()
     prefix = parts[0].upper() if parts else ""
     return STATE_BY_SHEET_PREFIX.get(prefix, "?")
+
+
+def find_incentive_block(rows):
+    """Filas del bloque de incentivos (desde el ancla 'SOLD' al final), o [].
+
+    Ancla: alguna celda de la fila == 'SOLD' (case-insensitive).
+    """
+    for i, row in enumerate(rows):
+        if any(isinstance(c, str) and c.strip().upper() == "SOLD" for c in row):
+            return [list(r) for r in rows[i:]]
+    return []
