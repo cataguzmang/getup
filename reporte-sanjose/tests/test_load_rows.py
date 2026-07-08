@@ -45,3 +45,35 @@ def test_load_rows_filters_and_derives(tmp_path, monkeypatch):
     # regla de montos actual (max) conservada
     venta = [r for r in rows if r["order"] == "S1"][0]
     assert venta["line_rev"] == 912 and venta["box_price"] == 912 / 20
+
+
+def test_load_rows_swap_orientation(tmp_path, monkeypatch):
+    """Mayo 2026 viene con columnas intercambiadas (Unit Price = total de línea,
+    Total = precio por caja). La regla max() debe seguir sacando el total de línea."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    make_canonical(fuentes / "San-Jose-2026-05.xlsx", [
+        # qty 5, precio por caja 45.6 → total 228, pero VIENE INTERCAMBIADO:
+        # Unit Price = 228 (total de línea), Total = 45.6 (precio por caja)
+        canon_row(D(2026, 5, 20), "S9", "[GET01] Jack Mackerel in Brine",
+                  "Cliente", "SP", "LatinFood Florida", 5, 228, 45.6),
+    ])
+    monkeypatch.setattr(g, "SOURCES_DIR", fuentes)
+    r = g.load_rows()[0]
+    assert r["line_rev"] == 228            # max(45.6, 228)
+    assert r["box_price"] == 228 / 5       # 45.6 por caja
+    assert r["is_promo"] is False
+
+
+def test_load_rows_warns_on_unmapped_company(tmp_path, monkeypatch, capsys):
+    """Un Company que no mapea a estado se omite pero se avisa (no drena revenue en silencio)."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    make_canonical(fuentes / "San-Jose-2026-06.xlsx", [
+        canon_row(D(2026, 6, 1), "S1", "[GET01] Jack Mackerel in Brine",
+                  "C", "SP", "Distribuidora Nueva SA", 3, 45.6, 136.8),
+    ])
+    monkeypatch.setattr(g, "SOURCES_DIR", fuentes)
+    rows = g.load_rows()
+    assert rows == []
+    assert "Distribuidora Nueva SA" in capsys.readouterr().out

@@ -1,7 +1,8 @@
 """
 generar_data.py
-Lee Historico Ventas Latin Food - San Jose.xlsx y genera data.js
-para que el reporte HTML tenga datos actualizados cada mes.
+Lee los Excel canónicos de fuentes/ (dejados por split_excel.py y por la
+migración del histórico) y genera data.js para el reporte HTML de San José.
+El estado (Florida / Nueva York) se deriva de la columna Company.
 
 Uso: python generar_data.py
 """
@@ -80,6 +81,7 @@ def load_rows():
     """Lee todos los fuentes/*.xlsx (formato canónico) y devuelve las filas de pedido
     limpias. Ignora el bloque de incentivos, subtotales y separadores."""
     rows = []
+    unmapped = set()
     for path in _source_files():
         wb = openpyxl.load_workbook(path, data_only=True)
         ws = wb.worksheets[0]
@@ -91,6 +93,10 @@ def load_rows():
 
             state = _state_from_company(company)
             if not state:
+                # Sin estado → se omite, pero se avisa: un Company nuevo/renombrado
+                # no debe drenar revenue en silencio (antes salía de la columna State).
+                if isinstance(company, str) and company.strip():
+                    unmapped.add(company.strip())
                 continue
             qty = qty_del or 0
             if qty <= 0:                       # entregado 0 → no es venta ni promo real
@@ -118,6 +124,8 @@ def load_rows():
                 'is_promo': is_promo,
                 'salesperson': (salesperson or '').strip(),
             })
+    if unmapped:
+        print(f"  ⚠ Company sin estado mapeado (filas omitidas): {', '.join(sorted(unmapped))}")
     return rows
 
 
