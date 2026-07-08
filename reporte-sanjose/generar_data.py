@@ -147,26 +147,34 @@ def load_rows():
 
 
 def get_order_unit_prices(rows):
-    """Per order: determine the per-box price from paid (non-promo) lines."""
+    """Precios para valuar cajas gratis, SIN pool global (estable al agregar meses):
+      - order_prices[order]         : precio de caja de una línea pagada del mismo orden
+      - product_month_avg[(prod,ym)]: promedio de precio de caja del producto en ese mes
+      - month_avg[ym]               : promedio del mes (último recurso)
+    """
     order_prices = defaultdict(float)
+    pm = defaultdict(list)
+    m = defaultdict(list)
     for r in rows:
         if not r['is_promo'] and r['box_price'] > 0:
             order_prices[r['order']] = r['box_price']
-    # fallback: average price per product across all paid rows
-    product_prices = defaultdict(list)
-    for r in rows:
-        if not r['is_promo'] and r['box_price'] > 0:
-            product_prices[r['product']].append(r['box_price'])
-    product_avg = {p: sum(v)/len(v) for p, v in product_prices.items()}
-    # global average as last-resort fallback so promo boxes are never valued at 0
-    all_prices = [r['box_price'] for r in rows if not r['is_promo'] and r['box_price'] > 0]
-    global_avg = sum(all_prices) / len(all_prices) if all_prices else 0.0
-    return order_prices, product_avg, global_avg
+            ym = month_key(r['date'])
+            pm[(r['product'], ym)].append(r['box_price'])
+            m[ym].append(r['box_price'])
+    product_month_avg = {k: sum(v) / len(v) for k, v in pm.items()}
+    month_avg = {k: sum(v) / len(v) for k, v in m.items()}
+    return order_prices, product_month_avg, month_avg
 
 
-def promo_box_price(r, order_prices, product_avg, global_avg):
-    """Per-box price used to value a promo (free) box."""
-    return order_prices.get(r['order']) or product_avg.get(r['product']) or global_avg
+def promo_box_price(r, order_prices, product_month_avg, month_avg):
+    """Precio por caja para valuar una caja gratis: orden → producto-mes → mes → 0."""
+    if r['box_price'] > 0:
+        return r['box_price']
+    ym = month_key(r['date'])
+    return (order_prices.get(r['order'])
+            or product_month_avg.get((r['product'], ym))
+            or month_avg.get(ym)
+            or 0.0)
 
 
 def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg):
