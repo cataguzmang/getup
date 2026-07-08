@@ -179,7 +179,8 @@ def load_incentivos():
         tx_months = [(r[0].year, r[0].month) for r in allrows if _is_tx(r)]
         if not tx_months:
             continue
-        dom_month = max(set(tx_months), key=tx_months.count)
+        # mes dominante; desempate determinista por el mes más reciente
+        dom_month = max(set(tx_months), key=lambda ym: (tx_months.count(ym), ym))
         i = 0
         while i < len(allrows):
             row = allrows[i]
@@ -216,15 +217,27 @@ def _parse_incentive_segment(seg):
             sold = row[1] if isinstance(row[1], (int, float)) and not isinstance(row[1], bool) else None
             free = row[2] if isinstance(row[2], (int, float)) and not isinstance(row[2], bool) else None
             if sold is not None:
-                sold_rep[col_a] = int(sold)
+                sold_rep[col_a] = int(round(sold))
             if free is not None:
-                free_rep[col_a] = int(free)
-        for cell in row:
+                free_rep[col_a] = int(round(free))
+        # La etiqueta de descuento vive en el área "Descuentos" (col D en adelante), NO
+        # en col A (nombre del vendedor) — así un nombre con "tomate/in brine" no se
+        # confunde con un producto.
+        matched = False
+        for cell in row[3:]:
             lab = _parse_discount_label(cell) if isinstance(cell, str) else None
             if lab:
                 amount = _last_number(row) or 0.0
                 descuentos.append({"product": lab[0], "cases": lab[1], "amount": round(amount, 2)})
+                matched = True
                 break
+        # Aviso si una etiqueta parece descuento ("... N cases") pero no reconocemos el
+        # producto: se estaría subcontando el descuento (y sobrestimando el revenue neto).
+        if not matched:
+            for cell in row[3:]:
+                if isinstance(cell, str) and re.search(r"\d+\s*cases", cell.lower()):
+                    print(f"  ⚠ Descuento con producto no reconocido: {cell!r} (no sumado)")
+                    break
     total = round(sum(d["amount"] for d in descuentos), 2)
     return {
         "descuentos": descuentos,

@@ -52,3 +52,27 @@ def test_load_incentivos_vacio(tmp_path, monkeypatch):
     ])
     monkeypatch.setattr(g, "SOURCES_DIR", fuentes)
     assert g.load_incentivos() == {}
+
+
+def test_nombre_vendedor_no_se_confunde_con_producto(tmp_path, monkeypatch):
+    """Un vendedor con 'Tomate'/'In Brine' en el nombre (col A) NO debe generar un
+    descuento espurio, y un descuento real en la misma fila (col D) se respeta."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    rows = [
+        canon_row(D(2026, 6, 1), "S1", "[GET01] Jack Mackerel in Brine",
+                  "C", "Tomate Gonzalez", "LatinFood Florida", 20, 45.6, 912),
+    ]
+    block = [
+        _pad(["__INCENTIVOS__", "Florida"]),
+        _pad([D(2026, 5, 1), "SOLD", "FREE", "Descuentos"]),
+        # nombre con 'Tomate' + descuento real de In Brine en col D
+        _pad(["Tomate Gonzalez", 60, 10, "In Brine == > 3 cases", 88.68]),
+    ]
+    make_canonical(fuentes / "San-Jose-2026-06.xlsx", rows + block)
+    monkeypatch.setattr(g, "SOURCES_DIR", fuentes)
+    fl = g.load_incentivos()[(2026, 6)]["Florida"]
+    productos = {d["product"] for d in fl["descuentos"]}
+    assert productos == {"In Brine"}          # NO aparece 'Tomate' por el nombre
+    assert fl["totalDescuentos"] == 88.68
+    assert fl["soldReportado"]["Tomate Gonzalez"] == 60
