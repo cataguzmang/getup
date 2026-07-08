@@ -24,6 +24,11 @@ def _seed_entrada(root):
             HEADER,
             tx(D(2026, 6, 10), "S99999", "[XYZ01] mystery", "Store", "Someone"),
         ],
+        "NY Jun - KOM": [
+            HEADER,
+            tx(D(2026, 6, 18), "S44804", "[KOM01] x", "Store", "Mireya",
+               qd=1, price=50.64, total=50.64),
+        ],
     }
     entrada = root / "entrada"
     entrada.mkdir()
@@ -95,3 +100,7 @@ def test_main_returns_1_when_generator_fails(tmp_path, monkeypatch, capsys):
     rc = sx.main(["--only", "GOA"])
     assert rc == 1
     assert "generador falló" in capsys.readouterr().out
+
+
+def test_get_is_wired_as_ready():
+    assert sx.BRANDS["GET"].sp1_ready is True
