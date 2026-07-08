@@ -58,7 +58,7 @@ def test_main_writes_canonical_files(tmp_path, monkeypatch, capsys):
 
     out = capsys.readouterr().out
     assert "GOA" in out and "San José" in out
-    assert "pendiente" in out  # GET no se buildea en SP1
+    assert "pendiente" in out  # KOM sigue sin estar listo (sp1_ready=False)
 
 
 def test_main_writes_unmatched(tmp_path, monkeypatch):
@@ -93,7 +93,7 @@ def test_main_returns_1_when_generator_fails(tmp_path, monkeypatch, capsys):
     """Si el generador de una marca lista falla, main devuelve 1 (no silencia)."""
     monkeypatch.setattr(sx, "ROOT", tmp_path)
     _seed_entrada(tmp_path)
-    folder = tmp_path / sx.BRANDS["GOA"].folder  # GOA es la única sp1_ready
+    folder = tmp_path / sx.BRANDS["GOA"].folder  # GOA es sp1_ready y se filtra con --only GOA
     folder.mkdir(parents=True, exist_ok=True)
     (folder / sx.BRANDS["GOA"].generator).write_text(
         "import sys; sys.exit(2)\n", encoding="utf-8")
