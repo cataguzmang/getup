@@ -13,7 +13,6 @@ Regresión de SP2 (plomería). Dos garantías distintas:
 import copy
 import json
 import re
-import shutil
 from pathlib import Path
 
 import pytest
@@ -21,6 +20,7 @@ import pytest
 import generar_data as g
 
 SANJOSE = Path(__file__).resolve().parent.parent
+SRC_HISTORICO = SANJOSE / "Historico Ventas Latin Food - San Jose.xlsx"
 HIST = SANJOSE / "fuentes" / "San-Jose-historico-hasta-2026-05.xlsx"
 REF = json.load(open(Path(__file__).parent / "reference_pre_sp2.json", encoding="utf-8"))
 
@@ -53,13 +53,17 @@ def _run(monkeypatch, tmp_path, sources_dir):
     return _parse_data_js((tmp_path / "data.js").read_text(encoding="utf-8"))
 
 
-@pytest.mark.skipif(not HIST.exists(),
-                    reason="falta el histórico migrado (correr migrar_historico.py)")
+@pytest.mark.skipif(not SRC_HISTORICO.exists(),
+                    reason="falta el Historico original (datos privados no versionados)")
 def test_regresion_plomeria_historico_solo(tmp_path, monkeypatch):
-    """Solo el histórico → data.js IDÉNTICO a la referencia (plomería fiel)."""
+    """Solo el histórico → data.js IDÉNTICO a la referencia (plomería fiel).
+
+    Migra en caliente desde el Historico original, así corre siempre que exista la
+    fuente privada (no depende de haber corrido migrar_historico.py a mano)."""
+    import migrar_historico as mig
     src = tmp_path / "fuentes"
     src.mkdir()
-    shutil.copy(HIST, src / HIST.name)
+    mig.migrate(src=SRC_HISTORICO, out=src / "San-Jose-historico.xlsx")
     out = _run(monkeypatch, tmp_path, src)
 
     assert out["MONTHS"] == REF["MONTHS"]

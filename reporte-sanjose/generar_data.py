@@ -93,10 +93,10 @@ def load_rows():
 
             state = _state_from_company(company)
             if not state:
-                # Sin estado → se omite, pero se avisa: un Company nuevo/renombrado
+                # Sin estado → se omite, pero se avisa: un Company nuevo/renombrado/vacío
                 # no debe drenar revenue en silencio (antes salía de la columna State).
-                if isinstance(company, str) and company.strip():
-                    unmapped.add(company.strip())
+                label = company.strip() if isinstance(company, str) and company.strip() else "(sin Company)"
+                unmapped.add(label)
                 continue
             qty = qty_del or 0
             if qty <= 0:                       # entregado 0 → no es venta ni promo real
