@@ -77,7 +77,7 @@ def _product_name(variant):
     return SKU_RE.sub("", str(variant)).strip()
 
 
-def _detect_orientation(raw):
+def _detect_orientation(raw, label=""):
     """Dado un grupo de filas crudas del mismo mes (tuplas (qty, total, unit_price)),
     decide si viene 'normal' (Total = qty*UnitPrice) o 'swap' (UnitPrice = qty*Total).
     Usa solo filas inequívocas (qty>1 y ambos montos != 0). Ante la duda, 'normal'."""
@@ -88,6 +88,11 @@ def _detect_orientation(raw):
                 normal += 1
             elif abs(unit - qty * total) < 0.01:
                 swap += 1
+    # Empate (incluye "sin filas inequívocas"): la decisión no es confiable → avisar.
+    # Un mes mal clasificado intercambiaría revenue y precio/caja de todas sus líneas.
+    if normal == swap:
+        print(f"  ⚠ Orientación de montos indecidible en {label or '(mes)'} "
+              f"(normal={normal}, swap={swap}); asumo normal")
     return "swap" if swap > normal else "normal"
 
 
@@ -107,7 +112,8 @@ def load_rows():
     rows = []
     for ym, month_rows in raw_by_month.items():
         orient = _detect_orientation(
-            [(r[6], r[10], r[9]) for r in month_rows])  # (qty_del, total, unit_price)
+            [(r[6], r[10], r[9]) for r in month_rows],   # (qty_del, total, unit_price)
+            label=f"{ym[0]}-{ym[1]:02d}")
         for row in month_rows:
             date, order, variant, customer, salesperson, company = row[:6]
             qty_del, unit_price, total = row[6], row[9], row[10]
@@ -284,6 +290,9 @@ def get_order_unit_prices(rows):
     m = defaultdict(list)
     for r in rows:
         if not r['is_promo'] and r['box_price'] > 0:
+            # order_prices se indexa solo por orden (last-write-wins). En un pedido
+            # multi-producto con precios distintos, el fallback por-producto-mes cubre
+            # bien; el precio a nivel orden es una aproximación razonable.
             order_prices[r['order']] = r['box_price']
             ym = month_key(r['date'])
             pm[(r['product'], ym)].append(r['box_price'])
