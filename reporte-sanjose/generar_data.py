@@ -354,7 +354,7 @@ def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg
     result = {}
     for state in ('fl', 'ny'):
         result[state] = {'rev': [], 'cajas': [], 'pv': [], 'pc': [], 'ord': [],
-                         'descuentos': [], 'revNeto': [], 'promoPct': [], 'roi': []}
+                         'descuentos': [], 'revNeto': [], 'promoPct': [], 'roi': [], 'pagadas': []}
         for ym in months:
             d = state_month[state][ym]
             dd = round(incentivos.get(ym, {}).get(state_name[state], {}).get('totalDescuentos', 0.0), 2)
@@ -367,9 +367,10 @@ def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg
             result[state]['revNeto'].append(round(d['rev'] - dd, 2))
             result[state]['promoPct'].append(_promo_pct(d['cajas'], d['pc']))
             result[state]['roi'].append(_roi(d['rev'], d['pv']))
+            result[state]['pagadas'].append(max(d['cajas'] - d['pc'], 0))
 
     # Combinado FL+NY por mes (para que el dashboard no sume en JS)
-    tot = {k: [] for k in ('rev', 'cajas', 'pv', 'pc', 'ord', 'descuentos', 'revNeto', 'promoPct', 'roi')}
+    tot = {k: [] for k in ('rev', 'cajas', 'pv', 'pc', 'ord', 'descuentos', 'revNeto', 'promoPct', 'roi', 'pagadas')}
     for i in range(len(months)):
         trev = round(result['fl']['rev'][i] + result['ny']['rev'][i], 2)
         tcaj = result['fl']['cajas'][i] + result['ny']['cajas'][i]
@@ -385,6 +386,7 @@ def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg
         tot['revNeto'].append(round(trev - tdesc, 2))
         tot['promoPct'].append(_promo_pct(tcaj, tpc))
         tot['roi'].append(_roi(trev, tpv))
+        tot['pagadas'].append(max(tcaj - tpc, 0))
     result['total'] = tot
     return result
 
@@ -460,6 +462,8 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
         'promoPct': _promo_pct(total_cajas, total_pc),
         'roi': _roi(total_rev, total_pv),
         'revPorCaja': _rev_por_caja(total_rev, total_cajas, total_pc),
+        'pagadas': max(total_cajas - total_pc, 0),
+        'ticket': round(total_rev / total_ord, 2) if total_ord > 0 else 0.0,
     }
 
     states = {}

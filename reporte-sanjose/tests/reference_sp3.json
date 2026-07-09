@@ -110,6 +110,17 @@
         3.6,
         3.25,
         4.48
+      ],
+      "pagadas": [
+        59,
+        67,
+        41,
+        19,
+        67,
+        76,
+        54,
+        13,
+        94
       ]
     },
     "ny": {
@@ -211,6 +222,17 @@
         0.0,
         2.6,
         0.0
+      ],
+      "pagadas": [
+        0,
+        0,
+        11,
+        62,
+        45,
+        14,
+        6,
+        39,
+        1
       ]
     },
     "total": {
@@ -312,6 +334,17 @@
         3.99,
         2.74,
         4.5
+      ],
+      "pagadas": [
+        59,
+        67,
+        52,
+        81,
+        112,
+        90,
+        60,
+        52,
+        95
       ]
     }
   },
@@ -329,7 +362,9 @@
         "clientesNuevos": 77,
         "promoPct": 23.4,
         "roi": 3.29,
-        "revPorCaja": 45.86
+        "revPorCaja": 45.86,
+        "pagadas": 668,
+        "ticket": 218.82
       },
       "states": {
         "Nueva York": {
@@ -1640,7 +1675,9 @@
         "clientesNuevos": 0,
         "promoPct": 24.4,
         "roi": 3.11,
-        "revPorCaja": 45.6
+        "revPorCaja": 45.6,
+        "pagadas": 59,
+        "ticket": 179.36
       },
       "states": {
         "Florida": {
@@ -1902,7 +1939,9 @@
         "clientesNuevos": 3,
         "promoPct": 17.3,
         "roi": 4.79,
-        "revPorCaja": 45.6
+        "revPorCaja": 45.6,
+        "pagadas": 67,
+        "ticket": 381.9
       },
       "states": {
         "Florida": {
@@ -2075,7 +2114,9 @@
         "clientesNuevos": 5,
         "promoPct": 27.8,
         "roi": 2.59,
-        "revPorCaja": 45.51
+        "revPorCaja": 45.51,
+        "pagadas": 52,
+        "ticket": 295.83
       },
       "states": {
         "Florida": {
@@ -2293,7 +2334,9 @@
         "clientesNuevos": 35,
         "promoPct": 17.3,
         "roi": 4.73,
-        "revPorCaja": 45.26
+        "revPorCaja": 45.26,
+        "pagadas": 81,
+        "ticket": 101.84
       },
       "states": {
         "Florida": {
@@ -2911,7 +2954,9 @@
         "clientesNuevos": 15,
         "promoPct": 25.8,
         "roi": 2.93,
-        "revPorCaja": 46.5
+        "revPorCaja": 46.5,
+        "pagadas": 112,
+        "ticket": 226.41
       },
       "states": {
         "Florida": {
@@ -3309,7 +3354,9 @@
         "clientesNuevos": 3,
         "promoPct": 30.8,
         "roi": 2.32,
-        "revPorCaja": 47.12
+        "revPorCaja": 47.12,
+        "pagadas": 90,
+        "ticket": 282.72
       },
       "states": {
         "Florida": {
@@ -3565,7 +3612,9 @@
         "clientesNuevos": 6,
         "promoPct": 20.0,
         "roi": 3.99,
-        "revPorCaja": 45.49
+        "revPorCaja": 45.49,
+        "pagadas": 60,
+        "ticket": 209.94
       },
       "states": {
         "Florida": {
@@ -3852,7 +3901,9 @@
         "clientesNuevos": 9,
         "promoPct": 26.8,
         "roi": 2.74,
-        "revPorCaja": 45.6
+        "revPorCaja": 45.6,
+        "pagadas": 52,
+        "ticket": 182.4
       },
       "states": {
         "Nueva York": {
@@ -4158,7 +4209,9 @@
         "clientesNuevos": 1,
         "promoPct": 18.1,
         "roi": 4.5,
-        "revPorCaja": 45.35
+        "revPorCaja": 45.35,
+        "pagadas": 95,
+        "ticket": 478.69
       },
       "states": {
         "Nueva York": {
