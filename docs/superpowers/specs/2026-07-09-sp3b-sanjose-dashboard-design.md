@@ -23,24 +23,52 @@ existente) — es un rediseño de contenido/layout, no un cambio de tecnología.
 
 ---
 
-## Pieza 1 — `crossCheck` en `data.js` (SP3a lo dejó pendiente)
+## Principio: todo cálculo derivado se computa en el data layer
 
-En `reporte-sanjose/generar_data.py`, `build_period_data` agrega por estado, sobre los
-meses del periodo:
+**Regla (nueva, aplica de aquí en adelante):** cualquier valor **derivado** (sumas, totales,
+razones, porcentajes, ROI, revenue neto, cross-checks, deltas) se calcula en **funciones
+explícitas de `generar_data.py`** y se expone **precalculado** en `data.js`. El `index.html`
+**solo formatea y renderiza**: mapea valores ya calculados a DOM/charts, usando helpers de
+**presentación** explícitos (formato de moneda/número, ancho de barras) — nunca cálculo de
+negocio inline y disperso.
 
+Estado hoy: **parcialmente**. Python ya hace las agregaciones y varios derivados; pero el
+dashboard aún calcula inline en JS: `% promo`, `ROI`, `revenue/caja`, el total combinado
+FL+NY de las series, y `%promo`/`ROI` por mes. SP3b los **mueve a Python** (Pieza 1) y deja
+el JS como vista.
+
+---
+
+## Pieza 1 — Cálculos derivados al data layer (Python) + `crossCheck`
+
+Todo lo derivado se calcula con **funciones explícitas** en `generar_data.py` y se expone en
+`data.js`. Concretamente SP3b agrega:
+
+**a) `crossCheck` (dato nuevo).** En `build_period_data`, por estado, sobre los meses del periodo:
 ```
 crossCheck[estado] = {
   "free": {"computado": <pc del estado>,        "reportado": <suma freeReportado>},
   "sold": {"computado": <cajas - pc del estado>, "reportado": <suma soldReportado>},
 }
 ```
+`freeReportado`/`soldReportado` vienen de `load_incentivos()` (ya se parsean). Los meses
+históricos (sin bloque) tienen `reportado = 0` → "sin reporte que cruzar" (no marca descuadre).
 
-donde `freeReportado`/`soldReportado` vienen de `load_incentivos()` (ya se parsean; solo
-falta agregarlos y exponerlos). El dashboard decide del lado del cliente si hay descuadre
-(|computado − reportado| > 0) para mostrar el aviso discreto.
+**b) Razones que hoy calcula el JS → ahora en Python** (funciones/helpers explícitos, expuestas
+en `summary` y `states[estado]`):
+- `promoPct` = cajas promo ÷ cajas × 100.
+- `roi` = revenue ÷ inversión promos (pv).
+- `revPorCaja` = revenue ÷ cajas pagadas.
+(Se agregan como campos precalculados; el JS solo los muestra.)
 
-Los meses históricos (sin bloque de incentivos) tienen `reportado = 0` → el dashboard los
-trata como "sin reporte que cruzar" (no marca descuadre falso). Ver "Regla del aviso".
+**c) Totales combinados FL+NY de la serie temporal → en Python.** Se agrega `D.total` con
+`rev, cajas, pv, pc, ord, revNeto, descuentos` (hoy el JS arma el objeto `A` sumando FL+NY).
+
+**d) Series por mes derivadas → en Python.** En `build_monthly_state_data`, agregar por estado
+las series `promoPct` y `roi` por mes (hoy el JS arma `pFL`/`roiFL` inline).
+
+El dashboard queda sin cálculo de negocio: solo formateo (`f$`, `fN`, `fmtNum`), deltas vía el
+helper explícito `pct()` (ya existe), y armado de DOM/charts.
 
 ---
 
@@ -91,22 +119,29 @@ trata como "sin reporte que cruzar" (no marca descuadre falso). Ver "Regla del a
 ## Datos que consume el dashboard (contrato SP3a + Pieza 1)
 
 Por periodo en `GENERAL_DATA[period]`:
-- `summary`: `rev`, `revNeto`, `descuentos`, `clientesNuevos`, y los existentes.
-- `states[estado]`: `rev`, `revNeto`, `descuentos`, `pc`, `pv`, `cajas`, `ord`, y ahora
-  `crossCheck` (Pieza 1) — o `crossCheck` a nivel de la vista, por estado.
+- `summary`: `rev`, `revNeto`, `descuentos`, `clientesNuevos`, `promoPct`, `roi`,
+  `revPorCaja`, `avg_price`, `cajas`, `pc`, `pv`, `ord`.
+- `states[estado]`: `rev`, `revNeto`, `descuentos`, `promoPct`, `roi`, `revPorCaja`, `pc`,
+  `pv`, `cajas`, `ord`.
+- `crossCheck[estado]`: `{free:{computado,reportado}, sold:{computado,reportado}}`.
 - `descuentosPorProducto`: `[{product, state, cases, amount}]`.
 - `clientesNuevosLista`: `[{name, state, salesperson}]`.
 
-En `D` (serie por estado y mes): `rev`, `revNeto`, `descuentos`, `cajas`, `pc`, `pv`, `ord`.
+En `D`: por estado `fl`/`ny` y también `total` (FL+NY), cada uno con las series
+`rev, revNeto, descuentos, cajas, pc, pv, ord, promoPct, roi` (una entrada por mes).
 
 ---
 
 ## Verificación
 
-- **Datos:** un test de que `build_period_data` emite `crossCheck` con `free`/`sold`
-  computado y reportado correctos (junio: free computado 21 == reportado 21).
-- **Regresión:** re-basear `reference_sp3.json` (agrega la clave `crossCheck`); el resto de
-  los números no cambia (Pieza 1 es puramente aditiva).
+- **Datos:** tests de que `build_period_data` emite `crossCheck` (junio: free computado 21 ==
+  reportado 21) y los derivados `promoPct`/`roi`/`revPorCaja` con los mismos valores que hoy
+  calcula el JS (para no cambiar lo que se ve); y de que `D.total` == suma FL+NY y las series
+  `D.*.promoPct`/`roi` son correctas.
+- **Paridad JS→Python:** confirmar que los campos precalculados igualan lo que el JS mostraba
+  (ej. `promoPct` = `pc/cajas*100`), así el rediseño no altera números por mover el cálculo.
+- **Regresión:** re-basear `reference_sp3.json` (agrega las claves nuevas); los valores
+  existentes no cambian (Pieza 1 es puramente aditiva).
 - **Visual/manual:** abrir el `index.html` regenerado en el navegador y confirmar contra los
   mockups aprobados: titular B, KPIs, por-estado con neto/descuentos, descuentos por
   producto, clientes nuevos con lista, cross-check discreto (validado en meses sin descuadre;
@@ -126,6 +161,8 @@ En `D` (serie por estado y mes): `rev`, `revNeto`, `descuentos`, `cajas`, `pc`, 
 - Lo nuevo (neto, descuentos, clientes nuevos) aparece **en ambas pestañas**, con énfasis en
   Mes vs. Mes (vista de revisión).
 - Se conserva el stack (HTML único + Chart.js), el tema y el formato de números actuales.
+- **Todo cálculo derivado vive en funciones explícitas de `generar_data.py`** (data layer);
+  el dashboard solo formatea y renderiza. Los cálculos inline que hoy hace el JS se mueven.
 
 ---
 
