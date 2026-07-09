@@ -354,7 +354,7 @@ def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg
     result = {}
     for state in ('fl', 'ny'):
         result[state] = {'rev': [], 'cajas': [], 'pv': [], 'pc': [], 'ord': [],
-                         'descuentos': [], 'revNeto': []}
+                         'descuentos': [], 'revNeto': [], 'promoPct': [], 'roi': []}
         for ym in months:
             d = state_month[state][ym]
             dd = round(incentivos.get(ym, {}).get(state_name[state], {}).get('totalDescuentos', 0.0), 2)
@@ -365,6 +365,27 @@ def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg
             result[state]['ord'].append(len(d['orders']))
             result[state]['descuentos'].append(dd)
             result[state]['revNeto'].append(round(d['rev'] - dd, 2))
+            result[state]['promoPct'].append(_promo_pct(d['cajas'], d['pc']))
+            result[state]['roi'].append(_roi(d['rev'], d['pv']))
+
+    # Combinado FL+NY por mes (para que el dashboard no sume en JS)
+    tot = {k: [] for k in ('rev', 'cajas', 'pv', 'pc', 'ord', 'descuentos', 'revNeto', 'promoPct', 'roi')}
+    for i in range(len(months)):
+        trev = round(result['fl']['rev'][i] + result['ny']['rev'][i], 2)
+        tcaj = result['fl']['cajas'][i] + result['ny']['cajas'][i]
+        tpv = round(result['fl']['pv'][i] + result['ny']['pv'][i], 2)
+        tpc = result['fl']['pc'][i] + result['ny']['pc'][i]
+        tdesc = round(result['fl']['descuentos'][i] + result['ny']['descuentos'][i], 2)
+        tot['rev'].append(trev)
+        tot['cajas'].append(tcaj)
+        tot['pv'].append(tpv)
+        tot['pc'].append(tpc)
+        tot['ord'].append(result['fl']['ord'][i] + result['ny']['ord'][i])
+        tot['descuentos'].append(tdesc)
+        tot['revNeto'].append(round(trev - tdesc, 2))
+        tot['promoPct'].append(_promo_pct(tcaj, tpc))
+        tot['roi'].append(_roi(trev, tpv))
+    result['total'] = tot
     return result
 
 
