@@ -3,36 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LatinFood — Sales Dashboard</title>
+<title>LatinFood — San José · Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#f0f4fb;
-  --surface:#ffffff;
-  --surface2:#e8eef8;
-  --border:#d0daf0;
-  --text:#1a2340;
-  --muted:#6b7aa0;
-  --accent:#2563eb;
-  --teal:#0d9e75;
-  --red:#dc2626;
-  --fl:#2563eb;
-  --ny:#0891b2;
-  --promo:#dc2626;
+  --bg:#f0f4fb;--surface:#ffffff;--surface2:#e8eef8;--border:#d0daf0;
+  --text:#1a2340;--muted:#6b7aa0;--accent:#2563eb;--teal:#0d9e75;--red:#dc2626;
+  --fl:#2563eb;--ny:#0891b2;--promo:#dc2626;--amber:#b45309;--amberbg:#fef3c7;--greenbg:#dcfce7;
 }
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;}
 .num{font-family:'DM Mono',monospace;}
 .shell{max-width:1400px;margin:0 auto;padding:0 28px 56px;}
-
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:22px 0 0;}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:22px 0 0;gap:14px;flex-wrap:wrap;}
 .brand{display:flex;align-items:center;gap:10px;}
 .brand-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;}
 .brand-icon svg{width:16px;height:16px;fill:white;}
 .brand-name{font-size:16px;font-weight:600;color:var(--text);}
 .brand-sub{font-size:11px;color:var(--muted);}
+.topright{display:flex;align-items:center;gap:12px;}
 .period-pill{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.cc-ok{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.cc-ok svg{width:13px;height:13px;stroke:var(--muted);}
+.cc-warn{border:1px solid #fcd34d;border-radius:10px;overflow:hidden;font-size:12px;max-width:520px;}
+.cc-warn-hd{display:flex;align-items:center;gap:8px;background:var(--amberbg);color:var(--amber);padding:8px 12px;font-weight:500;}
+.cc-warn-hd svg{width:14px;height:14px;stroke:var(--amber);}
+.cc-warn-hd button{margin-left:auto;font-size:11px;padding:2px 10px;border-radius:14px;border:1px solid #fcd34d;background:#fff;color:var(--amber);cursor:pointer;}
+.cc-warn-body{background:var(--surface);padding:8px 12px;display:none;}
+.cc-warn-body.open{display:block;}
+.cc-row{display:flex;justify-content:space-between;padding:3px 0;}
 
 .tab-bar{display:flex;border-bottom:2px solid var(--border);margin:22px 0 0;}
 .tab{padding:11px 24px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
@@ -40,28 +40,34 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-pane{display:none;padding-top:24px;}
 .tab-pane.active{display:block;}
-
 .filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
 .filter-label{font-size:12px;color:var(--muted);font-weight:500;margin-right:4px;}
 .mbtn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;font-weight:500;}
 .mbtn:hover{border-color:var(--accent);color:var(--accent);}
 .mbtn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-
 .section{margin-bottom:22px;}
 .sh{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .sh::after{content:'';flex:1;height:1px;background:var(--border);}
 
-.kpi-row{display:grid;gap:12px;margin-bottom:20px;}
-.g6{grid-template-columns:repeat(6,1fr);}
-.g5{grid-template-columns:repeat(5,1fr);}
-.g4{grid-template-columns:repeat(4,1fr);}
-.g2{grid-template-columns:1fr 1fr;}
+.flow{display:flex;align-items:stretch;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.flow-box{flex:1;min-width:170px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;}
+.flow-box.neto{border:1px solid #86efac;background:rgba(13,158,117,.04);}
+.flow-box.desc{border:1px solid #fca5a5;background:rgba(220,38,38,.03);}
+.flow-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.flow-val{font-size:28px;font-weight:500;font-family:'DM Mono',monospace;}
+.flow-val.red{color:var(--promo);}
+.flow-val.green{color:var(--teal);}
+.flow-op{display:flex;align-items:center;font-size:22px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+.kpi-row{display:grid;gap:12px;margin-bottom:20px;grid-template-columns:repeat(5,1fr);}
 .kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;}
 .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);}
 .kpi.pk::before{background:var(--promo);}
+.kpi.nw::before{background:var(--teal);}
 .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
 .kpi-val{font-size:24px;font-weight:500;font-family:'DM Mono',monospace;color:var(--text);}
 .kpi-val.pv{color:var(--promo);}
+.kpi-val.nw{color:var(--teal);}
 .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
 
 .state-band{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
@@ -70,8 +76,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .scard.ny{background:rgba(8,145,178,.03);border-left:4px solid var(--ny);}
 .sname{font-size:13px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-.dot-fl{background:var(--fl);}
-.dot-ny{background:var(--ny);}
+.dot-fl{background:var(--fl);}.dot-ny{background:var(--ny);}
 .smetrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .sm{padding:10px 12px;background:rgba(37,99,235,.04);border-radius:8px;}
 .scard.ny .sm{background:rgba(8,145,178,.04);}
@@ -88,6 +93,19 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .li{display:flex;align-items:center;gap:5px;}
 .lsq{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
 
+.dq-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--bg);}
+.dq-row:last-child{border-bottom:none;}
+.dq-amt{font-family:'DM Mono',monospace;color:var(--promo);font-size:14px;}
+.dq-total{display:flex;justify-content:space-between;align-items:baseline;padding:11px 0 0;margin-top:4px;border-top:1px solid var(--border);}
+.dq-total .dq-amt{font-size:17px;}
+
+.cn-hero{display:flex;align-items:baseline;gap:10px;}
+.cn-num{font-size:40px;font-weight:600;font-family:'DM Mono',monospace;color:var(--teal);}
+.cn-list{margin-top:14px;}
+.cn-item{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bg);font-size:13px;}
+.cn-item:last-child{border-bottom:none;}
+.cn-sp{color:var(--muted);}
+
 .dtable{width:100%;border-collapse:collapse;font-size:12px;}
 .dtable th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);background:var(--bg);}
 .dtable th.r{text-align:right;}
@@ -100,17 +118,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .bny{background:rgba(8,145,178,.1);color:#0e7490;}
 .bok{background:rgba(13,158,117,.1);color:#0d6b50;}
 .bnew{background:rgba(217,119,6,.1);color:#92400e;}
-.bgray{background:rgba(107,122,160,.1);color:#374270;}
-
 .pbar-bg{background:var(--border);border-radius:3px;height:5px;margin-top:8px;}
 .pbar{height:5px;border-radius:3px;}
-
 .mom-filter{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
 .mom-filter label{font-size:12px;color:var(--muted);font-weight:500;}
 .mom-filter select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;font-weight:500;}
-.mom-filter select:focus{outline:none;border-color:var(--accent);}
-
-.dcards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.dcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
 .dcard{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
 .dcard .dlbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;}
 .dcard .dcur{font-size:22px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
@@ -121,18 +134,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .d0 .ddelta{background:rgba(107,122,160,.1);color:var(--muted);}
 .dpp .ddelta{background:rgba(220,38,38,.1);color:#b91c1c;}
 .dnn .ddelta{background:rgba(13,158,117,.12);color:#0d6b50;}
-
+.dnew .ddelta{background:var(--amberbg);color:var(--amber);}
 .smom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 .smom{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
-.smom.fl-b{border-top:3px solid var(--fl);}
-.smom.ny-b{border-top:3px solid var(--ny);}
+.smom.fl-b{border-top:3px solid var(--fl);}.smom.ny-b{border-top:3px solid var(--ny);}
 .smom-hd{display:flex;align-items:center;gap:8px;margin-bottom:16px;font-size:13px;font-weight:600;}
-.smom-ms{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.smom-ms{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .smom-m{padding:10px;background:var(--bg);border-radius:8px;text-align:center;}
 .smom-ml{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
 .smom-cv{font-size:16px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);}
 .smom-pv{font-size:10px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
 .smom-d{font-size:11px;font-weight:700;margin-top:5px;padding:2px 8px;border-radius:4px;display:inline-block;font-family:'DM Mono',monospace;}
+@media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}.dcards{grid-template-columns:repeat(2,1fr);}.state-band,.smom-grid,.g2g,.g21{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -140,15 +153,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 
 <div class="topbar">
   <div class="brand">
-    <div class="brand-icon">
-      <svg viewBox="0 0 16 16"><rect x="1" y="8" width="3" height="7" rx="1"/><rect x="6" y="5" width="3" height="10" rx="1"/><rect x="11" y="1" width="3" height="14" rx="1"/></svg>
-    </div>
-    <div>
-      <div class="brand-name">LatinFood · San Jose</div>
-      <div class="brand-sub">Florida &amp; Nueva York</div>
-    </div>
+    <div class="brand-icon"><svg viewBox="0 0 16 16"><rect x="1" y="8" width="3" height="7" rx="1"/><rect x="6" y="5" width="3" height="10" rx="1"/><rect x="11" y="1" width="3" height="14" rx="1"/></svg></div>
+    <div><div class="brand-name">LatinFood · San José</div><div class="brand-sub">Florida &amp; Nueva York</div></div>
   </div>
-  <span class="period-pill" id="periodPill"></span>
+  <div class="topright">
+    <span id="ccIndicator"></span>
+    <span class="period-pill" id="periodPill"></span>
+  </div>
 </div>
 
 <div class="tab-bar">
@@ -158,9 +169,37 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 
 <div class="tab-pane active" id="tab-general">
   <div class="filter-bar" id="filterBar"><span class="filter-label">Período:</span></div>
-  <div class="section"><div class="sh">KPIs Globales</div><div class="kpi-row g6" id="kpiGrid"></div></div>
-  <div class="section"><div class="sh">Por Estado</div><div class="state-band"><div class="scard fl"><div class="sname"><span class="dot dot-fl"></span>Florida</div><div class="smetrics" id="smFL"></div></div><div class="scard ny"><div class="sname"><span class="dot dot-ny"></span>Nueva York</div><div class="smetrics" id="smNY"></div></div></div></div>
-  <div class="section" id="chartsSection"><div class="sh">Evolución Mensual</div><div class="g2g" style="margin-bottom:14px;"><div class="panel"><div class="pt">Revenue mensual por estado</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMonthState"></canvas></div></div><div class="panel"><div class="pt">Cajas pagadas vs. en promo</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Pagadas</div><div class="li"><div class="lsq" style="background:var(--promo)"></div>Promo</div></div><div class="cw" style="height:200px;"><canvas id="cCajasPromo"></canvas></div></div></div><div class="g2g"><div class="panel"><div class="pt">Tendencia revenue vs. inversión promos</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Revenue</div><div class="li"><div class="lsq" style="background:var(--promo)"></div>Inv. Promos</div></div><div class="cw" style="height:200px;"><canvas id="cTrend"></canvas></div></div><div class="panel"><div class="pt">Inversión promos por estado</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cPromoState"></canvas></div></div></div></div>
+
+  <div class="section"><div class="sh">Resultado del período</div>
+    <div class="flow" id="flowHero"></div>
+    <div class="kpi-row" id="kpiGrid"></div>
+  </div>
+
+  <div class="section"><div class="sh">Por Estado</div>
+    <div class="state-band">
+      <div class="scard fl"><div class="sname"><span class="dot dot-fl"></span>Florida</div><div class="smetrics" id="smFL"></div></div>
+      <div class="scard ny"><div class="sname"><span class="dot dot-ny"></span>Nueva York</div><div class="smetrics" id="smNY"></div></div>
+    </div>
+  </div>
+
+  <div class="section"><div class="sh">Descuentos &amp; Clientes Nuevos</div>
+    <div class="g2g">
+      <div class="panel"><div class="pt">Descuentos por producto</div><div id="descPanel"></div></div>
+      <div class="panel"><div class="pt">Clientes nuevos</div><div id="cnPanel"></div></div>
+    </div>
+  </div>
+
+  <div class="section" id="chartsSection"><div class="sh">Evolución Mensual</div>
+    <div class="g2g" style="margin-bottom:14px;">
+      <div class="panel"><div class="pt">Revenue bruto vs. neto por mes</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Bruto</div><div class="li"><div class="lsq" style="background:var(--teal)"></div>Neto</div></div><div class="cw" style="height:200px;"><canvas id="cRevNeto"></canvas></div></div>
+      <div class="panel"><div class="pt">Cajas pagadas vs. en promo</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Pagadas</div><div class="li"><div class="lsq" style="background:var(--promo)"></div>Promo</div></div><div class="cw" style="height:200px;"><canvas id="cCajasPromo"></canvas></div></div>
+    </div>
+    <div class="g2g">
+      <div class="panel"><div class="pt">Revenue por estado</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMonthState"></canvas></div></div>
+      <div class="panel"><div class="pt">Descuentos por mes</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cDescState"></canvas></div></div>
+    </div>
+  </div>
+
   <div class="section"><div class="sh">Clientes &amp; Equipo</div><div class="g21"><div class="panel"><div class="pt">Top clientes — revenue</div><div class="cw" style="height:260px;"><canvas id="cCustomers"></canvas></div></div><div class="panel"><div class="pt">Revenue por vendedor</div><div class="cw" style="height:260px;"><canvas id="cSales"></canvas></div></div></div></div>
   <div class="section"><div class="sh">Tabla de Clientes</div><div class="panel" style="padding:0 0 4px;"><table class="dtable"><thead><tr><th>Cliente</th><th>Estado</th><th class="r">Revenue</th><th class="r">Cajas</th><th class="r">Cajas Promo</th><th class="r">% Promo</th></tr></thead><tbody id="custTable"></tbody></table></div><div id="custShowMoreWrap" style="display:none;text-align:center;margin-top:12px;"><button class="mbtn" onclick="custShowMore()">Mostrar más</button></div></div>
   <div class="section"><div class="sh">Productos</div><div class="g2g"><div class="panel"><div class="pt">Revenue &amp; volumen por SKU</div><div class="cw" style="height:150px;"><canvas id="cProducts"></canvas></div></div><div class="panel" id="productCardsPanel" style="display:flex;flex-direction:column;gap:10px;justify-content:center;"></div></div></div>
@@ -169,49 +208,168 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 <div class="tab-pane" id="tab-mom">
   <div class="mom-filter"><label>Comparar:</label><select id="momSel" onchange="renderMom()"></select></div>
   <div class="section"><div class="sh">Variación Global</div><div class="dcards" id="dAll"></div></div>
+  <div class="section"><div class="sh">Descuentos &amp; Clientes Nuevos del mes</div><div class="g2g"><div class="panel"><div class="pt" id="momDescTitle">Descuentos por producto</div><div id="momDescPanel"></div></div><div class="panel"><div class="pt" id="momCnTitle">Clientes nuevos</div><div id="momCnPanel"></div></div></div></div>
   <div class="section"><div class="sh">Por Estado</div><div class="smom-grid"><div class="smom fl-b"><div class="smom-hd"><span class="dot dot-fl"></span>Florida</div><div class="smom-ms" id="sFL"></div></div><div class="smom ny-b"><div class="smom-hd"><span class="dot dot-ny"></span>Nueva York</div><div class="smom-ms" id="sNY"></div></div></div></div>
-  <div class="section"><div class="sh">Evolución mensual</div><div class="g2g" style="margin-bottom:14px;"><div class="panel"><div class="pt">Revenue — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:210px;"><canvas id="cMRev"></canvas></div></div><div class="panel"><div class="pt">Cajas entregadas — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:210px;"><canvas id="cMCaj"></canvas></div></div></div><div class="g2g"><div class="panel"><div class="pt">Inversión en promos — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMPromo"></canvas></div></div><div class="panel"><div class="pt">% volumen en promo — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMPct"></canvas></div></div></div></div>
-  <div class="section"><div class="sh">Revenue vs. Inversión en Promos</div><div class="g2g"><div class="panel"><div class="pt">Florida — Revenue vs. Promos</div><div class="leg"><div class="li"><div class="lsq" style="background:rgba(37,99,235,.7)"></div>Revenue</div><div class="li"><div class="lsq" style="background:var(--promo)"></div>Inv. Promos</div></div><div class="cw" style="height:200px;"><canvas id="cMRPFL"></canvas></div></div><div class="panel"><div class="pt">Nueva York — Revenue vs. Promos</div><div class="leg"><div class="li"><div class="lsq" style="background:rgba(8,145,178,.7)"></div>Revenue</div><div class="li"><div class="lsq" style="background:var(--promo)"></div>Inv. Promos</div></div><div class="cw" style="height:200px;"><canvas id="cMRPNY"></canvas></div></div></div></div>
-  <div class="section"><div class="g2g"><div class="panel"><div class="pt">Pedidos únicos por mes</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMOrd"></canvas></div></div><div class="panel"><div class="pt">ROI de promos por mes (Revenue ÷ Inv. Promo)</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMROI"></canvas></div></div></div></div>
+  <div class="section"><div class="sh">Evolución mensual</div><div class="g2g" style="margin-bottom:14px;"><div class="panel"><div class="pt">Revenue neto — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:210px;"><canvas id="cMRev"></canvas></div></div><div class="panel"><div class="pt">Cajas entregadas — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:210px;"><canvas id="cMCaj"></canvas></div></div></div><div class="g2g"><div class="panel"><div class="pt">Descuentos — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMDesc"></canvas></div></div><div class="panel"><div class="pt">% volumen en promo — Florida vs Nueva York</div><div class="leg"><div class="li"><div class="lsq" style="background:var(--fl)"></div>Florida</div><div class="li"><div class="lsq" style="background:var(--ny)"></div>Nueva York</div></div><div class="cw" style="height:200px;"><canvas id="cMPct"></canvas></div></div></div></div>
   <div class="section"><div class="sh">Tabla Comparativa Detallada</div><div class="panel" style="padding:0 0 4px;"><table class="dtable"><thead><tr><th>Métrica</th><th class="r">FL Actual</th><th class="r">FL Ant.</th><th class="r">Δ FL</th><th class="r">NY Actual</th><th class="r">NY Ant.</th><th class="r">Δ NY</th></tr></thead><tbody id="mTbody"></tbody></table></div></div>
 </div>
 </div>
 
 <script src="data.js"></script>
 <script>
-const A={rev:D.fl.rev.map((v,i)=>v+D.ny.rev[i]),cajas:D.fl.cajas.map((v,i)=>v+D.ny.cajas[i]),pv:D.fl.pv.map((v,i)=>v+D.ny.pv[i]),pc:D.fl.pc.map((v,i)=>v+D.ny.pc[i]),ord:D.fl.ord.map((v,i)=>v+D.ny.ord[i])};
-function initUI(){document.getElementById('periodPill').textContent=PERIOD_TEXT;const fb=document.getElementById('filterBar');const allBtn=document.createElement('button');allBtn.className='mbtn active';allBtn.textContent='Todos';allBtn.onclick=function(){setMonth(-1,this);};fb.appendChild(allBtn);MONTHS_BTN.forEach(function(lbl,i){const b=document.createElement('button');b.className='mbtn';b.textContent=lbl;b.onclick=function(){setMonth(i,this);};fb.appendChild(b);});const sel=document.getElementById('momSel');PLBLS.forEach(function(pair,i){const opt=document.createElement('option');opt.value=i;opt.textContent=pair[0]+' vs. '+pair[1];sel.appendChild(opt);});}
-const GC={grid:'rgba(208,218,240,.8)',text:'#6b7aa0',fl:'#2563eb',ny:'#0891b2',promo:'#dc2626'};
 const $=id=>document.getElementById(id);
+const T=D.total;
 function fmtNum(v,currency){const n=Number(v);let str=currency?(Math.round(n*100)/100).toString():Math.round(n).toString();const parts=str.split('.');parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return(currency&&parts[1])?parts[0]+','+parts[1]:parts[0];}
 const f$=v=>'$'+fmtNum(v,true);const fN=v=>fmtNum(v,false);
 const pct=(c,p)=>p===0?null:((c-p)/p*100);
 const fp=v=>v===null?'—':(v>=0?'+':'')+v.toFixed(1)+'%';
-const bopts=(yf)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>yf(c.raw)}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10}}},y:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10},callback:yf}}}});
-function dcN(v){return v===null?'d0':v>=0?'dp':'dn';}
-function dcI(v){return v===null?'d0':v>=0?'dpp':'dnn';}
-function getS(arr,m){return m===-1?arr.reduce((a,b)=>a+b,0):arr[m];}
-let selM=-1,genBuilt=false;
-let genMonthStateChart=null,genCajasPromoChart=null,genTrendChart=null,genPromoStateChart=null,genCustomersChart=null,genSalesChart=null,genProductsChart=null;
-function getGeneralData(m){return GENERAL_DATA[m===-1?'ALL':MONTHS[m]]||GENERAL_DATA.ALL;}
-function smHTML(stateKey,m,col){const gd=getGeneralData(m);const st=gd.states[stateKey==='fl'?'Florida':'Nueva York']||{rev:0,cajas:0,pc:0,pv:0,ord:0};const r=st.rev,c=st.cajas,pc=st.pc,pv=st.pv,o=st.ord;const pp=c>0?pc/c*100:0,roi=pv>0?r/pv:0,rpc=(c-pc)>0?r/(c-pc):0;return`<div class="sm"><div class="sm-lbl">Revenue</div><div class="sm-val" style="color:var(${col})">${f$(r)}</div><div class="sm-sub">${o} pedidos</div></div><div class="sm"><div class="sm-lbl">Cajas</div><div class="sm-val">${fN(c)}</div><div class="sm-sub">Rev/caja ${(c-pc)>0?f$(rpc):'—'}</div></div><div class="sm"><div class="sm-lbl">% Promo Vol</div><div class="sm-val" style="color:var(--promo)">${pp.toFixed(1)}%</div><div class="sm-sub">${fN(pc)} cajas</div></div><div class="sm"><div class="sm-lbl">Inv. Promos</div><div class="sm-val" style="color:var(--promo)">${f$(pv)}</div><div class="sm-sub">&nbsp;</div></div><div class="sm"><div class="sm-lbl">ROI Promo</div><div class="sm-val" style="color:${roi>=3?'var(--teal)':'var(--text)'}">${roi.toFixed(2)}x</div><div class="sm-sub">&nbsp;</div></div><div class="sm"><div class="sm-lbl">Pedidos</div><div class="sm-val">${fN(o)}</div><div class="sm-sub">&nbsp;</div></div>`;}
-function renderKpis(m){const gd=getGeneralData(m);const s=gd.summary;const pp=s.cajas>0?s.pc/s.cajas*100:0;$('kpiGrid').innerHTML=`<div class="kpi"><div class="kpi-label">Revenue Total</div><div class="kpi-val">${f$(s.rev)}</div><div class="kpi-sub">${m===-1?'acumulado':'mes seleccionado'}</div></div><div class="kpi"><div class="kpi-label">Cajas Entregadas</div><div class="kpi-val">${fN(s.cajas)}</div><div class="kpi-sub">Pagadas: ${fN(Math.max(s.cajas-s.pc,0))} · Promo: ${fN(s.pc)}</div></div><div class="kpi"><div class="kpi-label">Pedidos Únicos</div><div class="kpi-val">${fN(s.ord)}</div><div class="kpi-sub">Ticket prom. ${s.ord>0?f$(s.rev/s.ord):'—'}</div></div><div class="kpi"><div class="kpi-label">Precio / Caja</div><div class="kpi-val">${f$(s.avg_price)}</div><div class="kpi-sub">Sobre cajas pagadas</div></div><div class="kpi pk"><div class="kpi-label">% Vol. en Promo</div><div class="kpi-val pv">${pp.toFixed(1)}%</div><div class="kpi-sub">${fN(s.pc)} cajas regaladas</div></div><div class="kpi pk"><div class="kpi-label">Inversión Promos</div><div class="kpi-val pv">${f$(s.pv)}</div><div class="kpi-sub">${s.rev>0?((s.pv/s.rev)*100).toFixed(1):0}% del revenue</div></div>`;$('smFL').innerHTML=smHTML('fl',m,'--fl');$('smNY').innerHTML=smHTML('ny',m,'--ny');}
-function setChartTitleText(m){const titles=document.querySelectorAll('#chartsSection .pt');if(m===-1){if(titles[0])titles[0].textContent='Revenue mensual por estado';if(titles[1])titles[1].textContent='Cajas pagadas vs. en promo';if(titles[2])titles[2].textContent='Tendencia revenue vs. inversión promos';if(titles[3])titles[3].textContent='Inversión promos por estado';}else{const ml=MONTHS[m];if(titles[0])titles[0].textContent=`Revenue por estado · ${ml}`;if(titles[1])titles[1].textContent=`Cajas pagadas vs. promo · ${ml}`;if(titles[2])titles[2].textContent=`Revenue vs. inversión promos · ${ml}`;if(titles[3])titles[3].textContent=`Inversión promos por estado · ${ml}`;}}
-function updateGeneralCharts(m){setChartTitleText(m);if(m===-1){genMonthStateChart.config.type='bar';genMonthStateChart.data.labels=MONTHS;genMonthStateChart.data.datasets=[{label:'Florida',data:D.fl.rev,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.rev,backgroundColor:GC.ny,borderRadius:3}];genMonthStateChart.options.scales.x.stacked=false;genMonthStateChart.options.scales.y.stacked=false;const cajP=A.cajas.map((c,i)=>c-A.pc[i]);genCajasPromoChart.data.labels=MONTHS;genCajasPromoChart.data.datasets=[{label:'Pagadas',data:cajP,backgroundColor:GC.fl,stack:'s',borderRadius:0},{label:'Promo',data:A.pc,backgroundColor:GC.promo,stack:'s'}];genCajasPromoChart.options.scales.x.stacked=true;genCajasPromoChart.options.scales.y.stacked=true;genTrendChart.data.labels=MONTHS;genTrendChart.data.datasets=[{label:'Revenue',data:A.rev,backgroundColor:GC.fl,borderRadius:3},{label:'Inv. Promos',data:A.pv,backgroundColor:GC.promo,borderRadius:3}];genPromoStateChart.data.labels=MONTHS;genPromoStateChart.data.datasets=[{label:'Florida',data:D.fl.pv,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.pv,backgroundColor:GC.ny,borderRadius:3}];}else{const gd=getGeneralData(m);const fl=gd.states['Florida']||{rev:0,pv:0};const ny=gd.states['Nueva York']||{rev:0,pv:0};genMonthStateChart.config.type='bar';genMonthStateChart.data.labels=['Florida','Nueva York'];genMonthStateChart.data.datasets=[{label:'Revenue',data:[fl.rev,ny.rev],backgroundColor:[GC.fl,GC.ny],borderRadius:3}];genMonthStateChart.options.scales.x.stacked=false;genMonthStateChart.options.scales.y.stacked=false;genCajasPromoChart.data.labels=['Pagadas','Promo'];genCajasPromoChart.data.datasets=[{label:'Cajas',data:[Math.max(gd.summary.cajas-gd.summary.pc,0),gd.summary.pc],backgroundColor:[GC.fl,GC.promo],borderRadius:3}];genCajasPromoChart.options.scales.x.stacked=false;genCajasPromoChart.options.scales.y.stacked=false;genTrendChart.data.labels=['Revenue','Inv. Promos'];genTrendChart.data.datasets=[{label:'Revenue',data:[gd.summary.rev,0],backgroundColor:GC.fl,borderRadius:3},{label:'Inv. Promos',data:[0,gd.summary.pv],backgroundColor:GC.promo,borderRadius:3}];genPromoStateChart.data.labels=['Florida','Nueva York'];genPromoStateChart.data.datasets=[{label:'Inv. Promos',data:[fl.pv,ny.pv],backgroundColor:[GC.fl,GC.ny],borderRadius:3}];}genMonthStateChart.update();genCajasPromoChart.update();genTrendChart.update();genPromoStateChart.update();}
-function updateCustomerTeam(m){const gd=getGeneralData(m);const cD=gd.customerChart;genCustomersChart.data.labels=cD.map(c=>c.n);genCustomersChart.data.datasets[0].data=cD.map(c=>c.v);genCustomersChart.data.datasets[0].backgroundColor=cD.map(c=>c.s==='fl'?GC.fl:GC.ny);genCustomersChart.update();const spD=gd.salesChart;genSalesChart.data.labels=spD.map(s=>s.n);genSalesChart.data.datasets[0].data=spD.map(s=>s.v);genSalesChart.data.datasets[0].backgroundColor=spD.map((_,i)=>i===0?GC.fl:'rgba(37,99,235,.35)');genSalesChart.update();}
+const GC={grid:'rgba(208,218,240,.8)',text:'#6b7aa0',fl:'#2563eb',ny:'#0891b2',promo:'#dc2626',teal:'#0d9e75'};
+const bopts=(yf)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+yf(c.raw)}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10}}},y:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10},callback:yf}}}});
+function getGD(m){return GENERAL_DATA[m===-1?'ALL':MONTHS[m]]||GENERAL_DATA.ALL;}
+function stateOf(gd,key){return gd.states[key==='fl'?'Florida':'Nueva York']||{rev:0,revNeto:0,descuentos:0,cajas:0,pc:0,pv:0,ord:0,promoPct:0,roi:0,revPorCaja:0};}
+
+function initUI(){
+  $('periodPill').textContent=PERIOD_TEXT;
+  const fb=$('filterBar');
+  const allBtn=document.createElement('button');allBtn.className='mbtn active';allBtn.textContent='Todos';allBtn.onclick=function(){setMonth(-1,this);};fb.appendChild(allBtn);
+  MONTHS_BTN.forEach(function(lbl,i){const b=document.createElement('button');b.className='mbtn';b.textContent=lbl;b.onclick=function(){setMonth(i,this);};fb.appendChild(b);});
+  const sel=$('momSel');PLBLS.forEach(function(pair,i){const opt=document.createElement('option');opt.value=i;opt.textContent=pair[0]+' vs. '+pair[1];sel.appendChild(opt);});
+}
+
+function renderCrossCheck(m){
+  const el=$('ccIndicator');
+  // El cross-check es un control por mes (revisar antes de publicar); en "Todos" no aplica.
+  if(m===-1){el.innerHTML='';return;}
+  const gd=getGD(m),cc=gd.crossCheck||{};const issues=[];
+  Object.keys(cc).forEach(function(st){['free','sold'].forEach(function(k){const x=cc[st][k];if(x.reportado>0&&x.computado!==x.reportado){issues.push({st:st,k:k==='free'?'Cajas free':'Cajas vendidas',c:x.computado,r:x.reportado});}});});
+  if(issues.length===0){el.innerHTML='<span class="cc-ok"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Datos validados</span>';return;}
+  el.innerHTML='<div class="cc-warn"><div class="cc-warn-hd"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>'+issues.length+' por revisar antes de publicar<button onclick="this.closest(\'.cc-warn\').querySelector(\'.cc-warn-body\').classList.toggle(\'open\')">Ver detalle</button></div><div class="cc-warn-body">'+issues.map(function(i){return '<div class="cc-row"><span>'+i.st+' · '+i.k+'</span><span>calc '+i.c+' <span style="color:var(--muted)">vs</span> report '+i.r+'</span></div>';}).join('')+'</div></div>';
+}
+
+function renderFlow(m){
+  const s=getGD(m).summary;
+  $('flowHero').innerHTML=
+    '<div class="flow-box"><div class="flow-lbl">Revenue bruto</div><div class="flow-val">'+f$(s.rev)+'</div></div>'+
+    '<div class="flow-op">−</div>'+
+    '<div class="flow-box desc"><div class="flow-lbl">Descuentos</div><div class="flow-val red">'+f$(s.descuentos)+'</div></div>'+
+    '<div class="flow-op">=</div>'+
+    '<div class="flow-box neto"><div class="flow-lbl">Revenue neto</div><div class="flow-val green">'+f$(s.revNeto)+'</div></div>';
+}
+function renderKpis(m){
+  const s=getGD(m).summary;
+  $('kpiGrid').innerHTML=
+    '<div class="kpi"><div class="kpi-label">Cajas Entregadas</div><div class="kpi-val">'+fN(s.cajas)+'</div><div class="kpi-sub">Pagadas: '+fN(s.pagadas)+'</div></div>'+
+    '<div class="kpi pk"><div class="kpi-label">Cajas Promo</div><div class="kpi-val pv">'+fN(s.pc)+'</div><div class="kpi-sub">'+s.promoPct.toFixed(1)+'% del volumen</div></div>'+
+    '<div class="kpi nw"><div class="kpi-label">Clientes Nuevos</div><div class="kpi-val nw">'+fN(s.clientesNuevos)+'</div><div class="kpi-sub">primera compra</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Pedidos Únicos</div><div class="kpi-val">'+fN(s.ord)+'</div><div class="kpi-sub">Ticket prom. '+(s.ticket>0?f$(s.ticket):'—')+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Precio / Caja</div><div class="kpi-val">'+f$(s.avg_price)+'</div><div class="kpi-sub">Sobre cajas pagadas</div></div>';
+}
+function smHTML(key,m,col){
+  const st=stateOf(getGD(m),key);
+  return '<div class="sm"><div class="sm-lbl">Revenue neto</div><div class="sm-val" style="color:var('+col+')">'+f$(st.revNeto)+'</div><div class="sm-sub">bruto '+f$(st.rev)+'</div></div>'+
+    '<div class="sm"><div class="sm-lbl">Descuentos</div><div class="sm-val" style="color:var(--promo)">'+f$(st.descuentos)+'</div><div class="sm-sub">&nbsp;</div></div>'+
+    '<div class="sm"><div class="sm-lbl">Cajas</div><div class="sm-val">'+fN(st.cajas)+'</div><div class="sm-sub">Rev/caja '+(st.revPorCaja>0?f$(st.revPorCaja):'—')+'</div></div>'+
+    '<div class="sm"><div class="sm-lbl">% Promo Vol</div><div class="sm-val" style="color:var(--promo)">'+st.promoPct.toFixed(1)+'%</div><div class="sm-sub">'+fN(st.pc)+' cajas</div></div>'+
+    '<div class="sm"><div class="sm-lbl">Inv. Promos</div><div class="sm-val" style="color:var(--promo)">'+f$(st.pv)+'</div><div class="sm-sub">ROI '+st.roi.toFixed(2)+'x</div></div>'+
+    '<div class="sm"><div class="sm-lbl">Pedidos</div><div class="sm-val">'+fN(st.ord)+'</div><div class="sm-sub">&nbsp;</div></div>';
+}
+function renderDescuentos(m){
+  const dp=getGD(m).descuentosPorProducto||[];const s=getGD(m).summary;
+  if(dp.length===0){$('descPanel').innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0;">Sin descuentos registrados en el período.</div>';return;}
+  $('descPanel').innerHTML=dp.map(function(d){const bc=d.state==='Florida'?'bfl':'bny';const bt=d.state==='Florida'?'FL':'NY';return '<div class="dq-row"><div><span style="font-size:14px;">'+d.product+'</span> <span class="badge '+bc+'">'+bt+'</span> <span style="font-size:11px;color:var(--muted);">· '+d.cases+' cajas</span></div><div class="dq-amt">−'+f$(d.amount)+'</div></div>';}).join('')+
+    '<div class="dq-total"><div style="font-size:13px;color:var(--muted);">Total descuentos</div><div class="dq-amt">−'+f$(s.descuentos)+'</div></div>';
+}
+let _cnOpen=false;
+function renderClientesNuevos(m){
+  const gd=getGD(m);const list=gd.clientesNuevosLista||[];const n=gd.summary.clientesNuevos;
+  const shown=_cnOpen?list:list.slice(0,5);
+  let html='<div class="cn-hero"><span class="cn-num">'+n+'</span><span style="font-size:14px;color:var(--muted);">'+(n===1?'cliente nuevo':'clientes nuevos')+'</span></div>'+
+    '<div style="font-size:11px;color:var(--muted);margin-top:2px;">primera compra vs. histórico</div>';
+  if(list.length){html+='<div class="cn-list">'+shown.map(function(c){return '<div class="cn-item"><span>'+c.name+'</span><span class="cn-sp">'+c.salesperson+'</span></div>';}).join('')+'</div>';
+    if(list.length>5){html+='<div style="text-align:center;margin-top:10px;"><button class="mbtn" onclick="_cnOpen=!_cnOpen;renderClientesNuevos('+m+')">'+(_cnOpen?'Mostrar menos':'Mostrar '+(list.length-5)+' más')+'</button></div>';}}
+  $('cnPanel').innerHTML=html;
+}
+
+let genBuilt=false,cRevNeto,cCajasPromo,cMonthState,cDescState,cCustomers,cSales,cProducts;
+function buildGeneral(){
+  if(genBuilt)return;genBuilt=true;
+  const hbar=(id,ds,yf)=>new Chart($(id),{type:'bar',data:{labels:MONTHS,datasets:ds},options:bopts(yf)});
+  cRevNeto=hbar('cRevNeto',[{label:'Bruto',data:T.rev,backgroundColor:GC.fl,borderRadius:3},{label:'Neto',data:T.revNeto,backgroundColor:GC.teal,borderRadius:3}],f$);
+  cCajasPromo=new Chart($('cCajasPromo'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Pagadas',data:T.pagadas,backgroundColor:GC.fl,stack:'s'},{label:'Promo',data:T.pc,backgroundColor:GC.promo,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+' cajas'}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10}},stacked:true},y:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10}},stacked:true}}}});
+  cMonthState=hbar('cMonthState',[{label:'Florida',data:D.fl.rev,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.rev,backgroundColor:GC.ny,borderRadius:3}],f$);
+  cDescState=hbar('cDescState',[{label:'Florida',data:D.fl.descuentos,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.descuentos,backgroundColor:GC.ny,borderRadius:3}],f$);
+  const hb=(id)=>new Chart($(id),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f$(c.raw)}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10},callback:v=>'$'+(v/1000).toFixed(1)+'k'}},y:{grid:{display:false},ticks:{color:GC.text,font:{size:10}}}}}});
+  cCustomers=hb('cCustomers');cSales=hb('cSales');cProducts=hb('cProducts');
+  renderGeneral(-1);
+}
+function renderGeneral(m){
+  renderCrossCheck(m);renderFlow(m);renderKpis(m);
+  $('smFL').innerHTML=smHTML('fl',m,'--fl');$('smNY').innerHTML=smHTML('ny',m,'--ny');
+  renderDescuentos(m);_cnOpen=false;renderClientesNuevos(m);
+  const gd=getGD(m);
+  const cD=gd.customerChart;cCustomers.data.labels=cD.map(c=>c.n);cCustomers.data.datasets[0].data=cD.map(c=>c.v);cCustomers.data.datasets[0].backgroundColor=cD.map(c=>c.s==='fl'?GC.fl:GC.ny);cCustomers.update();
+  const sp=gd.salesChart;cSales.data.labels=sp.map(s=>s.n);cSales.data.datasets[0].data=sp.map(s=>s.v);cSales.data.datasets[0].backgroundColor=sp.map((_,i)=>i===0?GC.fl:'rgba(37,99,235,.35)');cSales.update();
+  renderCustomerTable(m);renderProducts(m);
+}
 let _custM=-1,_custPage=10;
-function _custRowHTML(r){return`<tr><td>${r.name}</td><td><span class="badge ${r.state==='Florida'?'bfl':'bny'}">${r.state==='Florida'?'FL':'NY'}</span></td><td class="r">${f$(r.revenue)}</td><td class="r">${fN(r.cajas)}</td><td class="r">${fN(r.promo_qty)}</td><td class="r" style="color:${r.promo_pct>25?'var(--promo)':'var(--text)'};font-weight:${r.promo_pct>25?600:400}">${r.promo_pct.toFixed(1).replace('.',',')}%</td></tr>`;}
-function _custRefresh(){const rows=getGeneralData(_custM).customerTable;$('custTable').innerHTML=rows.slice(0,_custPage).map(_custRowHTML).join('');$('custShowMoreWrap').style.display=rows.length>_custPage?'block':'none';}
+function _custRow(r){return '<tr><td>'+r.name+'</td><td><span class="badge '+(r.state==='Florida'?'bfl':'bny')+'">'+(r.state==='Florida'?'FL':'NY')+'</span></td><td class="r">'+f$(r.revenue)+'</td><td class="r">'+fN(r.cajas)+'</td><td class="r">'+fN(r.promo_qty)+'</td><td class="r" style="color:'+(r.promo_pct>25?'var(--promo)':'var(--text)')+'">'+r.promo_pct.toFixed(1).replace('.',',')+'%</td></tr>';}
+function _custRefresh(){const rows=getGD(_custM).customerTable;$('custTable').innerHTML=rows.slice(0,_custPage).map(_custRow).join('');$('custShowMoreWrap').style.display=rows.length>_custPage?'block':'none';}
 function renderCustomerTable(m){_custM=m;_custPage=10;_custRefresh();}
 function custShowMore(){_custPage+=10;_custRefresh();}
-function renderProducts(m){const products=getGeneralData(m).productsCards;genProductsChart.data.labels=products.map(p=>p.name.replace('Jack Mackerel ','').replace('in ',''));genProductsChart.data.datasets[0].data=products.map(p=>p.revenue);genProductsChart.data.datasets[0].backgroundColor=products.map(p=>/Tomato/i.test(p.name)?'#d97706':GC.fl);genProductsChart.update();const maxRev=Math.max(...products.map(p=>p.revenue),1);$('productCardsPanel').innerHTML=products.map(p=>{const isTomato=/Tomato/i.test(p.name);const bg=isTomato?'rgba(217,119,6,.04)':'rgba(37,99,235,.04)';const border=isTomato?'1px solid rgba(217,119,6,.2)':'1px solid rgba(37,99,235,.15)';const badgeClass=isTomato?'bnew':'bok';const badgeText=isTomato?'Nuevo SKU':'Core SKU';const barColor=isTomato?'#d97706':'var(--fl)';const firstM=PROD_FIRST_MONTH[p.name];const note=firstM?('Incorporado '+firstM+' — datos iniciales'):'';const width=Math.max((p.revenue/maxRev)*100,3);return`<div style="background:${bg};border:${border};border-radius:8px;padding:14px 16px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:13px;font-weight:500;">${p.name}</span><span class="badge ${badgeClass}">${badgeText}</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;"><div><div style="color:var(--muted)">Revenue</div><div class="num" style="font-size:15px;font-weight:500;">${f$(p.revenue)}</div></div><div><div style="color:var(--muted)">Cajas</div><div class="num" style="font-size:15px;font-weight:500;">${fN(p.cajas)}</div></div><div><div style="color:var(--muted)">% Promo</div><div class="num" style="font-size:15px;font-weight:500;color:var(--promo)">${p.promo_pct.toFixed(1)}%</div></div></div>${note?`<div style="font-size:10px;color:var(--muted);margin-top:8px;">${note}</div>`:''}<div class="pbar-bg"><div class="pbar" style="width:${width}%;background:${barColor}"></div></div></div>`;}).join('');}
-function renderGeneralDynamic(m){renderKpis(m);updateGeneralCharts(m);updateCustomerTeam(m);renderCustomerTable(m);renderProducts(m);}
-function setMonth(m,btn){selM=m;document.querySelectorAll('.mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderGeneralDynamic(m);}
-function buildGeneral(){if(genBuilt)return;genBuilt=true;genMonthStateChart=new Chart($('cMonthState'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Florida',data:D.fl.rev,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.rev,backgroundColor:GC.ny,borderRadius:3}]},options:{...bopts(f$),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f$(c.raw)}}}}});const cajP=A.cajas.map((c,i)=>c-A.pc[i]);genCajasPromoChart=new Chart($('cCajasPromo'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Pagadas',data:cajP,backgroundColor:GC.fl,stack:'s',borderRadius:0},{label:'Promo',data:A.pc,backgroundColor:GC.promo,stack:'s'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+' cajas'}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10}},stacked:true},y:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10}},stacked:true}}}});genTrendChart=new Chart($('cTrend'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Revenue',data:A.rev,backgroundColor:GC.fl,borderRadius:3},{label:'Inv. Promos',data:A.pv,backgroundColor:GC.promo,borderRadius:3}]},options:{...bopts(f$),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f$(c.raw)}}}}});genPromoStateChart=new Chart($('cPromoState'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Florida',data:D.fl.pv,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.pv,backgroundColor:GC.ny,borderRadius:3}]},options:{...bopts(f$),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f$(c.raw)}}}}});genCustomersChart=new Chart($('cCustomers'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f$(c.raw)}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10},callback:v=>'$'+(v/1000).toFixed(1)+'k'}},y:{grid:{display:false},ticks:{color:GC.text,font:{size:10}}}}}});genSalesChart=new Chart($('cSales'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:3}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f$(c.raw)}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10},callback:v=>'$'+(v/1000).toFixed(1)+'k'}},y:{grid:{display:false},ticks:{color:GC.text,font:{size:10}}}}}});genProductsChart=new Chart($('cProducts'),{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f$(c.raw)}}},scales:{x:{grid:{color:GC.grid},ticks:{color:GC.text,font:{size:10},callback:v=>'$'+(v/1000).toFixed(0)+'k'}},y:{grid:{display:false},ticks:{color:GC.text,font:{size:10}}}}}});renderGeneralDynamic(-1);}
+function renderProducts(m){
+  const products=getGD(m).productsCards;
+  cProducts.data.labels=products.map(p=>p.name.replace('Jack Mackerel ','').replace('in ',''));cProducts.data.datasets[0].data=products.map(p=>p.revenue);cProducts.data.datasets[0].backgroundColor=products.map(p=>/Tomato|Tomate/i.test(p.name)?'#d97706':GC.fl);cProducts.update();
+  const maxRev=Math.max(...products.map(p=>p.revenue),1);
+  $('productCardsPanel').innerHTML=products.map(function(p){const isT=/Tomato|Tomate/i.test(p.name);const bg=isT?'rgba(217,119,6,.04)':'rgba(37,99,235,.04)';const bd=isT?'1px solid rgba(217,119,6,.2)':'1px solid rgba(37,99,235,.15)';const bar=isT?'#d97706':'var(--fl)';const w=Math.max((p.revenue/maxRev)*100,3);return '<div style="background:'+bg+';border:'+bd+';border-radius:8px;padding:14px 16px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:13px;font-weight:500;">'+p.name+'</span></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;"><div><div style="color:var(--muted)">Revenue</div><div class="num" style="font-size:15px;font-weight:500;">'+f$(p.revenue)+'</div></div><div><div style="color:var(--muted)">Cajas</div><div class="num" style="font-size:15px;font-weight:500;">'+fN(p.cajas)+'</div></div><div><div style="color:var(--muted)">% Promo</div><div class="num" style="font-size:15px;font-weight:500;color:var(--promo)">'+p.promo_pct.toFixed(1)+'%</div></div></div><div class="pbar-bg"><div class="pbar" style="width:'+w+'%;background:'+bar+'"></div></div></div>';}).join('');
+}
+function setMonth(m,btn){document.querySelectorAll('#filterBar .mbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderGeneral(m);}
+
 let mBuilt=false;
-function buildMomCharts(){if(mBuilt)return;mBuilt=true;const lo=(yf,ds)=>({type:'line',data:{labels:MONTHS,datasets:ds},options:{...bopts(yf),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+yf(c.raw)}}}}});new Chart($('cMRev'),lo(f$,[{label:'Florida',data:D.fl.rev,borderColor:GC.fl,backgroundColor:'rgba(37,99,235,.06)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:GC.fl,borderWidth:2},{label:'Nueva York',data:D.ny.rev,borderColor:GC.ny,backgroundColor:'rgba(8,145,178,.06)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:GC.ny,borderWidth:2}]));new Chart($('cMCaj'),lo(fN,[{label:'Florida',data:D.fl.cajas,borderColor:GC.fl,backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:GC.fl,borderWidth:2},{label:'Nueva York',data:D.ny.cajas,borderColor:GC.ny,backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:GC.ny,borderWidth:2}]));new Chart($('cMPromo'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Florida',data:D.fl.pv,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.pv,backgroundColor:GC.ny,borderRadius:3}]},options:{...bopts(f$),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f$(c.raw)}}}}});const pFL=D.fl.cajas.map((c,i)=>c>0?+(D.fl.pc[i]/c*100).toFixed(1):0);const pNY=D.ny.cajas.map((c,i)=>c>0?+(D.ny.pc[i]/c*100).toFixed(1):0);new Chart($('cMPct'),lo(v=>v+'%',[{label:'Florida',data:pFL,borderColor:GC.fl,backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:GC.fl,borderWidth:2},{label:'Nueva York',data:pNY,borderColor:GC.ny,backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:GC.ny,borderWidth:2}]));new Chart($('cMRPFL'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Revenue',data:D.fl.rev,backgroundColor:'rgba(37,99,235,.7)',borderRadius:3},{label:'Inv. Promos',data:D.fl.pv,backgroundColor:'rgba(220,38,38,.75)',borderRadius:3}]},options:{...bopts(f$),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f$(c.raw)}}}}});new Chart($('cMRPNY'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Revenue',data:D.ny.rev,backgroundColor:'rgba(8,145,178,.7)',borderRadius:3},{label:'Inv. Promos',data:D.ny.pv,backgroundColor:'rgba(220,38,38,.75)',borderRadius:3}]},options:{...bopts(f$),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+f$(c.raw)}}}}});new Chart($('cMOrd'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Florida',data:D.fl.ord,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.ord,backgroundColor:GC.ny,borderRadius:3}]},options:{...bopts(fN),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw+' pedidos'}}}}});const roiFL=D.fl.rev.map((r,i)=>D.fl.pv[i]>0?+(r/D.fl.pv[i]).toFixed(2):0);const roiNY=D.ny.rev.map((r,i)=>D.ny.pv[i]>0?+(r/D.ny.pv[i]).toFixed(2):0);new Chart($('cMROI'),lo(v=>v.toFixed(1)+'x',[{label:'Florida',data:roiFL,borderColor:GC.fl,backgroundColor:'transparent',tension:.3,pointRadius:5,pointBackgroundColor:GC.fl,borderWidth:2},{label:'Nueva York',data:roiNY,borderColor:GC.ny,backgroundColor:'transparent',tension:.3,pointRadius:5,pointBackgroundColor:GC.ny,borderWidth:2}]));}
-function renderMom(){const idx=parseInt($('momSel').value);const[ci,pi]=PAIRS[idx];const[cL,pL]=PLBLS[idx];const pLsh=pL.split(' ')[0];const gm=[{lbl:'Revenue',c:A.rev[ci],p:A.rev[pi],f:f$,inv:false},{lbl:'Cajas Entregadas',c:A.cajas[ci],p:A.cajas[pi],f:fN,inv:false},{lbl:'Pedidos',c:A.ord[ci],p:A.ord[pi],f:fN,inv:false},{lbl:'Inv. Promos',c:A.pv[ci],p:A.pv[pi],f:f$,inv:true},{lbl:'% Vol. Promo',c:A.cajas[ci]>0?A.pc[ci]/A.cajas[ci]*100:0,p:A.cajas[pi]>0?A.pc[pi]/A.cajas[pi]*100:0,f:v=>v.toFixed(1)+'%',inv:true}];$('dAll').innerHTML=gm.map(m=>{const d=pct(m.c,m.p),dc=m.inv?dcI(d):dcN(d);return`<div class="dcard ${dc}"><div class="dlbl">${m.lbl}</div><div class="dcur">${m.f(m.c)}</div><div class="dprev">${pLsh}: ${m.f(m.p)}</div><div class="ddelta">${fp(d)}</div></div>`;}).join('');function renderSB(elId,sd){const ms=[{lbl:'Revenue',c:sd.rev[ci],p:sd.rev[pi],f:f$,inv:false},{lbl:'Cajas',c:sd.cajas[ci],p:sd.cajas[pi],f:fN,inv:false},{lbl:'Pedidos',c:sd.ord[ci],p:sd.ord[pi],f:fN,inv:false},{lbl:'Inv. Promos',c:sd.pv[ci],p:sd.pv[pi],f:f$,inv:true},{lbl:'Cajas Promo',c:sd.pc[ci],p:sd.pc[pi],f:fN,inv:true}];$(elId).innerHTML=ms.map(m=>{const d=pct(m.c,m.p);let bg,col;if(d===null){bg='rgba(107,122,160,.1)';col='var(--muted)';}else if(m.inv){bg=d>=0?'rgba(220,38,38,.1)':'rgba(13,158,117,.1)';col=d>=0?'#b91c1c':'#0d6b50';}else{bg=d>=0?'rgba(13,158,117,.1)':'rgba(220,38,38,.1)';col=d>=0?'#0d6b50':'#b91c1c';}return`<div class="smom-m"><div class="smom-ml">${m.lbl}</div><div class="smom-cv">${m.f(m.c)}</div><div class="smom-pv">${pLsh}: ${m.f(m.p)}</div><div class="smom-d" style="background:${bg};color:${col}">${fp(d)}</div></div>`;}).join('');}renderSB('sFL',D.fl);renderSB('sNY',D.ny);const tm=[{lbl:'Revenue ($)',fFL:[D.fl.rev[ci],D.fl.rev[pi]],fNY:[D.ny.rev[ci],D.ny.rev[pi]],f:f$,inv:false},{lbl:'Cajas Entregadas',fFL:[D.fl.cajas[ci],D.fl.cajas[pi]],fNY:[D.ny.cajas[ci],D.ny.cajas[pi]],f:fN,inv:false},{lbl:'Pedidos Únicos',fFL:[D.fl.ord[ci],D.fl.ord[pi]],fNY:[D.ny.ord[ci],D.ny.ord[pi]],f:fN,inv:false},{lbl:'Cajas en Promo',fFL:[D.fl.pc[ci],D.fl.pc[pi]],fNY:[D.ny.pc[ci],D.ny.pc[pi]],f:fN,inv:true},{lbl:'Inv. Promos ($)',fFL:[D.fl.pv[ci],D.fl.pv[pi]],fNY:[D.ny.pv[ci],D.ny.pv[pi]],f:f$,inv:true}];$('mTbody').innerHTML=tm.map(m=>{const dFL=pct(m.fFL[0],m.fFL[1]),dNY=pct(m.fNY[0],m.fNY[1]);const cFL=m.inv?(dFL===null?'var(--muted)':dFL>=0?'#b91c1c':'#0d6b50'):(dFL===null?'var(--muted)':dFL>=0?'#0d6b50':'#b91c1c');const cNY=m.inv?(dNY===null?'var(--muted)':dNY>=0?'#b91c1c':'#0d6b50'):(dNY===null?'var(--muted)':dNY>=0?'#0d6b50':'#b91c1c');return`<tr><td style="font-weight:500">${m.lbl}</td><td class="r">${m.f(m.fFL[0])}</td><td class="r" style="color:var(--muted)">${m.f(m.fFL[1])}</td><td class="r"><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:${cFL}">${fp(dFL)}</span></td><td class="r">${m.f(m.fNY[0])}</td><td class="r" style="color:var(--muted)">${m.f(m.fNY[1])}</td><td class="r"><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:${cNY}">${fp(dNY)}</span></td></tr>`;}).join('');}
-function switchTab(id){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['general','mom'][i]===id));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));$('tab-'+id).classList.add('active');if(id==='mom'){buildMomCharts();renderMom();}}
+function buildMom(){
+  if(mBuilt)return;mBuilt=true;
+  const lo=(id,yf,ds)=>new Chart($(id),{type:'line',data:{labels:MONTHS,datasets:ds},options:bopts(yf)});
+  const ln=(d,c)=>({data:d,borderColor:c,backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:c,borderWidth:2});
+  lo('cMRev',f$,[{label:'Florida',...ln(D.fl.revNeto,GC.fl)},{label:'Nueva York',...ln(D.ny.revNeto,GC.ny)}]);
+  lo('cMCaj',fN,[{label:'Florida',...ln(D.fl.cajas,GC.fl)},{label:'Nueva York',...ln(D.ny.cajas,GC.ny)}]);
+  new Chart($('cMDesc'),{type:'bar',data:{labels:MONTHS,datasets:[{label:'Florida',data:D.fl.descuentos,backgroundColor:GC.fl,borderRadius:3},{label:'Nueva York',data:D.ny.descuentos,backgroundColor:GC.ny,borderRadius:3}]},options:bopts(f$)});
+  lo('cMPct',v=>v+'%',[{label:'Florida',...ln(D.fl.promoPct,GC.fl)},{label:'Nueva York',...ln(D.ny.promoPct,GC.ny)}]);
+}
+function cnByMonth(i){return GENERAL_DATA[MONTHS[i]].summary.clientesNuevos;}
+function renderMom(){
+  const idx=parseInt($('momSel').value);const ci=PAIRS[idx][0],pi=PAIRS[idx][1];const pLsh=PLBLS[idx][1].split(' ')[0];
+  const cn_c=cnByMonth(ci),cn_p=cnByMonth(pi);
+  const cards=[
+    {lbl:'Revenue neto',c:T.revNeto[ci],p:T.revNeto[pi],f:f$,inv:false},
+    {lbl:'Descuentos',c:T.descuentos[ci],p:T.descuentos[pi],f:f$,inv:true},
+    {lbl:'Clientes nuevos',c:cn_c,p:cn_p,f:fN,inv:false},
+    {lbl:'Cajas promo',c:T.pc[ci],p:T.pc[pi],f:fN,inv:true},
+  ];
+  $('dAll').innerHTML=cards.map(function(m){
+    const d=pct(m.c,m.p);let cls,txt;
+    if(m.p===0&&m.c>0){cls='dnew';txt='nuevo';}
+    else if(d===null){cls='d0';txt='—';}
+    else if(m.inv){cls=d>=0?'dpp':'dnn';txt=fp(d);}
+    else{cls=d>=0?'dp':'dn';txt=fp(d);}
+    return '<div class="dcard '+cls+'"><div class="dlbl">'+m.lbl+'</div><div class="dcur">'+m.f(m.c)+'</div><div class="dprev">'+pLsh+': '+m.f(m.p)+'</div><div class="ddelta">'+txt+'</div></div>';
+  }).join('');
+  // descuentos y clientes nuevos del mes actual de la comparación
+  const gdCur=GENERAL_DATA[MONTHS[ci]];
+  $('momDescTitle').textContent='Descuentos · '+MONTHS[ci];
+  const dp=gdCur.descuentosPorProducto||[];
+  $('momDescPanel').innerHTML=dp.length?dp.map(function(d){return '<div class="dq-row"><div><span style="font-size:14px;">'+d.product+'</span> <span class="badge '+(d.state==='Florida'?'bfl':'bny')+'">'+(d.state==='Florida'?'FL':'NY')+'</span> <span style="font-size:11px;color:var(--muted);">· '+d.cases+' cajas</span></div><div class="dq-amt">−'+f$(d.amount)+'</div></div>';}).join('')+'<div class="dq-total"><div style="font-size:13px;color:var(--muted);">Total</div><div class="dq-amt">−'+f$(gdCur.summary.descuentos)+'</div></div>':'<div style="font-size:13px;color:var(--muted);padding:8px 0;">Sin descuentos este mes.</div>';
+  $('momCnTitle').textContent='Clientes nuevos · '+MONTHS[ci];
+  const list=gdCur.clientesNuevosLista||[];
+  $('momCnPanel').innerHTML='<div class="cn-hero"><span class="cn-num">'+gdCur.summary.clientesNuevos+'</span><span style="font-size:14px;color:var(--muted);">'+(gdCur.summary.clientesNuevos===1?'cliente nuevo':'clientes nuevos')+'</span></div>'+(list.length?'<div class="cn-list">'+list.slice(0,6).map(function(c){return '<div class="cn-item"><span>'+c.name+'</span><span class="cn-sp">'+c.salesperson+'</span></div>';}).join('')+'</div>':'');
+  // por estado
+  function sb(el,sd){const ms=[{lbl:'Rev neto',c:sd.revNeto[ci],p:sd.revNeto[pi],f:f$,inv:false},{lbl:'Descuentos',c:sd.descuentos[ci],p:sd.descuentos[pi],f:f$,inv:true},{lbl:'Cajas',c:sd.cajas[ci],p:sd.cajas[pi],f:fN,inv:false},{lbl:'Pedidos',c:sd.ord[ci],p:sd.ord[pi],f:fN,inv:false},{lbl:'Inv. Promos',c:sd.pv[ci],p:sd.pv[pi],f:f$,inv:true},{lbl:'Cajas Promo',c:sd.pc[ci],p:sd.pc[pi],f:fN,inv:true}];
+    $(el).innerHTML=ms.map(function(m){const d=pct(m.c,m.p);let bg,col;if(m.p===0&&m.c>0){bg='var(--amberbg)';col='var(--amber)';}else if(d===null){bg='rgba(107,122,160,.1)';col='var(--muted)';}else if(m.inv){bg=d>=0?'rgba(220,38,38,.1)':'rgba(13,158,117,.1)';col=d>=0?'#b91c1c':'#0d6b50';}else{bg=d>=0?'rgba(13,158,117,.1)':'rgba(220,38,38,.1)';col=d>=0?'#0d6b50':'#b91c1c';}return '<div class="smom-m"><div class="smom-ml">'+m.lbl+'</div><div class="smom-cv">'+m.f(m.c)+'</div><div class="smom-pv">'+pLsh+': '+m.f(m.p)+'</div><div class="smom-d" style="background:'+bg+';color:'+col+'">'+(m.p===0&&m.c>0?'nuevo':fp(d))+'</div></div>';}).join('');}
+  sb('sFL',D.fl);sb('sNY',D.ny);
+  // tabla comparativa
+  const tm=[{lbl:'Revenue neto',fl:[D.fl.revNeto[ci],D.fl.revNeto[pi]],ny:[D.ny.revNeto[ci],D.ny.revNeto[pi]],f:f$,inv:false},{lbl:'Descuentos',fl:[D.fl.descuentos[ci],D.fl.descuentos[pi]],ny:[D.ny.descuentos[ci],D.ny.descuentos[pi]],f:f$,inv:true},{lbl:'Cajas Entregadas',fl:[D.fl.cajas[ci],D.fl.cajas[pi]],ny:[D.ny.cajas[ci],D.ny.cajas[pi]],f:fN,inv:false},{lbl:'Pedidos Únicos',fl:[D.fl.ord[ci],D.fl.ord[pi]],ny:[D.ny.ord[ci],D.ny.ord[pi]],f:fN,inv:false},{lbl:'Cajas en Promo',fl:[D.fl.pc[ci],D.fl.pc[pi]],ny:[D.ny.pc[ci],D.ny.pc[pi]],f:fN,inv:true}];
+  $('mTbody').innerHTML=tm.map(function(m){const dFL=pct(m.fl[0],m.fl[1]),dNY=pct(m.ny[0],m.ny[1]);const c=(d,inv)=>d===null?'var(--muted)':(inv?(d>=0?'#b91c1c':'#0d6b50'):(d>=0?'#0d6b50':'#b91c1c'));return '<tr><td style="font-weight:500">'+m.lbl+'</td><td class="r">'+m.f(m.fl[0])+'</td><td class="r" style="color:var(--muted)">'+m.f(m.fl[1])+'</td><td class="r"><span style="font-family:\'DM Mono\';font-weight:700;color:'+c(dFL,m.inv)+'">'+fp(dFL)+'</span></td><td class="r">'+m.f(m.ny[0])+'</td><td class="r" style="color:var(--muted)">'+m.f(m.ny[1])+'</td><td class="r"><span style="font-family:\'DM Mono\';font-weight:700;color:'+c(dNY,m.inv)+'">'+fp(dNY)+'</span></td></tr>';}).join('');
+}
+
+function switchTab(id){document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['general','mom'][i]===id));document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));$('tab-'+id).classList.add('active');if(id==='mom'){buildMom();renderMom();}}
 initUI();buildGeneral();
 </script>
 </body>
