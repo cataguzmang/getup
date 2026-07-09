@@ -313,6 +313,20 @@ def promo_box_price(r, order_prices, product_month_avg, month_avg):
             or 0.0)
 
 
+# ── Razones derivadas (data layer) — el dashboard solo las muestra ──────────
+def _promo_pct(cajas, pc):
+    return round(pc / cajas * 100, 1) if cajas > 0 else 0.0
+
+
+def _roi(rev, pv):
+    return round(rev / pv, 2) if pv > 0 else 0.0
+
+
+def _rev_por_caja(rev, cajas, pc):
+    paid = cajas - pc
+    return round(rev / paid, 2) if paid > 0 else 0.0
+
+
 def build_monthly_state_data(rows, months, order_prices, product_avg, global_avg, incentivos=None):
     """Build D.fl and D.ny arrays (one value per month per metric)."""
     state_month = defaultdict(lambda: defaultdict(lambda: {
@@ -414,6 +428,9 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
         'descuentos': total_descuentos,
         'revNeto': round(total_rev - total_descuentos, 2),
         'clientesNuevos': len(nuevos),
+        'promoPct': _promo_pct(total_cajas, total_pc),
+        'roi': _roi(total_rev, total_pv),
+        'revPorCaja': _rev_por_caja(total_rev, total_cajas, total_pc),
     }
 
     states = {}
@@ -427,12 +444,16 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
             'ord': len(d['orders']),
             'descuentos': dd,
             'revNeto': round(d['rev'] - dd, 2),
+            'promoPct': _promo_pct(d['cajas'], d['pc']),
+            'roi': _roi(d['rev'], d['pv']),
+            'revPorCaja': _rev_por_caja(d['rev'], d['cajas'], d['pc']),
         }
     for missing in ('Florida', 'Nueva York'):
         if missing not in states:
             dd = round(desc_by_state.get(missing, 0.0), 2)
             states[missing] = {'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'ord': 0,
-                               'descuentos': dd, 'revNeto': round(-dd, 2)}
+                               'descuentos': dd, 'revNeto': round(-dd, 2),
+                               'promoPct': 0.0, 'roi': 0.0, 'revPorCaja': 0.0}
 
     # --- customer aggregation ---
     cust_data = defaultdict(lambda: {'rev': 0.0, 'cajas': 0, 'pc': 0, 'state': ''})
