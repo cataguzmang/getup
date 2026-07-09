@@ -88,6 +88,28 @@
         2462.4,
         592.8,
         3657.72
+      ],
+      "promoPct": [
+        24.4,
+        17.3,
+        28.1,
+        24.0,
+        28.7,
+        30.9,
+        21.7,
+        23.5,
+        18.3
+      ],
+      "roi": [
+        3.11,
+        4.79,
+        2.56,
+        3.17,
+        2.59,
+        2.32,
+        3.6,
+        3.25,
+        4.48
       ]
     },
     "ny": {
@@ -167,6 +189,129 @@
         266.76,
         1778.4,
         21.85
+      ],
+      "promoPct": [
+        0.0,
+        0.0,
+        26.7,
+        15.1,
+        21.1,
+        30.0,
+        0.0,
+        27.8,
+        0.0
+      ],
+      "roi": [
+        0.0,
+        0.0,
+        2.75,
+        5.58,
+        3.68,
+        2.33,
+        0.0,
+        2.6,
+        0.0
+      ]
+    },
+    "total": {
+      "rev": [
+        2690.4,
+        3055.2,
+        2366.64,
+        3666.24,
+        5207.52,
+        4240.8,
+        2729.16,
+        2371.2,
+        4308.25
+      ],
+      "cajas": [
+        78,
+        81,
+        72,
+        98,
+        151,
+        130,
+        75,
+        71,
+        116
+      ],
+      "pv": [
+        866.4,
+        638.4,
+        912.0,
+        775.2,
+        1778.4,
+        1824.0,
+        684.0,
+        866.4,
+        957.6
+      ],
+      "pc": [
+        19,
+        14,
+        20,
+        17,
+        39,
+        40,
+        15,
+        19,
+        21
+      ],
+      "ord": [
+        15,
+        8,
+        8,
+        36,
+        23,
+        15,
+        13,
+        13,
+        9
+      ],
+      "descuentos": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        628.68
+      ],
+      "revNeto": [
+        2690.4,
+        3055.2,
+        2366.64,
+        3666.24,
+        5207.52,
+        4240.8,
+        2729.16,
+        2371.2,
+        3679.57
+      ],
+      "promoPct": [
+        24.4,
+        17.3,
+        27.8,
+        17.3,
+        25.8,
+        30.8,
+        20.0,
+        26.8,
+        18.1
+      ],
+      "roi": [
+        3.11,
+        4.79,
+        2.59,
+        4.73,
+        2.93,
+        2.33,
+        3.99,
+        2.74,
+        4.5
       ]
     }
   },
@@ -181,7 +326,10 @@
         "avg_price": 45.86,
         "descuentos": 628.68,
         "revNeto": 30006.73,
-        "clientesNuevos": 77
+        "clientesNuevos": 77,
+        "promoPct": 23.4,
+        "roi": 3.29,
+        "revPorCaja": 45.86
       },
       "states": {
         "Nueva York": {
@@ -191,7 +339,10 @@
           "pv": 2188.8,
           "ord": 62,
           "descuentos": 0.0,
-          "revNeto": 8022.37
+          "revNeto": 8022.37,
+          "promoPct": 21.2,
+          "roi": 3.67,
+          "revPorCaja": 45.07
         },
         "Florida": {
           "rev": 22613.04,
@@ -200,7 +351,10 @@
           "pv": 7113.6,
           "ord": 78,
           "descuentos": 628.68,
-          "revNeto": 21984.36
+          "revNeto": 21984.36,
+          "promoPct": 24.1,
+          "roi": 3.18,
+          "revPorCaja": 46.15
         }
       },
       "customerChart": [
@@ -1449,7 +1603,29 @@
           "state": "Nueva York",
           "salesperson": "Diana Angel"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Nueva York": {
+          "free": {
+            "computado": 48,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 178,
+            "reportado": 0
+          }
+        },
+        "Florida": {
+          "free": {
+            "computado": 156,
+            "reportado": 21
+          },
+          "sold": {
+            "computado": 490,
+            "reportado": 115
+          }
+        }
+      }
     },
     "Oct 25": {
       "summary": {
@@ -1461,7 +1637,10 @@
         "avg_price": 45.6,
         "descuentos": 0,
         "revNeto": 2690.4,
-        "clientesNuevos": 0
+        "clientesNuevos": 0,
+        "promoPct": 24.4,
+        "roi": 3.11,
+        "revPorCaja": 45.6
       },
       "states": {
         "Florida": {
@@ -1471,7 +1650,10 @@
           "pv": 866.4,
           "ord": 15,
           "descuentos": 0.0,
-          "revNeto": 2690.4
+          "revNeto": 2690.4,
+          "promoPct": 24.4,
+          "roi": 3.11,
+          "revPorCaja": 45.6
         },
         "Nueva York": {
           "rev": 0.0,
@@ -1480,7 +1662,10 @@
           "pv": 0.0,
           "ord": 0,
           "descuentos": 0.0,
-          "revNeto": -0.0
+          "revNeto": -0.0,
+          "promoPct": 0.0,
+          "roi": 0.0,
+          "revPorCaja": 0.0
         }
       },
       "customerChart": [
@@ -1680,7 +1865,29 @@
         }
       ],
       "descuentosPorProducto": [],
-      "clientesNuevosLista": []
+      "clientesNuevosLista": [],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 19,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 59,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 0,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 0,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Nov 25": {
       "summary": {
@@ -1692,7 +1899,10 @@
         "avg_price": 45.6,
         "descuentos": 0,
         "revNeto": 3055.2,
-        "clientesNuevos": 3
+        "clientesNuevos": 3,
+        "promoPct": 17.3,
+        "roi": 4.79,
+        "revPorCaja": 45.6
       },
       "states": {
         "Florida": {
@@ -1702,7 +1912,10 @@
           "pv": 638.4,
           "ord": 8,
           "descuentos": 0.0,
-          "revNeto": 3055.2
+          "revNeto": 3055.2,
+          "promoPct": 17.3,
+          "roi": 4.79,
+          "revPorCaja": 45.6
         },
         "Nueva York": {
           "rev": 0.0,
@@ -1711,7 +1924,10 @@
           "pv": 0.0,
           "ord": 0,
           "descuentos": 0.0,
-          "revNeto": -0.0
+          "revNeto": -0.0,
+          "promoPct": 0.0,
+          "roi": 0.0,
+          "revPorCaja": 0.0
         }
       },
       "customerChart": [
@@ -1822,7 +2038,29 @@
           "state": "Florida",
           "salesperson": "Alexandra J"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 14,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 67,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 0,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 0,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Dic 25": {
       "summary": {
@@ -1834,7 +2072,10 @@
         "avg_price": 45.51,
         "descuentos": 0,
         "revNeto": 2366.64,
-        "clientesNuevos": 5
+        "clientesNuevos": 5,
+        "promoPct": 27.8,
+        "roi": 2.59,
+        "revPorCaja": 45.51
       },
       "states": {
         "Florida": {
@@ -1844,7 +2085,10 @@
           "pv": 729.6,
           "ord": 6,
           "descuentos": 0.0,
-          "revNeto": 1865.04
+          "revNeto": 1865.04,
+          "promoPct": 28.1,
+          "roi": 2.56,
+          "revPorCaja": 45.49
         },
         "Nueva York": {
           "rev": 501.6,
@@ -1853,7 +2097,10 @@
           "pv": 182.4,
           "ord": 2,
           "descuentos": 0.0,
-          "revNeto": 501.6
+          "revNeto": 501.6,
+          "promoPct": 26.7,
+          "roi": 2.75,
+          "revPorCaja": 45.6
         }
       },
       "customerChart": [
@@ -2009,7 +2256,29 @@
           "state": "Nueva York",
           "salesperson": "Luis Soler"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 16,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 41,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 4,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 11,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Ene 26": {
       "summary": {
@@ -2021,7 +2290,10 @@
         "avg_price": 45.26,
         "descuentos": 0,
         "revNeto": 3666.24,
-        "clientesNuevos": 35
+        "clientesNuevos": 35,
+        "promoPct": 17.3,
+        "roi": 4.73,
+        "revPorCaja": 45.26
       },
       "states": {
         "Florida": {
@@ -2031,7 +2303,10 @@
           "pv": 273.6,
           "ord": 6,
           "descuentos": 0.0,
-          "revNeto": 866.4
+          "revNeto": 866.4,
+          "promoPct": 24.0,
+          "roi": 3.17,
+          "revPorCaja": 45.6
         },
         "Nueva York": {
           "rev": 2799.84,
@@ -2040,7 +2315,10 @@
           "pv": 501.6,
           "ord": 30,
           "descuentos": 0.0,
-          "revNeto": 2799.84
+          "revNeto": 2799.84,
+          "promoPct": 15.1,
+          "roi": 5.58,
+          "revPorCaja": 45.16
         }
       },
       "customerChart": [
@@ -2596,7 +2874,29 @@
           "state": "Nueva York",
           "salesperson": "Diana Angel"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 6,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 19,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 11,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 62,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Feb 26": {
       "summary": {
@@ -2608,7 +2908,10 @@
         "avg_price": 46.5,
         "descuentos": 0,
         "revNeto": 5207.52,
-        "clientesNuevos": 15
+        "clientesNuevos": 15,
+        "promoPct": 25.8,
+        "roi": 2.93,
+        "revPorCaja": 46.5
       },
       "states": {
         "Florida": {
@@ -2618,7 +2921,10 @@
           "pv": 1231.2,
           "ord": 12,
           "descuentos": 0.0,
-          "revNeto": 3192.0
+          "revNeto": 3192.0,
+          "promoPct": 28.7,
+          "roi": 2.59,
+          "revPorCaja": 47.64
         },
         "Nueva York": {
           "rev": 2015.52,
@@ -2627,7 +2933,10 @@
           "pv": 547.2,
           "ord": 11,
           "descuentos": 0.0,
-          "revNeto": 2015.52
+          "revNeto": 2015.52,
+          "promoPct": 21.1,
+          "roi": 3.68,
+          "revPorCaja": 44.79
         }
       },
       "customerChart": [
@@ -2963,7 +3272,29 @@
           "state": "Nueva York",
           "salesperson": "Katherine Osorio Duque"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 27,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 67,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 12,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 45,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Mar 26": {
       "summary": {
@@ -2975,7 +3306,10 @@
         "avg_price": 47.12,
         "descuentos": 0,
         "revNeto": 4240.8,
-        "clientesNuevos": 3
+        "clientesNuevos": 3,
+        "promoPct": 30.8,
+        "roi": 2.32,
+        "revPorCaja": 47.12
       },
       "states": {
         "Florida": {
@@ -2985,7 +3319,10 @@
           "pv": 1550.4,
           "ord": 13,
           "descuentos": 0.0,
-          "revNeto": 3602.4
+          "revNeto": 3602.4,
+          "promoPct": 30.9,
+          "roi": 2.32,
+          "revPorCaja": 47.4
         },
         "Nueva York": {
           "rev": 638.4,
@@ -2994,7 +3331,10 @@
           "pv": 273.6,
           "ord": 2,
           "descuentos": 0.0,
-          "revNeto": 638.4
+          "revNeto": 638.4,
+          "promoPct": 30.0,
+          "roi": 2.33,
+          "revPorCaja": 45.6
         }
       },
       "customerChart": [
@@ -3188,7 +3528,29 @@
           "state": "Florida",
           "salesperson": "Emily Rivas"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 34,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 76,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 6,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 14,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Abr 26": {
       "summary": {
@@ -3200,7 +3562,10 @@
         "avg_price": 45.49,
         "descuentos": 0,
         "revNeto": 2729.16,
-        "clientesNuevos": 6
+        "clientesNuevos": 6,
+        "promoPct": 20.0,
+        "roi": 3.99,
+        "revPorCaja": 45.49
       },
       "states": {
         "Florida": {
@@ -3210,7 +3575,10 @@
           "pv": 684.0,
           "ord": 7,
           "descuentos": 0.0,
-          "revNeto": 2462.4
+          "revNeto": 2462.4,
+          "promoPct": 21.7,
+          "roi": 3.6,
+          "revPorCaja": 45.6
         },
         "Nueva York": {
           "rev": 266.76,
@@ -3219,7 +3587,10 @@
           "pv": 0.0,
           "ord": 6,
           "descuentos": 0.0,
-          "revNeto": 266.76
+          "revNeto": 266.76,
+          "promoPct": 0.0,
+          "roi": 0.0,
+          "revPorCaja": 44.46
         }
       },
       "customerChart": [
@@ -3444,7 +3815,29 @@
           "state": "Nueva York",
           "salesperson": "Daniela Davila"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Florida": {
+          "free": {
+            "computado": 15,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 54,
+            "reportado": 0
+          }
+        },
+        "Nueva York": {
+          "free": {
+            "computado": 0,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 6,
+            "reportado": 0
+          }
+        }
+      }
     },
     "May 26": {
       "summary": {
@@ -3456,7 +3849,10 @@
         "avg_price": 45.6,
         "descuentos": 0,
         "revNeto": 2371.2,
-        "clientesNuevos": 9
+        "clientesNuevos": 9,
+        "promoPct": 26.8,
+        "roi": 2.74,
+        "revPorCaja": 45.6
       },
       "states": {
         "Nueva York": {
@@ -3466,7 +3862,10 @@
           "pv": 684.0,
           "ord": 10,
           "descuentos": 0.0,
-          "revNeto": 1778.4
+          "revNeto": 1778.4,
+          "promoPct": 27.8,
+          "roi": 2.6,
+          "revPorCaja": 45.6
         },
         "Florida": {
           "rev": 592.8,
@@ -3475,7 +3874,10 @@
           "pv": 182.4,
           "ord": 3,
           "descuentos": 0.0,
-          "revNeto": 592.8
+          "revNeto": 592.8,
+          "promoPct": 23.5,
+          "roi": 3.25,
+          "revPorCaja": 45.6
         }
       },
       "customerChart": [
@@ -3719,7 +4121,29 @@
           "state": "Nueva York",
           "salesperson": "Mireya Fernandez"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Nueva York": {
+          "free": {
+            "computado": 15,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 39,
+            "reportado": 0
+          }
+        },
+        "Florida": {
+          "free": {
+            "computado": 4,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 13,
+            "reportado": 0
+          }
+        }
+      }
     },
     "Jun 26": {
       "summary": {
@@ -3731,7 +4155,10 @@
         "avg_price": 45.35,
         "descuentos": 628.68,
         "revNeto": 3679.57,
-        "clientesNuevos": 1
+        "clientesNuevos": 1,
+        "promoPct": 18.1,
+        "roi": 4.5,
+        "revPorCaja": 45.35
       },
       "states": {
         "Nueva York": {
@@ -3741,7 +4168,10 @@
           "pv": 0.0,
           "ord": 1,
           "descuentos": 0.0,
-          "revNeto": 21.85
+          "revNeto": 21.85,
+          "promoPct": 0.0,
+          "roi": 0.0,
+          "revPorCaja": 21.85
         },
         "Florida": {
           "rev": 4286.4,
@@ -3750,7 +4180,10 @@
           "pv": 957.6,
           "ord": 8,
           "descuentos": 628.68,
-          "revNeto": 3657.72
+          "revNeto": 3657.72,
+          "promoPct": 18.3,
+          "roi": 4.48,
+          "revPorCaja": 45.6
         }
       },
       "customerChart": [
@@ -3900,7 +4333,29 @@
           "state": "Florida",
           "salesperson": "Raquel L"
         }
-      ]
+      ],
+      "crossCheck": {
+        "Nueva York": {
+          "free": {
+            "computado": 0,
+            "reportado": 0
+          },
+          "sold": {
+            "computado": 1,
+            "reportado": 0
+          }
+        },
+        "Florida": {
+          "free": {
+            "computado": 21,
+            "reportado": 21
+          },
+          "sold": {
+            "computado": 94,
+            "reportado": 115
+          }
+        }
+      }
     }
   }
 }
