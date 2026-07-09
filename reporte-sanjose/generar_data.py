@@ -390,6 +390,14 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
                 desc_by_product[k]["state"] = state
     total_descuentos = round(sum(desc_by_state.values()), 2)
 
+    # Cajas free/sold reportadas por el vendedor (para el cross-check)
+    free_rep_by_state = defaultdict(int)
+    sold_rep_by_state = defaultdict(int)
+    for ym in month_set:
+        for state, inc in incentivos.get(ym, {}).items():
+            free_rep_by_state[state] += sum(inc["freeReportado"].values())
+            sold_rep_by_state[state] += sum(inc["soldReportado"].values())
+
     # Clientes nuevos del periodo
     nuevos = [c for ym in month_set for c in new_customers.get(ym, [])]
 
@@ -454,6 +462,14 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
             states[missing] = {'rev': 0.0, 'cajas': 0, 'pc': 0, 'pv': 0.0, 'ord': 0,
                                'descuentos': dd, 'revNeto': round(-dd, 2),
                                'promoPct': 0.0, 'roi': 0.0, 'revPorCaja': 0.0}
+
+    # Cross-check: cajas calculadas (de transacciones) vs. reportadas (del bloque)
+    cross_check = {}
+    for st, sd in states.items():
+        cross_check[st] = {
+            "free": {"computado": sd['pc'], "reportado": free_rep_by_state.get(st, 0)},
+            "sold": {"computado": sd['cajas'] - sd['pc'], "reportado": sold_rep_by_state.get(st, 0)},
+        }
 
     # --- customer aggregation ---
     cust_data = defaultdict(lambda: {'rev': 0.0, 'cajas': 0, 'pc': 0, 'state': ''})
@@ -529,6 +545,7 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
             for (p, st), v in desc_by_product.items()
         ],
         'clientesNuevosLista': nuevos,
+        'crossCheck': cross_check,
     }
 
 
