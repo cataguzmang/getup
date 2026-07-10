@@ -6,6 +6,18 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8137", "--directory", "reporte-sanjose"],
       "port": 8137
+    },
+    {
+      "name": "kombuchacha-dashboard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8138", "--directory", "kombuchacha"],
+      "port": 8138
+    },
+    {
+      "name": "robinson-dashboard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8139", "--directory", "robinson-crusoe"],
+      "port": 8139
     }
   ]
 }
