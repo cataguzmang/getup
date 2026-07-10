@@ -4,43 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kombuchacha – Reporte de Ventas</title>
+<link rel="icon" type="image/png" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --green-dark:  #2d5a27;
-    --green-mid:   #4a8c3f;
-    --green-light: #7ab648;
-    --green-pale:  #e8f5e0;
-    --gold:        #c8a84b;
-    --gold-light:  #f5ecd0;
-    --text:        #1e2e1a;
-    --text-muted:  #6b7c63;
-    --bg:          #f4f8f1;
-    --white:       #ffffff;
-    --border:      #d4e4cc;
-    --shadow:      0 2px 12px rgba(45,90,39,.10);
+    --rojo:      #E80D0D;
+    --amarillo:  #FFD22E;
+    --am-palido: #FFF3C9;
+    --negro:     #1E1E1E;
+    --crema:     #FFF9F0;
+    --blanco:    #ffffff;
+    --borde:     #F0E4D2;
+    --texto:     #1E1E1E;
+    --texto-suave: #8A8177;
+    --morado:    #8E2E88;
+    --rosa:      #E91E7B;
+    --turquesa:  #2BBFCB;
+    --shadow:    0 2px 12px rgba(232,13,13,.07);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { font-family: 'Poppins', system-ui, sans-serif; background: var(--crema); color: var(--texto); min-height: 100vh; }
 
   header {
-    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-mid) 100%);
+    background: var(--rojo);
     color: #fff;
-    padding: 24px 32px 20px;
+    padding: 20px 32px 18px;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
   }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .leaf-icon {
-    width: 44px; height: 44px;
-    background: var(--gold);
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    display: grid; place-items: center; flex-shrink: 0;
-  }
-  .leaf-icon span { transform: rotate(45deg); font-size: 22px; }
-  .header-title h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: .3px; }
-  .header-title p  { font-size: .82rem; opacity: .82; margin-top: 2px; }
-  .header-meta { text-align: right; font-size: .82rem; opacity: .80; line-height: 1.6; }
+  .brand-logo { width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0; background: #fff; }
+  .header-title h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: .3px; }
+  .header-title p  { font-size: .82rem; opacity: .88; margin-top: 2px; font-weight: 600; }
+  .header-meta { text-align: right; font-size: .82rem; opacity: .88; line-height: 1.6; }
   .header-meta strong { opacity: 1; font-size: .95rem; }
 
   main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 48px; }
@@ -51,9 +49,9 @@
     gap: 16px; margin-bottom: 28px;
   }
   .kpi-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
     padding: 20px 22px;
     box-shadow: var(--shadow);
     display: flex; flex-direction: column; gap: 6px;
@@ -61,17 +59,22 @@
   }
   .kpi-card::before {
     content: ''; position: absolute; top: 0; left: 0;
-    width: 4px; height: 100%; background: var(--green-light);
+    width: 4px; height: 100%; background: var(--turquesa);
   }
-  .kpi-card.gold::before { background: var(--gold); }
-  .kpi-label { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .6px; }
-  .kpi-value { font-size: 2.0rem; font-weight: 800; color: var(--green-dark); line-height: 1.1; }
+  .kpi-card:nth-child(4n+1)::before { background: var(--rojo); }
+  .kpi-card:nth-child(4n+2)::before { background: var(--morado); }
+  .kpi-card:nth-child(4n+3)::before { background: var(--turquesa); }
+  .kpi-card:nth-child(4n)::before   { background: var(--rosa); }
+  .kpi-card.gold { background: var(--am-palido); border-color: var(--amarillo); }
+  .kpi-card.gold::before { background: var(--amarillo); }
+  .kpi-label { font-size: .72rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .6px; }
+  .kpi-value { font-size: 2.0rem; font-weight: 800; color: var(--negro); line-height: 1.1; }
   .kpi-value.sm { font-size: 1.25rem; }   /* valores de texto (ej. nombre del vendedor) */
-  .kpi-card.gold .kpi-value { color: #8a6a1a; }
-  .kpi-sub   { font-size: .80rem; color: var(--text-muted); }
+  .kpi-card.gold .kpi-value { color: var(--negro); }
+  .kpi-sub   { font-size: .80rem; color: var(--texto-suave); }
 
   .section-title {
-    font-size: .7rem; font-weight: 700; color: var(--text-muted);
+    font-size: .72rem; font-weight: 800; color: var(--negro);
     text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
   }
 
@@ -79,25 +82,19 @@
     display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px;
   }
   .month-selector button {
-    padding: 7px 16px; border-radius: 22px; border: 1px solid var(--border);
-    background: var(--white); font-size: .82rem; font-weight: 600; cursor: pointer;
-    color: var(--text-muted); transition: all .15s; box-shadow: var(--shadow);
+    padding: 7px 16px; border-radius: 22px; border: 1px solid var(--borde);
+    background: var(--blanco); font-size: .82rem; font-weight: 600; cursor: pointer;
+    color: var(--texto-suave); transition: all .15s; box-shadow: var(--shadow);
+    font-family: inherit;
   }
-  .month-selector button:hover { border-color: var(--green-mid); color: var(--green-dark); }
+  .month-selector button:hover { border-color: var(--rojo); color: var(--rojo); }
   .month-selector button.active {
-    background: var(--green-dark); color: #fff; border-color: var(--green-dark);
+    background: var(--rojo); color: #fff; border-color: var(--rojo);
   }
-
-  .charts-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px; margin-bottom: 16px;
-  }
-  @media (max-width: 900px) { .charts-row { grid-template-columns: 1fr; } }
 
   .chart-card {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: 12px; padding: 22px 24px; box-shadow: var(--shadow);
+    background: var(--blanco); border: 1px solid var(--borde);
+    border-radius: 14px; padding: 22px 24px; box-shadow: var(--shadow);
     margin-bottom: 16px;
   }
   /* Contenedor de altura fija: evita el bucle de redimensionado infinito de
@@ -107,82 +104,83 @@
   @media (max-width: 560px) { .chart-wrap.rank { height: 280px; } }
   .chart-toolbar { display: flex; gap: 6px; margin-bottom: 14px; }
   .chart-toolbar button {
-    padding: 3px 12px; border-radius: 20px; border: 1px solid var(--border);
+    padding: 3px 12px; border-radius: 20px; border: 1px solid var(--borde);
     background: none; font-size: .74rem; font-weight: 600; cursor: pointer;
-    color: var(--text-muted); transition: all .15s;
+    color: var(--texto-suave); transition: all .15s; font-family: inherit;
   }
-  .chart-toolbar button.active { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+  .chart-toolbar button.active { background: var(--rojo); color: #fff; border-color: var(--rojo); }
 
   .table-card {
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: 12px; box-shadow: var(--shadow);
+    background: var(--blanco); border: 1px solid var(--borde);
+    border-radius: 14px; box-shadow: var(--shadow);
     overflow: hidden; margin-bottom: 28px;
   }
   .table-card-header {
-    padding: 16px 22px; border-bottom: 1px solid var(--border);
+    padding: 16px 22px; border-bottom: 1px solid var(--borde);
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
   }
 
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { width: 100%; border-collapse: collapse; font-size: .875rem; min-width: 520px; }
-  thead tr { background: var(--green-pale); }
+  thead tr { background: var(--am-palido); }
   th {
     padding: 11px 16px; text-align: left;
     font-size: .7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: var(--green-dark); white-space: nowrap;
+    letter-spacing: .6px; color: var(--negro); white-space: nowrap;
   }
   th.num, td.num { text-align: right; }
-  td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  td { padding: 11px 16px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
   tbody tr:last-child td { border-bottom: none; }
 
   .product-row { cursor: pointer; transition: background .12s; }
-  .product-row:hover { background: var(--green-pale); }
+  .product-row:hover { background: var(--am-palido); }
   .product-row td:first-child { font-weight: 600; }
 
   .toggle-btn {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 20px; border: 1px solid var(--borde);
     background: none; font-size: .72rem; cursor: pointer;
-    color: var(--text-muted); transition: background .15s;
+    color: var(--texto-suave); transition: background .15s; font-family: inherit;
   }
-  .toggle-btn:hover { background: var(--green-pale); }
+  .toggle-btn:hover { background: var(--am-palido); }
   .arrow { transition: transform .2s; display: inline-block; }
   .arrow.open { transform: rotate(90deg); }
 
   .sp-row { display: none; }
   .sp-row.visible { display: table-row; }
-  .sp-row td { background: #f9fcf6; font-size: .82rem; color: var(--text-muted); padding: 9px 16px; }
+  .sp-row td { background: #FFFCF5; font-size: .82rem; color: var(--texto-suave); padding: 9px 16px; }
   .sp-row td:first-child { padding-left: 36px; font-style: italic; }
 
   .sku-badge {
     display: inline-block; padding: 2px 8px;
     border-radius: 10px; font-size: .68rem; font-weight: 700;
-    background: var(--green-pale); color: var(--green-dark);
-    margin-right: 6px;
+    background: var(--rojo); color: #fff;
+    margin-right: 8px;
   }
+  .can-thumb { height: 34px; width: auto; vertical-align: middle; margin-right: 8px; }
 
   .bar-inline { display: flex; align-items: center; gap: 10px; }
   .bar-track {
-    flex: 1; height: 7px; background: var(--border);
+    flex: 1; height: 7px; background: var(--borde);
     border-radius: 4px; overflow: hidden; min-width: 70px;
   }
-  .bar-fill { height: 100%; background: var(--green-light); border-radius: 4px; }
+  .bar-fill { height: 100%; background: var(--turquesa); border-radius: 4px; }
 
   .total-row td {
-    font-weight: 700; background: var(--green-pale);
-    border-top: 2px solid var(--green-mid); color: var(--green-dark);
+    font-weight: 700; background: var(--am-palido);
+    border-top: 2px solid var(--rojo); color: var(--negro);
   }
 
-  .sp-rank { font-weight: 700; color: var(--text-muted); }
+  .sp-rank { font-weight: 700; color: var(--texto-suave); }
   .pct-badge {
     display: inline-block; padding: 1px 7px; border-radius: 10px;
     font-size: .72rem; font-weight: 600;
-    background: var(--gold-light); color: #7a5a10;
+    background: var(--am-palido); color: #8A6A00;
   }
   .free-badge {
     display: inline-block; padding: 1px 7px; border-radius: 10px;
     font-size: .72rem; font-weight: 600;
-    background: var(--green-pale); color: var(--green-dark);
+    background: var(--am-palido); color: #8A6A00;
   }
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
@@ -191,20 +189,20 @@
   .incentive-list { list-style: none; }
   .incentive-list li {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: .87rem;
+    padding: 10px 0; border-bottom: 1px solid var(--borde); font-size: .87rem;
   }
   .incentive-list li:last-child { border-bottom: none; }
-  .incentive-list .amount { font-weight: 700; color: var(--green-dark); }
+  .incentive-list .amount { font-weight: 700; color: var(--rojo); }
   .incentive-total {
     display: flex; justify-content: space-between; padding: 12px 0 2px;
-    margin-top: 6px; border-top: 2px solid var(--green-mid);
-    font-weight: 700; color: var(--green-dark);
+    margin-top: 6px; border-top: 2px solid var(--rojo);
+    font-weight: 700; color: var(--negro);
   }
-  .muted-note { font-size: .74rem; color: var(--text-muted); margin-top: 10px; font-style: italic; }
+  .muted-note { font-size: .74rem; color: var(--texto-suave); margin-top: 10px; font-style: italic; }
 
   /* ── Responsive: tablet y móvil ──────────────────────────────────── */
   @media (max-width: 768px) {
-    header { padding: 18px 20px 16px; }
+    header { padding: 16px 20px 14px; }
     .header-meta { text-align: left; }
     main { padding: 20px 14px 40px; }
     .kpi-grid { gap: 12px; }
@@ -228,8 +226,8 @@
 
   /* Nota discreta cuando hay pocos datos (marca nueva) */
   .sparse-note {
-    background: var(--gold-light); color: #7a5a10;
-    border: 1px solid var(--gold); border-radius: 10px;
+    background: var(--am-palido); color: #8A6A00;
+    border: 1px solid var(--amarillo); border-radius: 10px;
     padding: 10px 16px; font-size: .82rem; margin-bottom: 20px;
   }
 </style>
@@ -239,10 +237,10 @@
 
 <header>
   <div class="header-brand">
-    <div class="leaf-icon"><span>🫧</span></div>
+    <img class="brand-logo" src="img/logo.png" alt="Kombuchacha">
     <div class="header-title">
       <h1>Kombuchacha</h1>
-      <p>Latin Foods</p>
+      <p>la bebida de todos · Latin Foods</p>
     </div>
   </div>
   <div class="header-meta">
@@ -379,7 +377,13 @@ const fmtDate = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', {
 const fmtDay = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
 const shortName = name => name.replace('Kombuchacha ', '');
 const firstName = name => name.split(' ')[0];
-const palette = ['#2d5a27','#3d7a32','#4a8c3f','#5ea050','#7ab648','#94c96a','#aad98a','#c0e8a8','#d4f0c2'];
+// Paleta de respaldo (marca): para vendedores, clientes y SKUs sin color propio
+const palette = ['#E80D0D','#FFD22E','#2BBFCB','#E91E7B','#8E2E88','#F2802E','#7CC576','#B85AA6','#5AB0C0'];
+
+// Identidad por SKU: color e imagen de la lata (presentación; nuevos sabores caen a `palette`)
+const SKU_COLORS = { KOM01: '#8E2E88', KOM02: '#E91E7B', KOM03: '#2BBFCB', KOM04: '#2A2A2A' };
+const SKU_IMAGES = { KOM01: 'img/kom01.webp', KOM02: 'img/kom02.webp', KOM03: 'img/kom03.webp', KOM04: 'img/kom04.webp' };
+const skuColor = (sku, i) => SKU_COLORS[sku] || palette[i % palette.length];
 
 // Plugin inline: dibuja el valor al final de cada barra
 const barValueLabel = {
@@ -388,8 +392,8 @@ const barValueLabel = {
     const fmt = opts.formatter || (v => v);
     const { ctx, chartArea } = chart;
     ctx.save();
-    ctx.font = '600 11px "Segoe UI", system-ui, sans-serif';
-    ctx.fillStyle = '#1e2e1a';
+    ctx.font = '600 11px "Poppins", system-ui, sans-serif';
+    ctx.fillStyle = '#1E1E1E';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     chart.getDatasetMeta(0).data.forEach((bar, i) => {
@@ -418,7 +422,7 @@ function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
       labels,
       datasets: [{
         data,
-        backgroundColor: labels.map((_, i) => palette[i % palette.length]),
+        backgroundColor: sorted.map((it, i) => it.color || palette[i % palette.length]),
         borderRadius: 5, borderSkipped: false,
       }]
     },
@@ -430,7 +434,7 @@ function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
         barValueLabel: { formatter: fmt },
       },
       scales: {
-        x: { grid: { color: '#e8f5e0' }, suggestedMax: Math.max(...data, 0) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
+        x: { grid: { color: '#F3E9DB' }, suggestedMax: Math.max(...data, 0) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
         y: { ticks: { font: { size: 11 } } }
       }
     }
@@ -478,14 +482,14 @@ function render(view, header) {
   document.getElementById('charts').style.display =
     (show.revenue || show.units || show.sp || show.trend) ? '' : 'none';
 
-  // Ventas por SKU — Ingresos
+  // Ventas por SKU — Ingresos (cada barra con el color de su lata)
   if (show.revenue) horizontalBarChart('revenueChart',
-    view.products.map(p => ({ label: shortName(p.name), value: p.revenue })),
+    view.products.map((p, i) => ({ label: shortName(p.name), value: p.revenue, color: skuColor(p.sku, i) })),
     money0, ctx => ` ${money(ctx.parsed.x)}`);
 
-  // Ventas por SKU — Unidades
+  // Ventas por SKU — Unidades (cada barra con el color de su lata)
   if (show.units) horizontalBarChart('unitsChart',
-    view.products.map(p => ({ label: shortName(p.name), value: p.units })),
+    view.products.map((p, i) => ({ label: shortName(p.name), value: p.units, color: skuColor(p.sku, i) })),
     qty, ctx => ` ${qty(ctx.parsed.x)} unidades`);
 
   // Ranking de vendedores por ingresos
@@ -502,8 +506,8 @@ function render(view, header) {
       labels: view.daily.map(x => fmtDay(x.date)),
       datasets: [{
         label: 'Ingresos', data: view.daily.map(x => x.revenue),
-        borderColor: '#2d5a27', backgroundColor: 'rgba(122,182,72,.18)',
-        fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#c8a84b', borderWidth: 2,
+        borderColor: '#E80D0D', backgroundColor: 'rgba(255,210,46,.25)',
+        fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#FFD22E', borderWidth: 2,
       }]
     },
     options: {
@@ -517,7 +521,7 @@ function render(view, header) {
       },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-        y: { grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
+        y: { grid: { color: '#F3E9DB' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
       }
     }
   });
@@ -530,7 +534,7 @@ function render(view, header) {
     tr.className = 'product-row';
     tr.setAttribute('onclick', `toggleSp(${idx}, this)`);
     tr.innerHTML = `
-      <td><span class="sku-badge">${p.sku}</span>${p.name}</td>
+      <td><span class="sku-badge" style="background:${skuColor(p.sku, idx)}">${p.sku}</span>${SKU_IMAGES[p.sku] ? `<img class="can-thumb" src="${SKU_IMAGES[p.sku]}" alt="">` : ''}${p.name}</td>
       <td class="num">${qty(p.units)}</td>
       <td class="num"><strong>${money(p.revenue)}</strong></td>
       <td class="num">${qty(p.orders)}</td>
