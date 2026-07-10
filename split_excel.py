@@ -22,6 +22,9 @@ from pathlib import Path
 
 import openpyxl
 
+from column_resolver import (CANONICAL_POSITIONS, find_header_row, get,
+                             resolve_columns)
+
 ROOT = Path(__file__).resolve().parent
 
 
@@ -50,6 +53,16 @@ HEADER = [
 
 # Índices de columna (0-based)
 COL_DATE, COL_ORDER, COL_VARIANT, COL_CUSTOMER, COL_SP, COL_COMPANY = 0, 1, 2, 3, 4, 5
+
+# Orden de campos lógicos del formato canónico (para rearmar filas)
+CANONICAL_FIELDS = ("date", "order", "variant", "customer", "salesperson",
+                    "company", "qty_delivered", "qty_invoiced", "qty_ordered",
+                    "unit_price", "total")
+
+
+def canonical_row(row, cols):
+    """Rearma la fila en el orden canónico de HEADER según el mapa de columnas."""
+    return [get(row, cols, f) for f in CANONICAL_FIELDS]
 
 SKU_PREFIX_RE = re.compile(r"^\s*\[([A-Z]{2,4})\d+\]")
 
@@ -131,21 +144,28 @@ def collect(input_files):
 
         for ws in wb.worksheets:
             sheet_rows = list(ws.iter_rows(values_only=True))
+            hdr_i = find_header_row(sheet_rows)
+            cols = (resolve_columns(sheet_rows[hdr_i],
+                                    label=f"{Path(path).name}/{ws.title}")
+                    if hdr_i is not None else dict(CANONICAL_POSITIONS))
             tx_codes, tx_months, tx_states = [], [], []
 
             for row in sheet_rows:
-                if not is_transaction_row(row):
+                # Rearmar al orden canónico ANTES de procesar: el resto del
+                # pipeline (y el .xlsx que se escribe) siempre ve el layout canónico.
+                crow = canonical_row(row, cols)
+                if not is_transaction_row(crow):
                     continue
-                prefix = sku_prefix(row[COL_VARIANT])
-                mk = month_key(row[COL_DATE])
+                prefix = sku_prefix(crow[COL_VARIANT])
+                mk = month_key(crow[COL_DATE])
                 if prefix not in BRANDS:
-                    unmatched.append(list(row))
+                    unmatched.append(crow)
                     continue
-                rows[prefix][mk].append(list(row))
-                stats[prefix][mk][state_of(row, ws.title)] += 1
+                rows[prefix][mk].append(crow)
+                stats[prefix][mk][state_of(crow, ws.title)] += 1
                 tx_codes.append(prefix)
                 tx_months.append(mk)
-                tx_states.append(state_of(row, ws.title))
+                tx_states.append(state_of(crow, ws.title))
 
             block = find_incentive_block(sheet_rows)
             if block and tx_codes:
