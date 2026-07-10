@@ -79,3 +79,66 @@ def test_build_report_rob_shape(tmp_path):
     assert rep["totals"]["revenue"] == 60.0
     assert rep["totals"]["units"] == 1
     assert rep["meta"]["distributor"] == "LatinFood US Corp"
+
+
+HEADER_ADDR = ["Order Date", "Order", "Product Variant", "Customer", "Address",
+               "Salesperson", "Qty Delivered", "Qty Invoiced", "Qty Ordered",
+               "Unit Price", "Total"]
+
+
+def _line_addr(date, order, variant, customer, address, sp,
+               qty=1, price=21.85, total=21.85):
+    """Fila con el layout nuevo: Address insertada, sin Company."""
+    return [date, order, variant, customer, address, sp, qty, qty, qty, price, total]
+
+
+def test_layout_con_address_lee_vendedor_correcto(tmp_path):
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    _xlsx(fuentes / "Sales Kombuchacha.xlsx", [HEADER_ADDR,
+        _line_addr(dt(2026, 5, 12), "S42061", "[KOM01] Kombuchacha Zero Blueberry",
+                   "Tropical Sprmkt - Dunellen", "446 North Ave, Dunellen, NJ 08812",
+                   "Mireya Fernandez", qty=0.5, price=50.64, total=25.32),
+    ])
+    rep = rc.build_report(tmp_path, "Kombuchacha", "LatinFood US Corp",
+                          "KOM", ("KOM", "Sheet1"))
+    names = [s["name"] for s in rep["salespeople"]]
+    assert names == ["Mireya Fernandez"]        # persona, NO la dirección
+    assert rep["totals"]["revenue"] == 25.32
+
+
+def test_mezcla_canonico_y_layout_nuevo(tmp_path):
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    # archivo canónico (11 columnas estándar)
+    _xlsx(fuentes / "KOM-2026-06.xlsx", [HEADER,
+        _line(dt(2026, 6, 18), "S44804", "[KOM01] Kombuchacha Zero Blueberry",
+              "Convenience store flora llc", "Mireya Fernandez",
+              qty=0.5, price=50.64, total=25.32),
+    ], sheet="KOM")
+    # archivo con layout nuevo (Address, sin Company)
+    _xlsx(fuentes / "Sales Kombuchacha.xlsx", [HEADER_ADDR,
+        _line_addr(dt(2026, 5, 4), "S41495", "[KOM01] Kombuchacha Zero Blueberry",
+                   "Castellanos Grocery", "2 Orchard St, Morristown, NJ 07860",
+                   "Katherine Osorio Duque", qty=1, price=54.64, total=54.64),
+    ])
+    rep = rc.build_report(tmp_path, "Kombuchacha", "LatinFood US Corp",
+                          "KOM", ("KOM", "Sheet1"))
+    names = sorted(s["name"] for s in rep["salespeople"])
+    assert names == ["Katherine Osorio Duque", "Mireya Fernandez"]
+    assert rep["totals"]["revenue"] == 79.96      # 25.32 + 54.64
+    assert len(rep["months"]) == 2                 # 2026-05 y 2026-06
+
+
+def test_sin_encabezado_usa_posiciones_canonicas(tmp_path):
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    # sin fila de encabezado: debe caer al mapeo posicional canónico
+    _xlsx(fuentes / "raw.xlsx", [
+        _line(dt(2026, 6, 1), "S1", "[KOM01] Kombuchacha Zero Blueberry",
+              "Tienda", "Mireya Fernandez", qty=1, price=50.64, total=50.64),
+    ])
+    rep = rc.build_report(tmp_path, "Kombuchacha", "LatinFood US Corp",
+                          "KOM", ("KOM", "Sheet1"))
+    assert rep["salespeople"][0]["name"] == "Mireya Fernandez"
+    assert rep["totals"]["revenue"] == 50.64

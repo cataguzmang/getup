@@ -24,6 +24,9 @@ from pathlib import Path
 
 import openpyxl
 
+from column_resolver import (CANONICAL_POSITIONS, find_header_row, get,
+                             resolve_columns)
+
 # Índices de columnas (0-based) en el bloque transaccional canónico
 COL_DATE, COL_ORDER, COL_VARIANT, COL_CUSTOMER, COL_SALESPERSON = 0, 1, 2, 3, 4
 COL_COMPANY, COL_QTY_DELIVERED, COL_QTY_INVOICED, COL_QTY_ORDERED = 5, 6, 7, 8
@@ -98,37 +101,47 @@ def read_sheet_rows(path, sheet_candidates):
     return list(ws.iter_rows(values_only=True))
 
 
-def is_transaction_row(row, pattern):
+def is_transaction_row(row, pattern, cols):
+    date = get(row, cols, "date")
+    variant = get(row, cols, "variant")
     return (
-        isinstance(row[COL_DATE], datetime.datetime)
-        and isinstance(row[COL_VARIANT], str)
-        and pattern.match(row[COL_VARIANT])
+        isinstance(date, datetime.datetime)
+        and isinstance(variant, str)
+        and pattern.match(variant)
     )
 
 
-def parse_transactions(rows, pattern):
-    """Líneas de pedido limpias (dicts). Cantidades preservadas como float."""
+def parse_transactions(rows, pattern, cols=None):
+    """Devuelve la lista de líneas de pedido limpias (dicts).
+
+    `cols` mapea campo lógico -> índice (ver column_resolver). Si es None, se
+    resuelve desde el encabezado de `rows`; sin encabezado, posiciones canónicas.
+    """
+    if cols is None:
+        hdr_i = find_header_row(rows)
+        cols = (resolve_columns(rows[hdr_i]) if hdr_i is not None
+                else dict(CANONICAL_POSITIONS))
     lines = []
     for row in rows:
-        if not is_transaction_row(row, pattern):
+        if not is_transaction_row(row, pattern, cols):
             continue
-        sku, name = split_sku(row[COL_VARIANT], pattern)
+        sku, name = split_sku(get(row, cols, "variant"), pattern)
         if sku is None:
             continue
-        date = row[COL_DATE]
+        date = get(row, cols, "date")
         lines.append({
             "date": date.date().isoformat(),
             "month": month_key(date.date().isoformat()),
-            "order": clean_str(row[COL_ORDER]),
+            "order": clean_str(get(row, cols, "order")),
             "sku": sku,
             "product": name,
-            "customer": clean_str(row[COL_CUSTOMER]),
-            "salesperson": clean_str(row[COL_SALESPERSON]),
-            "qtyOrdered": q(row[COL_QTY_ORDERED]),
-            "qtyDelivered": q(row[COL_QTY_DELIVERED]),
-            "qtyInvoiced": q(row[COL_QTY_INVOICED]),
-            "unitPrice": round(num(row[COL_UNIT_PRICE]), 2),
-            "total": round(num(row[COL_TOTAL]), 2),
+            "customer": clean_str(get(row, cols, "customer")),
+            "salesperson": clean_str(get(row, cols, "salesperson")),
+            "qtyOrdered": q(get(row, cols, "qty_ordered")),
+            "qtyDelivered": q(get(row, cols, "qty_delivered")),
+            "qtyInvoiced": q(get(row, cols, "qty_invoiced")),
+            "unitPrice": round(num(get(row, cols, "unit_price")), 2),
+            "total": round(num(get(row, cols, "total")), 2),
         })
     return lines
 
@@ -246,7 +259,10 @@ def load_all_sources(folder, pattern, sheet_candidates):
             print(f"  ⚠ No se pudo leer {path.name}: {e} (se omite)")
             continue
         sources.append(path.name)
-        file_lines = parse_transactions(rows, pattern)
+        hdr_i = find_header_row(rows)
+        cols = (resolve_columns(rows[hdr_i], label=path.name)
+                if hdr_i is not None else dict(CANONICAL_POSITIONS))
+        file_lines = parse_transactions(rows, pattern, cols)
         kept = []
         for ln in file_lines:
             if ln["order"] in seen_orders:
