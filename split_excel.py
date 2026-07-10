@@ -39,8 +39,8 @@ class Brand:
 BRANDS = {
     "GET": Brand("San José", "San-Jose", "reporte-sanjose", "generar_data.py", "San Jose", True),
     "GOA": Brand("Garden of the Andes", "GOA", "goa-inventory", "parse_excel.py", "GOA", True),
-    "KOM": Brand("Kombuchacha", "KOM", "kombuchacha", "build_data.py", "KOM", False),
-    "ROB": Brand("Robinson Crusoe", "ROB", "robinson-crusoe", "build_data.py", "ROB", False),
+    "KOM": Brand("Kombuchacha", "KOM", "kombuchacha", "build_data.py", "KOM", True),
+    "ROB": Brand("Robinson Crusoe", "ROB", "robinson-crusoe", "build_data.py", "ROB", True),
 }
 
 HEADER = [

@@ -58,7 +58,9 @@ def test_main_writes_canonical_files(tmp_path, monkeypatch, capsys):
 
     out = capsys.readouterr().out
     assert "GOA" in out and "San José" in out
-    assert "pendiente" in out  # KOM sigue sin estar listo (sp1_ready=False)
+    # KOM ahora está listo (sp1_ready=True); con --no-build no se regenera su data.js
+    assert (tmp_path / "kombuchacha" / "fuentes" / "KOM-2026-06.xlsx").exists()
+    assert "build omitido" in out
 
 
 def test_main_writes_unmatched(tmp_path, monkeypatch):
