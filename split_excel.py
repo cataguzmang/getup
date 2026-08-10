@@ -60,9 +60,16 @@ CANONICAL_FIELDS = ("date", "order", "variant", "customer", "salesperson",
                     "unit_price", "total")
 
 
-def canonical_row(row, cols):
-    """Rearma la fila en el orden canónico de HEADER según el mapa de columnas."""
-    return [get(row, cols, f) for f in CANONICAL_FIELDS]
+def canonical_row(row, cols, state=None):
+    """Rearma la fila en el orden canónico de HEADER según el mapa de columnas.
+
+    Con `state` resuelto, escribe en Company el valor canónico del estado: el
+    Company crudo del distribuidor cambia de un mes a otro (o desaparece), pero
+    la información viene en el nombre de la hoja. fuentes/ garantiza valores."""
+    vals = [get(row, cols, f) for f in CANONICAL_FIELDS]
+    if state in CANONICAL_COMPANY:
+        vals[COL_COMPANY] = CANONICAL_COMPANY[state]
+    return vals
 
 SKU_PREFIX_RE = re.compile(r"^\s*\[([A-Z]{2,4})\d+\]")
 
@@ -72,6 +79,9 @@ STATE_BY_COMPANY = {
     "latinfood us corp": "Nueva York",
 }
 STATE_BY_SHEET_PREFIX = {"MIA": "Florida", "NY": "Nueva York"}
+
+# Valor canónico de Company por estado (lo que se escribe en fuentes/)
+CANONICAL_COMPANY = {"Florida": "LatinFood Florida", "Nueva York": "LatinFood US Corp."}
 
 
 # ── Helpers puros ─────────────────────────────────────────────────────────
@@ -161,11 +171,13 @@ def collect(input_files):
                 if prefix not in BRANDS:
                     unmatched.append(crow)
                     continue
+                state = state_of(crow, ws.title)
+                crow = canonical_row(row, cols, state)
                 rows[prefix][mk].append(crow)
-                stats[prefix][mk][state_of(crow, ws.title)] += 1
+                stats[prefix][mk][state] += 1
                 tx_codes.append(prefix)
                 tx_months.append(mk)
-                tx_states.append(state_of(crow, ws.title))
+                tx_states.append(state)
 
             block = find_incentive_block(sheet_rows)
             if block and tx_codes:

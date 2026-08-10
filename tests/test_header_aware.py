@@ -25,7 +25,8 @@ def test_collect_reordena_a_canonico(tmp_path):
     data = sx.collect([_wb_addr(tmp_path)])
     row = data.rows["KOM"]["2026-06"][0]
     assert row[sx.COL_SP] == "Mireya Fernandez"     # persona en la col canónica 4
-    assert row[sx.COL_COMPANY] is None              # Company ausente -> vacía
+    # Company ausente -> se escribe el canónico del estado (hoja 'NY ...', C1)
+    assert row[sx.COL_COMPANY] == "LatinFood US Corp."
     assert row[sx.COL_CUSTOMER] == "Convenience store flora llc"
     assert len(row) == len(sx.HEADER)               # siempre 11 columnas
 
