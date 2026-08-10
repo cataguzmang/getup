@@ -242,7 +242,9 @@ function renderCrossCheck(m){
   if(m===-1){el.innerHTML='';return;}
   const gd=getGD(m),cc=gd.crossCheck||{};const issues=[];
   Object.keys(cc).forEach(function(st){['free','sold'].forEach(function(k){const x=cc[st][k];if(x.reportado>0&&x.computado!==x.reportado){issues.push({st:st,k:k==='free'?'Cajas free':'Cajas vendidas',c:x.computado,r:x.reportado});}});});
-  if(issues.length===0){el.innerHTML='<span class="cc-ok"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Datos validados</span>';return;}
+  // La base del SOLD (entregadas/pagadas) viene resuelta desde generar_data.py; aquí solo se muestra.
+  const bases=Object.keys(cc).map(function(st){const s=cc[st].sold;return s&&s.base?st+': SOLD '+s.reportado+' = cajas '+s.base:'';}).filter(Boolean);
+  if(issues.length===0){el.innerHTML='<span class="cc-ok"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Datos validados'+(bases.length?' · '+bases.join(' · '):'')+'</span>';return;}
   el.innerHTML='<div class="cc-warn"><div class="cc-warn-hd"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>'+issues.length+' por revisar antes de publicar<button onclick="this.closest(\'.cc-warn\').querySelector(\'.cc-warn-body\').classList.toggle(\'open\')">Ver detalle</button></div><div class="cc-warn-body">'+issues.map(function(i){return '<div class="cc-row"><span>'+i.st+' · '+i.k+'</span><span>calc '+i.c+' <span style="color:var(--muted)">vs</span> report '+i.r+'</span></div>';}).join('')+'</div></div>';
 }
 
