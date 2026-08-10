@@ -43,3 +43,23 @@ def test_company_basura_hoja_mia_escribe_canonico(tmp_path, monkeypatch):
     assert rc == 0
     out = tmp_path / "reporte-sanjose" / "fuentes" / "San-Jose-2026-07.xlsx"
     assert _company_col(out) == ["LatinFood Florida", "LatinFood Florida"]
+
+
+def test_estado_irresoluble_aborta_sin_escribir(tmp_path, monkeypatch, capsys):
+    """Hoja con transacciones y estado '?' → rc != 0, fuentes/ sin tocar, error con
+    archivo + hoja + Company (C2: falla temprano, o falla todo o no falla nada)."""
+    monkeypatch.setattr(sx, "ROOT", tmp_path)
+    entrada = tmp_path / "entrada"
+    entrada.mkdir()
+    make_workbook(entrada / "07. GET Jul 2026.xlsx", {"Julio - Jack Mackerel": [
+        HEADER,
+        tx(D(2026, 7, 2), "S1", "[GET01] x", "c", "sp", company="Otra Cosa"),
+    ]})
+    rc = sx.main(["--no-build"])
+    assert rc != 0
+    assert not (tmp_path / "reporte-sanjose" / "fuentes").exists()
+    assert not (tmp_path / "unmatched").exists()
+    out = capsys.readouterr().out
+    assert "07. GET Jul 2026.xlsx" in out
+    assert "Julio - Jack Mackerel" in out
+    assert "Otra Cosa" in out

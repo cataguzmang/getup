@@ -135,6 +135,7 @@ class Collected:
     incentives: dict   # code -> {month -> [block_row, ...]}
     unmatched: list    # [row, ...]
     stats: dict        # code -> {month -> Counter(state)}
+    unresolved: list   # [(archivo, hoja, [company, ...]), ...] hojas con estado '?'
 
 
 def collect(input_files):
@@ -144,6 +145,7 @@ def collect(input_files):
     incentives = defaultdict(dict)
     unmatched = []
     stats = defaultdict(lambda: defaultdict(Counter))
+    unresolved = []
 
     for path in input_files:
         try:
@@ -159,6 +161,7 @@ def collect(input_files):
                                     label=f"{Path(path).name}/{ws.title}")
                     if hdr_i is not None else dict(CANONICAL_POSITIONS))
             tx_codes, tx_months, tx_states = [], [], []
+            bad_companies = set()
 
             for row in sheet_rows:
                 # Rearmar al orden canónico ANTES de procesar: el resto del
@@ -172,12 +175,18 @@ def collect(input_files):
                     unmatched.append(crow)
                     continue
                 state = state_of(crow, ws.title)
+                if state == "?":
+                    bad_companies.add(str(crow[COL_COMPANY]) if crow[COL_COMPANY]
+                                      is not None else "(sin Company)")
                 crow = canonical_row(row, cols, state)
                 rows[prefix][mk].append(crow)
                 stats[prefix][mk][state] += 1
                 tx_codes.append(prefix)
                 tx_months.append(mk)
                 tx_states.append(state)
+
+            if bad_companies:
+                unresolved.append((Path(path).name, ws.title, sorted(bad_companies)))
 
             block = find_incentive_block(sheet_rows)
             if block and tx_codes:
@@ -196,6 +205,7 @@ def collect(input_files):
         incentives={c: dict(m) for c, m in incentives.items()},
         unmatched=unmatched,
         stats={c: {mk: cnt for mk, cnt in m.items()} for c, m in stats.items()},
+        unresolved=unresolved,
     )
 
 
@@ -269,6 +279,17 @@ def main(argv=None):
         return 1
 
     data = collect(files)
+
+    # Una hoja sin estado resoluble aborta ANTES de escribir nada (D2): el estado
+    # sale del nombre de la hoja, así que el fallo nunca es una fila aislada.
+    if data.unresolved:
+        print(f"✗ split_excel.py — {', '.join(f.name for f in files)}\n")
+        for fname, sheet, companies in data.unresolved:
+            print(f"  ✗ {fname} / '{sheet}': estado irresoluble "
+                  f"(Company: {', '.join(companies)})")
+        print("\n✗ No se escribió nada en fuentes/ ni se regeneró ningún data.js.")
+        return 1
+
     print(f"✓ split_excel.py — {', '.join(f.name for f in files)}\n")
 
     build_failed = False
