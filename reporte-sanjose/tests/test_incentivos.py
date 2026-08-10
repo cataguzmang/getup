@@ -76,3 +76,27 @@ def test_nombre_vendedor_no_se_confunde_con_producto(tmp_path, monkeypatch):
     assert productos == {"In Brine"}          # NO aparece 'Tomate' por el nombre
     assert fl["totalDescuentos"] == 88.68
     assert fl["soldReportado"]["Tomate Gonzalez"] == 60
+
+
+def test_descuento_sin_monto_no_agarra_el_free(tmp_path, monkeypatch):
+    """Julio: 'In Brine == > 0 cases' con la celda de monto vacía → $0, no el 5
+    de la columna FREE (bug C4: $305 en vez de $300)."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    rows = [
+        canon_row(D(2026, 7, 2), "S1", "[GET01] Jack Mackerel in Brine",
+                  "C", "Alexandra J", "LatinFood Florida", 10, 38.4, 384),
+    ]
+    block = [
+        _pad(["__INCENTIVOS__", "Florida"]),
+        _pad([D(2026, 6, 1), "SOLD", "FREE", "Descuentos"]),
+        _pad(["Alexandra Jimenez", 20, 5, "In Brine == > 0 cases"]),   # monto vacío
+        _pad(["Angela Quimbay", 31, 5, "Tomate == > 12 cases", 300]),
+    ]
+    make_canonical(fuentes / "San-Jose-2026-07.xlsx", rows + block)
+    monkeypatch.setattr(g, "SOURCES_DIR", fuentes)
+    fl = g.load_incentivos()[(2026, 7)]["Florida"]
+    productos = {d["product"]: d for d in fl["descuentos"]}
+    assert productos["In Brine"]["amount"] == 0.0
+    assert productos["Tomate"]["amount"] == 300
+    assert fl["totalDescuentos"] == 300.0

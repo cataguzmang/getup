@@ -233,7 +233,10 @@ def _parse_incentive_segment(seg):
         for cell in row[3:]:
             lab = _parse_discount_label(cell) if isinstance(cell, str) else None
             if lab:
-                amount = _last_number(row) or 0.0
+                # El monto vive de la columna de montos en adelante (después de la
+                # etiqueta en col D): barrer la fila completa agarraría el FREE
+                # (col C) cuando la celda de monto viene vacía ($305 en vez de $300).
+                amount = _last_number(row[4:]) or 0.0
                 descuentos.append({"product": lab[0], "cases": lab[1], "amount": round(amount, 2)})
                 matched = True
                 break
