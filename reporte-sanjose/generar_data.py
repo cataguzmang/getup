@@ -491,13 +491,22 @@ def build_period_data(rows, months, order_prices, product_avg, global_avg,
                                'descuentos': dd, 'revNeto': round(-dd, 2),
                                'promoPct': 0.0, 'roi': 0.0, 'revPorCaja': 0.0}
 
-    # Cross-check: cajas calculadas (de transacciones) vs. reportadas (del bloque)
-    # SOLD del vendedor = total entregado (pagadas + free); FREE = solo las free.
+    # Cross-check: cajas calculadas (de transacciones) vs. reportadas (del bloque).
+    # El SOLD del vendedor cambió de base entre meses (junio = entregadas,
+    # julio = pagadas): calza contra cualquiera de las dos y `base` registra cuál.
+    # Para la base histórica (entregadas) el campo se omite: el data.js de los
+    # meses ya publicados debe quedar idéntico (regresión).
     cross_check = {}
     for st, sd in states.items():
+        entregadas = sd['cajas']
+        pagadas = max(entregadas - sd['pc'], 0)
+        rep = sold_rep_by_state.get(st, 0)
+        sold = {"computado": entregadas, "reportado": rep}
+        if rep > 0 and rep != entregadas and rep == pagadas:
+            sold = {"computado": pagadas, "reportado": rep, "base": "pagadas"}
         cross_check[st] = {
             "free": {"computado": sd['pc'], "reportado": free_rep_by_state.get(st, 0)},
-            "sold": {"computado": sd['cajas'], "reportado": sold_rep_by_state.get(st, 0)},
+            "sold": sold,
         }
 
     # --- customer aggregation ---
