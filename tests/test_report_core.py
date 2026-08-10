@@ -130,6 +130,61 @@ def test_mezcla_canonico_y_layout_nuevo(tmp_path):
     assert len(rep["months"]) == 2                 # 2026-05 y 2026-06
 
 
+def test_mes_en_cero_desde_archivo_solo_encabezado(tmp_path):
+    """D3: un canónico mensual sin líneas (KOM julio: 'No sales reported') registra
+    el mes vacío explícito — "vendió $0" y "no cargué el mes" deben verse distinto."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    _xlsx(fuentes / "KOM-2026-06.xlsx", [HEADER,
+        _line(dt(2026, 6, 18), "S44804", "[KOM01] Kombuchacha Zero Blueberry",
+              "Convenience store flora llc", "Mireya Fernandez",
+              qty=0.5, price=50.64, total=25.32),
+    ], sheet="KOM")
+    _xlsx(fuentes / "KOM-2026-07.xlsx", [HEADER], sheet="KOM")   # solo encabezado
+    rep = rc.build_report(tmp_path, "Kombuchacha", "LatinFood US Corp",
+                          "KOM", ("KOM", "Sheet1"))
+    assert [m["key"] for m in rep["months"]] == ["2026-06", "2026-07"]
+    jul = rep["months"][1]
+    assert jul["empty"] is True
+    assert jul["totals"]["units"] == 0 and jul["totals"]["revenue"] == 0
+    assert jul["products"] == [] and jul["salespeople"] == []
+    assert jul["periodStart"] == "2026-07-01" and jul["periodEnd"] == "2026-07-31"
+    assert rep["meta"]["periodLabel"] == "Junio 2026 – Julio 2026"
+    # el mes vacío no toca la vista general
+    assert rep["totals"]["revenue"] == 25.32
+
+
+def test_archivo_sin_mes_en_nombre_no_crea_mes_vacio(tmp_path):
+    """Un fuente sin '-AAAA-MM' en el nombre (ej. el crudo del distribuidor) que no
+    aporta líneas NO inventa un mes."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    _xlsx(fuentes / "KOM-2026-06.xlsx", [HEADER,
+        _line(dt(2026, 6, 18), "S1", "[KOM01] Zero Blueberry", "T", "Mireya",
+              qty=0.5, price=50.64, total=25.32),
+    ], sheet="KOM")
+    _xlsx(fuentes / "Sales Kombuchacha.xlsx", [HEADER], sheet="KOM")
+    rep = rc.build_report(tmp_path, "Kombuchacha", "LatinFood US Corp",
+                          "KOM", ("KOM", "Sheet1"))
+    assert [m["key"] for m in rep["months"]] == ["2026-06"]
+
+
+def test_mes_con_lineas_no_se_marca_vacio(tmp_path):
+    """Si el mes del nombre de archivo recibe líneas desde OTRO fuente, no es mes
+    en cero (y no gana la marca `empty`)."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    _xlsx(fuentes / "KOM-2026-06.xlsx", [HEADER], sheet="KOM")   # vacío
+    _xlsx(fuentes / "Sales Kombuchacha.xlsx", [HEADER,
+        _line(dt(2026, 6, 4), "S2", "[KOM01] Zero Blueberry", "T", "Katherine",
+              qty=1, price=54.64, total=54.64),
+    ], sheet="KOM")
+    rep = rc.build_report(tmp_path, "Kombuchacha", "LatinFood US Corp",
+                          "KOM", ("KOM", "Sheet1"))
+    assert [m["key"] for m in rep["months"]] == ["2026-06"]
+    assert "empty" not in rep["months"][0]
+
+
 def test_sin_encabezado_usa_posiciones_canonicas(tmp_path):
     fuentes = tmp_path / "fuentes"
     fuentes.mkdir()

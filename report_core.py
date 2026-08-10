@@ -17,6 +17,7 @@ Uso desde el wrapper de una marca:
         sku_prefix="KOM", sheet_candidates=("KOM", "Sheet1"))
 """
 
+import calendar
 import re
 import json
 import datetime
@@ -36,6 +37,11 @@ MESES_ES = [
     "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
     "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
 ]
+
+# Mes de un canónico mensual por nombre de archivo ('KOM-2026-07.xlsx' -> '2026-07').
+# Un archivo así SIN líneas es un mes en cero explícito (D3: "vendió $0" y "no
+# cargué el mes" deben verse distinto); los crudos del distribuidor no matchean.
+FILENAME_MONTH_RE = re.compile(r"-(\d{4}-\d{2})\.xlsx$", re.IGNORECASE)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -244,13 +250,15 @@ def parse_incentives(rows):
 def load_all_sources(folder, pattern, sheet_candidates):
     """Lee todas las fuentes, dedup por orden entre archivos, e incentivos por mes.
 
-    Devuelve (lines, incentives_by_month, source_names, dup_orders).
+    Devuelve (lines, incentives_by_month, source_names, dup_orders, named_months):
+    `named_months` son los meses declarados por nombre de archivo canónico mensual.
     """
     seen_orders = set()
     lines = []
     incentives_by_month = {}
     dup_orders = []
     sources = []
+    named_months = set()
 
     for path in list_source_files(folder):
         try:
@@ -259,6 +267,9 @@ def load_all_sources(folder, pattern, sheet_candidates):
             print(f"  ⚠ No se pudo leer {path.name}: {e} (se omite)")
             continue
         sources.append(path.name)
+        m = FILENAME_MONTH_RE.search(path.name)
+        if m:
+            named_months.add(m.group(1))
         hdr_i = find_header_row(rows)
         cols = (resolve_columns(rows[hdr_i], label=path.name)
                 if hdr_i is not None else dict(CANONICAL_POSITIONS))
@@ -280,7 +291,7 @@ def load_all_sources(folder, pattern, sheet_candidates):
             incentives_by_month[m] = merge_incentives(
                 [incentives_by_month.get(m, empty_incentives()), inc])
 
-    return lines, incentives_by_month, sources, sorted(set(dup_orders))
+    return lines, incentives_by_month, sources, sorted(set(dup_orders)), named_months
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -401,7 +412,7 @@ def build_view(lines, incentives):
     }
 
 
-def build_months(lines, incentives_by_month):
+def build_months(lines, incentives_by_month, empty_month_keys=()):
     by_month = {}
     for ln in lines:
         by_month.setdefault(ln["month"], []).append(ln)
@@ -419,6 +430,21 @@ def build_months(lines, incentives_by_month):
             "periodEnd": dates[-1],
             **view,
         })
+
+    # Meses en cero: declarados por archivo canónico mensual pero sin líneas.
+    for key in sorted(set(empty_month_keys) - set(by_month)):
+        y, mo = map(int, key.split("-"))
+        last_day = calendar.monthrange(y, mo)[1]
+        out.append({
+            "key": key,
+            "label": month_label(key),
+            "periodStart": f"{key}-01",
+            "periodEnd": f"{key}-{last_day:02d}",
+            "empty": True,
+            **build_view([], empty_incentives()),
+        })
+
+    out.sort(key=lambda m: m["key"])
     return out
 
 
@@ -514,12 +540,12 @@ def build_report(here, brand, distributor, sku_prefix, sheet_candidates):
     output_file = here / "data.js"
     pattern = sku_pattern(sku_prefix)
 
-    lines, inc_by_month, sources, dup_orders = load_all_sources(
+    lines, inc_by_month, sources, dup_orders, named_months = load_all_sources(
         sources_dir, pattern, sheet_candidates)
     if not lines:
         raise RuntimeError(f"No se detectaron líneas en {sources_dir}. ¿Pusiste los Excel?")
 
-    months = build_months(lines, inc_by_month)
+    months = build_months(lines, inc_by_month, empty_month_keys=named_months)
     prev = load_previous_report(output_file)
     months, carried = carry_forward(months, prev)
 
