@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import sys
+import unicodedata
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,6 +84,15 @@ STATE_BY_SHEET_PREFIX = {"MIA": "Florida", "NY": "Nueva York"}
 # Valor canónico de Company por estado (lo que se escribe en fuentes/)
 CANONICAL_COMPANY = {"Florida": "LatinFood Florida", "Nueva York": "LatinFood US Corp."}
 
+# Marca por nombre de hoja (subcadena, sin mayúsculas ni acentos) — para registrar
+# marcas presentes aunque no aporten filas (mes en cero, D3).
+BRAND_BY_SHEET_HINT = {
+    "jack mackerel": "GET", "jack mckarel": "GET",
+    "kombuchacha": "KOM",
+    "salmon y mejillones": "ROB",
+    "goa": "GOA",
+}
+
 
 # ── Helpers puros ─────────────────────────────────────────────────────────
 def sku_prefix(variant):
@@ -118,6 +128,17 @@ def state_of(row, sheet_name):
     return STATE_BY_SHEET_PREFIX.get(prefix, "?")
 
 
+def brand_from_sheet_name(name):
+    """Código de marca por subcadena del nombre de hoja; None si no reconoce."""
+    n = unicodedata.normalize("NFD", str(name))
+    n = "".join(c for c in n if not unicodedata.combining(c))
+    n = re.sub(r"\s+", " ", n).strip().lower()
+    for hint, code in BRAND_BY_SHEET_HINT.items():
+        if hint in n:
+            return code
+    return None
+
+
 def find_incentive_block(rows):
     """Filas del bloque de incentivos (desde el ancla 'SOLD' al final), o [].
 
@@ -136,6 +157,7 @@ class Collected:
     unmatched: list    # [row, ...]
     stats: dict        # code -> {month -> Counter(state)}
     unresolved: list   # [(archivo, hoja, [company, ...]), ...] hojas con estado '?'
+    empty_months: dict # code -> {month, ...} marca presente sin ventas (mes en cero)
 
 
 def collect(input_files):
@@ -146,6 +168,7 @@ def collect(input_files):
     unmatched = []
     stats = defaultdict(lambda: defaultdict(Counter))
     unresolved = []
+    empty_months = defaultdict(set)
 
     for path in input_files:
         try:
@@ -153,6 +176,11 @@ def collect(input_files):
         except Exception as e:  # archivo corrupto / no es xlsx
             print(f"  ⚠ No se pudo leer {Path(path).name}: {e} (se omite)")
             continue
+
+        # Para el mes en cero (D3): marcas presentes por nombre de hoja, marcas
+        # que aportaron filas, y meses de todas las transacciones del archivo.
+        file_months = Counter()
+        present, with_rows = set(), set()
 
         for ws in wb.worksheets:
             sheet_rows = list(ws.iter_rows(values_only=True))
@@ -162,6 +190,9 @@ def collect(input_files):
                     if hdr_i is not None else dict(CANONICAL_POSITIONS))
             tx_codes, tx_months, tx_states = [], [], []
             bad_companies = set()
+            sheet_brand = brand_from_sheet_name(ws.title)
+            if sheet_brand:
+                present.add(sheet_brand)
 
             for row in sheet_rows:
                 # Rearmar al orden canónico ANTES de procesar: el resto del
@@ -171,9 +202,11 @@ def collect(input_files):
                     continue
                 prefix = sku_prefix(crow[COL_VARIANT])
                 mk = month_key(crow[COL_DATE])
+                file_months[mk] += 1
                 if prefix not in BRANDS:
                     unmatched.append(crow)
                     continue
+                with_rows.add(prefix)
                 state = state_of(crow, ws.title)
                 if state == "?":
                     bad_companies.add(str(crow[COL_COMPANY]) if crow[COL_COMPANY]
@@ -199,6 +232,13 @@ def collect(input_files):
                 print(f"  ⚠ Bloque de incentivos en '{ws.title}' sin filas de pedido "
                       f"de marca conocida; se omite")
 
+        # Marca presente-pero-vacía → mes en cero en el mes dominante del archivo.
+        # Sin transacciones no hay mes que atribuir: no se registra nada.
+        if file_months:
+            dom_month = file_months.most_common(1)[0][0]
+            for code in present - with_rows:
+                empty_months[code].add(dom_month)
+
     # Convertir defaultdicts a dicts normales para asserts predecibles
     return Collected(
         rows={c: dict(m) for c, m in rows.items()},
@@ -206,6 +246,7 @@ def collect(input_files):
         unmatched=unmatched,
         stats={c: {mk: cnt for mk, cnt in m.items()} for c, m in stats.items()},
         unresolved=unresolved,
+        empty_months=dict(empty_months),
     )
 
 
@@ -297,7 +338,8 @@ def main(argv=None):
         if only and code not in only:
             continue
         months = data.rows.get(code, {})
-        if not months:
+        empty = sorted(set(data.empty_months.get(code, ())) - set(months))
+        if not months and not empty:
             continue
 
         print(f"  {code}  ({brand.name})")
@@ -316,6 +358,12 @@ def main(argv=None):
             inc_txt = " · +incentivos" if segs else ""
             rel = out.relative_to(ROOT).as_posix()
             print(f"    → {rel}   ({len(month_rows)} líneas · {st_txt}{inc_txt})")
+
+        for mk in empty:
+            out = ROOT / brand.folder / "fuentes" / f"{brand.code}-{mk}.xlsx"
+            write_canonical(out, [], [], brand.sheet)
+            rel = out.relative_to(ROOT).as_posix()
+            print(f"    → {rel}   (mes en cero: presente sin ventas)")
 
         if not brand.sp1_ready:
             print("    ⏸ data.js NO regenerado (pendiente su sub-proyecto)")
