@@ -3,11 +3,12 @@ const reportData = {
     "brand": "Kombuchacha",
     "distributor": "LatinFood US Corp",
     "periodStart": "2026-05-04",
-    "periodEnd": "2026-06-18",
-    "periodLabel": "Mayo 2026 – Junio 2026",
+    "periodEnd": "2026-07-31",
+    "periodLabel": "Mayo 2026 – Julio 2026",
     "lineItems": 22,
     "sources": [
       "KOM-2026-06.xlsx",
+      "KOM-2026-07.xlsx",
       "Sales Kombuchacha.xlsx"
     ],
     "carriedForward": [],
@@ -521,6 +522,30 @@ const reportData = {
           "orders": 1
         }
       ],
+      "incentives": {
+        "freeUnitsBySalesperson": [],
+        "costItems": [],
+        "totalDescuentos": 0.0
+      }
+    },
+    {
+      "key": "2026-07",
+      "label": "Julio 2026",
+      "periodStart": "2026-07-01",
+      "periodEnd": "2026-07-31",
+      "empty": true,
+      "totals": {
+        "units": 0,
+        "revenue": 0,
+        "orders": 0,
+        "customers": 0,
+        "salespeople": 0,
+        "freeUnits": 0
+      },
+      "products": [],
+      "salespeople": [],
+      "customers": [],
+      "daily": [],
       "incentives": {
         "freeUnitsBySalesperson": [],
         "costItems": [],
