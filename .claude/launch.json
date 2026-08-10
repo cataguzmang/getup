@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "goa-dashboard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8140", "--directory", "goa-inventory"],
+      "port": 8140
+    },
+    {
       "name": "sanjose-dashboard",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8137", "--directory", "reporte-sanjose"],
