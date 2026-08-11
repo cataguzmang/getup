@@ -254,6 +254,7 @@
 <main>
   <div class="sparse-note" id="sparse-note">Datos iniciales — el reporte se enriquece a medida que se acumulan meses.</div>
   <div class="month-selector" id="month-selector"></div>
+  <div class="sparse-note" id="empty-month-note" style="display:none">Mes sin ventas — el distribuidor lo reportó sin movimientos ("No sales reported").</div>
   <div class="kpi-grid" id="kpi-grid"></div>
 
   <div class="charts-grid" id="charts">
@@ -440,6 +441,9 @@ function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
 // ── Render de una vista (general o un mes) ────────────────────────────
 function render(view, header) {
   const t = view.totals;
+
+  // Mes en cero explícito (D3): la marca aparece en el Excel pero sin ventas
+  document.getElementById('empty-month-note').style.display = view.empty ? '' : 'none';
 
   // Encabezado
   document.getElementById('report-period').textContent = header.periodLabel;
