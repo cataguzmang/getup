@@ -238,6 +238,11 @@
   .dist-tabs button.active { color: var(--green-dark); border-bottom-color: var(--green-mid); }
   .dist-tabs .dist-sub { display: block; font-size: .68rem; font-weight: 600; opacity: .75; margin-top: 2px; }
 
+  /* Unidad junto al número grande del KPI, para que no quede en el aire. */
+  .kpi-unit { font-size: .42em; font-weight: 700; color: var(--text-muted); margin-left: 5px; }
+  /* La dona necesita alto extra: los nombres van fuera del anillo. */
+  #view-altagama .chart-wrap.donut { height: 360px; }
+
   /* Único aviso del corte de julio: discreto, al inicio de la sección. */
   #view-altagama .ag-cutoff-note {
     font-size: .8rem; color: var(--text-muted); font-style: italic;
@@ -410,20 +415,21 @@
   <div class="month-selector" id="ag-period-selector"></div>
   <div class="kpi-grid" id="ag-kpi-grid"></div>
 
-  <div class="chart-card">
-    <div class="section-title">Evolución mensual — unidades vendidas</div>
-    <div class="chart-wrap rank"><canvas id="agTrendChart"></canvas></div>
-  </div>
-
   <div class="charts-row">
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Evolución mensual — unidades vendidas</div>
+      <div class="chart-wrap rank"><canvas id="agTrendChart"></canvas></div>
+    </div>
     <div class="chart-card" style="margin:0">
       <div class="section-title" id="ag-rank-title">Ranking de productos — unidades</div>
       <div class="chart-wrap rank"><canvas id="agRankChart"></canvas></div>
     </div>
-    <div class="chart-card" style="margin:0">
-      <div class="section-title" id="ag-share-title">Participación por producto</div>
-      <div class="chart-wrap rank"><canvas id="agShareChart"></canvas></div>
-    </div>
+  </div>
+
+  <!-- A fila completa: los nombres van fuera del anillo y necesitan ancho. -->
+  <div class="chart-card">
+    <div class="section-title" id="ag-share-title">Participación por producto</div>
+    <div class="chart-wrap rank donut"><canvas id="agShareChart"></canvas></div>
   </div>
 
   <!-- Detalle producto × periodo -->
@@ -741,6 +747,125 @@ render(VIEWS[0].view, VIEWS[0].header);
   let   agView   = 'ytd';              // 'ytd' | clave de periodo
   let   agBuilt  = false;
 
+  // Verdes de la dona: el líder va a pleno color y el resto baja en intensidad.
+  // Cada par es [relleno, color de texto legible encima].
+  const SHARE_COLORS = [
+    ['#2d5a27', '#ffffff'], ['#4a7a44', '#ffffff'], ['#6f9a69', '#ffffff'],
+    ['#93b48e', '#1e2e1a'], ['#b2c9ae', '#1e2e1a'], ['#ccdcc9', '#1e2e1a'],
+    ['#dfeadd', '#1e2e1a'], ['#eaf2e8', '#1e2e1a'],
+  ];
+  const shareColor = i => SHARE_COLORS[Math.min(i, SHARE_COLORS.length - 1)];
+
+  // ── Plugin: valor encima de cada barra vertical ───────────────────────
+  const agBarTopLabel = {
+    id: 'agBarTopLabel',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.font = '700 11px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = '#1e2e1a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      chart.getDatasetMeta(0).data.forEach((bar, i) => {
+        ctx.fillText(qty(chart.data.datasets[0].data[i]), bar.x, bar.y - 5);
+      });
+      ctx.restore();
+    }
+  };
+
+  // ── Plugin: dona con % dentro y nombre fuera unido por una línea guía ──
+  // Con poco ancho no hay sitio para los nombres al costado: en ese caso se
+  // deja la leyenda debajo y solo se dibuja el porcentaje dentro del anillo.
+  const agDoughnutLabels = {
+    id: 'agDoughnutLabels',
+    beforeLayout(chart) {
+      const wide = chart.width >= 520;
+      const pad = wide ? Math.min(140, Math.round(chart.width * 0.24)) : 4;
+      chart.options.layout.padding = { left: pad, right: pad, top: 14, bottom: 14 };
+      chart.options.plugins.legend.display = !wide;
+    },
+    afterDatasetsDraw(chart) {
+      const meta = chart.getDatasetMeta(0);
+      if (!meta.data.length) return;
+      const data = chart.data.datasets[0].data;
+      const total = data.reduce((a, b) => a + b, 0);
+      if (!total) return;
+
+      const { ctx, chartArea } = chart;
+      const cx = meta.data[0].x, cy = meta.data[0].y;
+      ctx.save();
+
+      // Porcentaje dentro del anillo, si la porción da el ancho suficiente. Las
+      // porciones finas lo llevan pegado al nombre, fuera; nunca se pierde.
+      const inside = meta.data.map(arc =>
+        (arc.endAngle - arc.startAngle) * ((arc.innerRadius + arc.outerRadius) / 2) >= 30);
+
+      meta.data.forEach((arc, i) => {
+        if (!inside[i]) return;
+        const r = (arc.innerRadius + arc.outerRadius) / 2;
+        const a = (arc.startAngle + arc.endAngle) / 2;
+        ctx.font = (i === 0 ? '800 13px' : '700 11px') + ' "Segoe UI", system-ui, sans-serif';
+        ctx.fillStyle = shareColor(i)[1];
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${(data[i] / total * 100).toFixed(1)}%`, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      });
+
+      if (chart.width < 520) { ctx.restore(); return; }
+
+      // Nombre fuera, unido con una línea quebrada al centro de la porción
+      const R = meta.data[0].outerRadius;
+      const items = meta.data.map((arc, i) => {
+        const a = (arc.startAngle + arc.endAngle) / 2;
+        return {
+          i, right: Math.cos(a) >= 0,
+          label: chart.data.labels[i] +
+                 (inside[i] ? '' : ` · ${(data[i] / total * 100).toFixed(1)}%`),
+          x0: cx + Math.cos(a) * R, y0: cy + Math.sin(a) * R,
+          y1: cy + Math.sin(a) * (R + 16),
+        };
+      });
+
+      const GAP = 15;
+      ['right', 'left'].forEach(side => {
+        const g = items.filter(it => it.right === (side === 'right')).sort((a, b) => a.y1 - b.y1);
+        if (!g.length) return;
+        for (let k = 1; k < g.length; k++)                       // separa los pegados
+          if (g[k].y1 - g[k - 1].y1 < GAP) g[k].y1 = g[k - 1].y1 + GAP;
+        const over = g[g.length - 1].y1 - (chartArea.bottom - 6); // no se salen por abajo
+        if (over > 0) g.forEach(it => { it.y1 -= over; });
+        // Ni por arriba: se empuja solo lo que haga falta, sin aplastar el resto.
+        for (let k = 0; k < g.length; k++)
+          g[k].y1 = Math.max(g[k].y1, chartArea.top + 6 + k * GAP);
+      });
+
+      items.forEach(it => {
+        const dir = it.right ? 1 : -1;
+        const xElbow = cx + dir * (R + 16);
+        const xEnd = xElbow + dir * 10;
+        // Ancho realmente disponible hasta el borde del lienzo, por lado.
+        const maxText = (it.right ? chart.width - (xEnd + 4) : xEnd - 4) - 6;
+        ctx.beginPath();
+        ctx.moveTo(it.x0, it.y0);
+        ctx.lineTo(xElbow, it.y1);
+        ctx.lineTo(xEnd, it.y1);
+        ctx.strokeStyle = '#bfd3b8';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.font = (it.i === 0 ? '700 11.5px' : '600 11px') + ' "Segoe UI", system-ui, sans-serif';
+        ctx.fillStyle = it.i === 0 ? '#1e2e1a' : '#6b7c63';
+        ctx.textAlign = it.right ? 'left' : 'right';
+        ctx.textBaseline = 'middle';
+        let text = it.label;
+        while (text.length > 4 && ctx.measureText(text).width > maxText) text = text.slice(0, -1);
+        if (text !== it.label) text = text.trimEnd() + '…';
+        ctx.fillText(text, xEnd + dir * 4, it.y1);
+      });
+      ctx.restore();
+    }
+  };
+
   agTab.hidden = false;
 
   // ── Formateo ──────────────────────────────────────────────────────────
@@ -794,35 +919,31 @@ render(VIEWS[0].view, VIEWS[0].header);
   function kpisYTD() {
     const h = ag.highlights, t = ag.totals;
     const out = [
-      { label: 'Unidades vendidas 2026', value: qty(t.units),
+      { label: 'Unidades vendidas 2026', value: qty(t.units), unit: 'u.',
         sub: `${qty(t.products)} productos · ${qty(t.periods)} meses` },
       { label: 'Producto con más unidades', value: h.topProduct.shortName, small: true, gold: true,
         sub: `${qty(h.topProduct.units)} u. · ${pc(h.topProduct.share)} del total` },
-      { label: 'Mejor mes', value: qty(h.bestMonth.units), sub: h.bestMonth.label },
-      { label: 'Promedio mensual', value: qty(t.avgPeriod), sub: `${qty(t.periods)} meses del año` },
+      { label: 'Mejor mes', value: qty(h.bestMonth.units), unit: 'u.', sub: h.bestMonth.label },
     ];
     if (h.lastMonth) out.push({
-      label: 'Último mes', value: qty(h.lastMonth.units), gold: true,
+      label: 'Último mes', value: qty(h.lastMonth.units), unit: 'u.', gold: true,
       sub: `${h.lastMonth.label}${h.lastMonth.delta === null ? '' : ` · ${signedPc(h.lastMonth.deltaPct)} vs. mes anterior`}` });
     return out;
   }
 
   function kpisPeriod(p) {
-    const withSales = ag.products.filter(x => x.byPeriod[p.key] > 0).length;
     const ranked = [...ag.products]
       .filter(x => x.byPeriod[p.key] !== null)
       .sort((a, b) => b.byPeriod[p.key] - a.byPeriod[p.key]);
     const top = ranked[0];
     return [
-      { label: 'Unidades del mes', value: qty(p.units), sub: p.label },
+      { label: 'Unidades del mes', value: qty(p.units), unit: 'u.', sub: p.label },
       { label: 'Producto top del mes', value: top ? top.shortName : '—', small: true, gold: true,
         sub: top ? `${qty(top.byPeriod[p.key])} u. · ${pc(p.units ? top.byPeriod[p.key] / p.units * 100 : null)} del mes` : 'Sin datos' },
-      { label: 'Variación vs mes anterior', value: signed(p.delta),
+      { label: 'Variación vs mes anterior', value: signed(p.delta), unit: p.delta === null ? '' : 'u.',
         sub: p.delta === null ? 'Primer mes del reporte' : signedPc(p.deltaPct) },
       { label: '% sobre el total del año', value: pc(ag.totals.units ? p.units / ag.totals.units * 100 : null),
         sub: `${qty(p.units)} de ${qty(ag.totals.units)} u.` },
-      { label: 'Productos con venta', value: `${qty(withSales)}/${qty(ag.totals.products)}`,
-        sub: 'Con al menos 1 unidad en el mes' },
     ];
   }
 
@@ -832,7 +953,7 @@ render(VIEWS[0].view, VIEWS[0].header);
     document.getElementById('ag-kpi-grid').innerHTML = kpis.map(k => `
       <div class="kpi-card ${k.gold ? 'gold' : ''}">
         <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}</div>
+        <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}${k.unit ? `<span class="kpi-unit">${k.unit}</span>` : ''}</div>
         <div class="kpi-sub">${k.sub}</div>
       </div>`).join('');
   }
@@ -845,6 +966,7 @@ render(VIEWS[0].view, VIEWS[0].header);
     // Evolución mensual (siempre el año completo, sin depender del filtro).
     agCharts.agTrendChart = new Chart(document.getElementById('agTrendChart'), {
       type: 'bar',
+      plugins: [agBarTopLabel],
       data: {
         labels: periods.map(p => p.short),
         datasets: [{
@@ -868,7 +990,9 @@ render(VIEWS[0].view, VIEWS[0].header);
         },
         scales: {
           x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-          y: { beginAtZero: true, grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => qty(v) } }
+          // Aire arriba para que la etiqueta sobre la barra más alta no se corte.
+          y: { beginAtZero: true, suggestedMax: Math.max(...periods.map(p => p.units), 0) * 1.14,
+               grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => qty(v) } }
         }
       }
     });
@@ -892,18 +1016,27 @@ render(VIEWS[0].view, VIEWS[0].header);
     const shareItems = [...items].filter(i => i.value > 0).sort((a, b) => b.value - a.value);
     agCharts.agShareChart = new Chart(document.getElementById('agShareChart'), {
       type: 'doughnut',
+      plugins: [agDoughnutLabels],
       data: {
         labels: shareItems.map(i => i.label),
         datasets: [{
           data: shareItems.map(i => i.value),
-          backgroundColor: shareItems.map((_, i) => palette[i % palette.length]),
+          backgroundColor: shareItems.map((_, i) => shareColor(i)[0]),
           borderColor: '#fff', borderWidth: 2,
+          hoverOffset: 6,
         }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false, cutout: '52%',
+        responsive: true, maintainAspectRatio: false, cutout: '46%',
+        // El anillo se queda corto a propósito: el hueco que deja es el que
+        // ocupan los nombres y sus líneas guía.
+        radius: '76%',
+        // Sin animación: si no, las líneas guía bailan mientras el anillo crece.
+        animation: false,
+        layout: { padding: 0 },
         plugins: {
-          legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+          legend: { display: false, position: 'bottom',
+                    labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } },
           tooltip: { callbacks: {
             label: ctx => ` ${qty(ctx.parsed)} u. · ${pc(totalSel ? ctx.parsed / totalSel * 100 : null)}`
           } }
@@ -917,7 +1050,7 @@ render(VIEWS[0].view, VIEWS[0].header);
     document.getElementById('ag-matrix-head').innerHTML =
       `<th>Producto</th>` +
       periods.map(p => `<th class="num" data-key="${p.key}">${p.short}</th>`).join('') +
-      `<th class="num">Total año</th><th class="num">% total</th><th>Mejor mes</th>`;
+      `<th class="num">Total año</th><th class="num">% total</th>`;
 
     const body = ag.products.map(p => `
       <tr>
@@ -926,7 +1059,6 @@ render(VIEWS[0].view, VIEWS[0].header);
         ${periods.map(per => `<td class="num" data-key="${per.key}">${cell(p.byPeriod[per.key])}</td>`).join('')}
         <td class="num"><strong>${qty(p.units)}</strong></td>
         <td class="num"><span class="pct-badge">${pc(p.share)}</span></td>
-        <td>${p.best ? `${p.best.label} · ${qty(p.best.units)} u.` : '—'}</td>
       </tr>`).join('');
 
     const total = `
@@ -935,7 +1067,6 @@ render(VIEWS[0].view, VIEWS[0].header);
         ${periods.map(per => `<td class="num" data-key="${per.key}">${qty(per.units)}</td>`).join('')}
         <td class="num">${qty(ag.totals.units)}</td>
         <td class="num">100.0%</td>
-        <td></td>
       </tr>`;
     document.getElementById('ag-matrix-tbody').innerHTML = body + total;
   }
