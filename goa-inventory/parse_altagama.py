@@ -123,11 +123,16 @@ def full_month_period(year, month):
 
 
 def partial_period(year, month, day_from, day_to):
+    """Periodo que no cubre el mes entero.
+
+    Decisión comercial (2026-08-18): el dashboard lo presenta como un mes más y
+    avisa una sola vez al principio; el corte real vive aquí (`partial`,
+    `coverageDays`) para el reporte interno y el correo al distribuidor."""
     last = calendar.monthrange(year, month)[1]
     return {
         "key": "%d-%02d" % (year, month),
         "label": "%s %d" % (MESES_ES[month].capitalize(), year),
-        "short": "%s 1–%d" % (MESES_ES_ABBR[month], day_to),
+        "short": MESES_ES_ABBR[month],
         "year": year,
         "month": month,
         "start": "%d-%02d-%02d" % (year, month, day_from),
@@ -315,14 +320,11 @@ def build_report(path):
     grand_total = sum(p["units"] for p in periods)
     total_full = sum(p["units"] for p in periods if not p["partial"])
 
-    # Variación mes a mes: solo entre meses COMPLETOS consecutivos. Un periodo
-    # parcial no se compara con un mes completo (no son magnitudes homologables).
+    # Variación mes a mes, entre periodos consecutivos. El periodo parcial entra
+    # como un mes más: los días que le faltan no mueven la aguja lo suficiente
+    # como para justificar dejarlo fuera de la lectura comercial.
     prev = None
     for period in periods:
-        if period["partial"]:
-            period["delta"] = None
-            period["deltaPct"] = None
-            continue
         period["delta"] = None if prev is None else period["units"] - prev
         period["deltaPct"] = (None if prev in (None, 0)
                               else pct(period["units"] - prev, prev))
@@ -336,7 +338,7 @@ def build_report(path):
         prod["avgFullMonth"] = (round(prod["unitsFullMonths"] / len(full_keys), 1)
                                 if full_keys else None)
         prod["missingPeriods"] = [k for k in keys if prod["byPeriod"][k] is None]
-        best_key = max((k for k in full_keys if prod["byPeriod"][k] is not None),
+        best_key = max((k for k in keys if prod["byPeriod"][k] is not None),
                        key=lambda k: prod["byPeriod"][k], default=None)
         best_period = next((p for p in periods if p["key"] == best_key), None)
         prod["best"] = None if best_period is None else {
@@ -346,25 +348,33 @@ def build_report(path):
     products.sort(key=lambda p: (-p["units"], p["shortName"]))
 
     top_product = products[0] if products else None
-    full_periods = [p for p in periods if not p["partial"]]
-    best_full = max(full_periods, key=lambda p: p["units"], default=None)
+    best_month = max(periods, key=lambda p: p["units"], default=None)
+    last_period = periods[-1] if periods else None
     partial = next((p for p in periods if p["partial"]), None)
 
     period_start = min(p["start"] for p in periods)
     period_end = max(p["end"] for p in periods)
     period_label = ("%s – %s" % (periods[0]["label"], periods[-1]["label"])
                     if len(periods) > 1 else periods[0]["label"])
-    if partial:
-        period_label += " (al %d)" % int(partial["end"][-2:])
 
     if partial:
-        july_note = ("Los datos de %s corresponden al periodo comprendido entre "
+        # `note` es la frase larga para el correo/reporte interno; `short` es la
+        # única mención que aparece en el dashboard comercial.
+        partial_note = {
+            "key": partial["key"],
+            "short": ("%s incluye ventas hasta el %d de %s. Los demás meses están completos."
+                      % (partial["label"], int(partial["end"][-2:]),
+                         MESES_ES[partial["month"]])),
+            "note": ("Los datos de %s corresponden al periodo comprendido entre "
                      "el %d y el %d de %s de %d."
                      % (partial["label"].split(" ")[0].lower(),
                         int(partial["start"][-2:]), int(partial["end"][-2:]),
-                        MESES_ES[partial["month"]], partial["year"]))
+                        MESES_ES[partial["month"]], partial["year"])),
+        }
     else:
-        july_note = "Todos los periodos del reporte son meses completos."
+        partial_note = None
+    july_note = partial_note["note"] if partial_note else \
+        "Todos los periodos del reporte son meses completos."
 
     return {
         "meta": {
@@ -377,6 +387,7 @@ def build_report(path):
             "periodLabel": period_label,
             "cutoffDate": period_end,
             "partialPeriods": partial_keys,
+            "partialNote": partial_note,
             "notes": [
                 "Alta Gama proporciona información de sell-through en unidades. "
                 "El reporte no incluye precios ni valores monetarios.",
@@ -396,15 +407,22 @@ def build_report(path):
             "periods": len(periods),
             "fullMonths": len(full_keys),
             "partialPeriods": len(partial_keys),
+            # Promedio sobre todos los periodos (así se lee el dashboard) y
+            # sobre los meses completos (para el análisis interno).
+            "avgPeriod": round(grand_total / len(periods), 1) if periods else None,
             "avgFullMonth": round(total_full / len(full_keys), 1) if full_keys else None,
         },
         "highlights": {
             "topProduct": None if not top_product else {
                 "sku": top_product["sku"], "shortName": top_product["shortName"],
                 "units": top_product["units"], "share": top_product["share"]},
-            "bestFullMonth": None if not best_full else {
-                "key": best_full["key"], "label": best_full["label"],
-                "units": best_full["units"]},
+            "bestMonth": None if not best_month else {
+                "key": best_month["key"], "label": best_month["label"],
+                "units": best_month["units"]},
+            "lastMonth": None if not last_period else {
+                "key": last_period["key"], "label": last_period["label"],
+                "units": last_period["units"], "delta": last_period["delta"],
+                "deltaPct": last_period["deltaPct"]},
             "partial": None if not partial else {
                 "key": partial["key"], "label": partial["label"],
                 "short": partial["short"], "units": partial["units"],

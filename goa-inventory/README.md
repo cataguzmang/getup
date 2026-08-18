@@ -66,10 +66,25 @@ Data_<AÑO>_YTD.xlsx`): una fila por producto y una columna por periodo con las
      no puede haber duplicados).
    - Recalcula los totales desde las filas de producto y los compara con la
      fila `TOTAL` del Excel; imprime ✓/✗ por periodo. **Si sale ✗, no publiques:
-     revisa el Excel primero.**
+     revisa el Excel primero.** Esta validación es interna: vive en la consola,
+     no en el dashboard.
    - La última columna puede ser un periodo parcial (`Jul 1 - 25, 26`); se
-     detecta solo y se marca como tal en todo el dashboard.
+     detecta solo y genera el aviso de `meta.partialNote`.
 3. Sube `data-altagama.js` al repo (el Excel no se sube).
+
+### El dashboard es comercial
+
+Lo ve el gerente de exportaciones de GOA, así que la sección de Alta Gama
+muestra desempeño de venta y nada más: sin tablas de validación, sin nombre del
+archivo fuente y sin el detalle de las limitaciones de la fuente. Todo eso vive
+en `data-altagama.js` (`meta.validation`, `meta.source`, `meta.notes`) y en la
+salida del script, para el uso interno y para el correo al distribuidor.
+
+Un periodo parcial se avisa **una sola vez**, en una línea discreta al inicio de
+la sección, y de ahí en adelante se trata como un mes más: entra en el promedio
+mensual, en el mejor mes y en la variación mes a mes. Los días que faltan no
+mueven la aguja lo suficiente como para justificar dos lecturas distintas. El
+corte real (`partial`, `coverageDays`, `cutoffDate`) sigue en los datos.
 
 ### Los ceros son reales
 

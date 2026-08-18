@@ -121,32 +121,52 @@ def test_build_report_detecta_total_que_no_cuadra(tmp_path):
     assert [c["ok"] for c in v["checks"]] == [True, True, False]
 
 
-def test_totales_separan_meses_completos_del_parcial(tmp_path):
+def test_totales_incluyen_el_parcial_y_conservan_el_corte(tmp_path):
     path = make_sheet(tmp_path / "sell.xlsx", ROWS)
     t = pa.build_report(path)["totals"]
     assert t["units"] == 40             # 10 + 24 + 6
-    assert t["unitsFullMonths"] == 34   # sin el parcial de julio
+    assert t["avgPeriod"] == round(40 / 3, 1)        # el parcial cuenta como un mes
+    assert t["unitsFullMonths"] == 34   # sigue disponible para el uso interno
     assert (t["fullMonths"], t["partialPeriods"]) == (2, 1)
     assert t["avgFullMonth"] == 17.0
 
 
-def test_el_periodo_parcial_no_calcula_variacion(tmp_path):
+def test_el_periodo_parcial_tambien_calcula_variacion(tmp_path):
+    """Decisión comercial: el parcial se presenta como un mes más."""
     path = make_sheet(tmp_path / "sell.xlsx", ROWS)
     periods = pa.build_report(path)["periods"]
     enero, febrero, julio = periods
     assert enero["delta"] is None                    # primer mes: sin referencia
     assert (febrero["delta"], febrero["deltaPct"]) == (14, 140.0)
-    assert julio["partial"] is True
-    assert julio["delta"] is None and julio["deltaPct"] is None
+    assert (julio["delta"], julio["deltaPct"]) == (-18, -75.0)
+    assert julio["partial"] is True                  # el corte real no se pierde
+    assert julio["short"] == "Jul"                   # sin adornos en la etiqueta
 
 
-def test_mejor_mes_por_producto_ignora_el_parcial(tmp_path):
+def test_el_aviso_del_corte_queda_disponible_para_el_correo(tmp_path):
+    path = make_sheet(tmp_path / "sell.xlsx", ROWS)
+    meta = pa.build_report(path)["meta"]
+    assert meta["partialNote"]["key"] == "2026-07"
+    assert "hasta el 25 de julio" in meta["partialNote"]["short"]
+    assert meta["cutoffDate"] == "2026-07-25"
+    assert "(al" not in meta["periodLabel"]          # el encabezado va limpio
+
+
+def test_mejor_mes_por_producto_considera_todos_los_periodos(tmp_path):
     rows = [r[:] for r in ROWS]
     rows[1] = ["GA Green Tea 1.4oz (Garden of the Andes - Green Tea 1.4oz)", 10, 20, 900]
     rows[-1] = ["TOTAL", 10, 24, 901]
     path = make_sheet(tmp_path / "sell.xlsx", rows)
     green = pa.build_report(path)["products"][0]
-    assert green["best"]["key"] == "2026-02"         # no 2026-07 pese a las 900 u.
+    assert green["best"]["key"] == "2026-07"
+
+
+def test_highlights_del_dashboard(tmp_path):
+    path = make_sheet(tmp_path / "sell.xlsx", ROWS)
+    h = pa.build_report(path)["highlights"]
+    assert h["bestMonth"] == {"key": "2026-02", "label": "Febrero 2026", "units": 24}
+    assert h["lastMonth"]["key"] == "2026-07"
+    assert h["lastMonth"]["units"] == 6
 
 
 def test_celda_vacia_no_se_convierte_en_cero(tmp_path):

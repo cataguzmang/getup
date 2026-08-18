@@ -6,11 +6,16 @@ const altaGamaData = {
     "source": "GOA_CM Sell Through Data_2026_YTD.xlsx",
     "periodStart": "2026-01-01",
     "periodEnd": "2026-07-25",
-    "periodLabel": "Enero 2026 – Julio 2026 (al 25)",
+    "periodLabel": "Enero 2026 – Julio 2026",
     "cutoffDate": "2026-07-25",
     "partialPeriods": [
       "2026-07"
     ],
+    "partialNote": {
+      "key": "2026-07",
+      "short": "Julio 2026 incluye ventas hasta el 25 de julio. Los demás meses están completos.",
+      "note": "Los datos de julio corresponden al periodo comprendido entre el 1 y el 25 de julio de 2026."
+    },
     "notes": [
       "Alta Gama proporciona información de sell-through en unidades. El reporte no incluye precios ni valores monetarios.",
       "Los datos de julio corresponden al periodo comprendido entre el 1 y el 25 de julio de 2026."
@@ -79,6 +84,7 @@ const altaGamaData = {
     "periods": 7,
     "fullMonths": 6,
     "partialPeriods": 1,
+    "avgPeriod": 394.9,
     "avgFullMonth": 432.7
   },
   "highlights": {
@@ -88,15 +94,22 @@ const altaGamaData = {
       "units": 660,
       "share": 23.9
     },
-    "bestFullMonth": {
+    "bestMonth": {
       "key": "2026-02",
       "label": "Febrero 2026",
       "units": 748
     },
+    "lastMonth": {
+      "key": "2026-07",
+      "label": "Julio 2026",
+      "units": 168,
+      "delta": -96,
+      "deltaPct": -36.4
+    },
     "partial": {
       "key": "2026-07",
       "label": "Julio 2026",
-      "short": "Jul 1–25",
+      "short": "Jul",
       "units": 168,
       "start": "2026-07-01",
       "end": "2026-07-25",
@@ -198,7 +211,7 @@ const altaGamaData = {
     {
       "key": "2026-07",
       "label": "Julio 2026",
-      "short": "Jul 1–25",
+      "short": "Jul",
       "year": 2026,
       "month": 7,
       "start": "2026-07-01",
@@ -207,8 +220,8 @@ const altaGamaData = {
       "coverageDays": 25,
       "monthDays": 31,
       "units": 168,
-      "delta": null,
-      "deltaPct": null
+      "delta": -96,
+      "deltaPct": -36.4
     }
   ],
   "products": [
