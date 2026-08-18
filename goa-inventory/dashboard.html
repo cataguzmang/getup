@@ -217,10 +217,68 @@
     .kpi-value { font-size: 1.5rem; }
     .header-title h1 { font-size: 1.15rem; }
   }
+
+  /* ── Distribuidores: pestañas + sección Alta Gama ───────────────────
+     Bloque ADITIVO. Todos los selectores están scopeados a `.dist-tabs`
+     o a `#view-altagama`, así que ninguna regla alcanza al reporte de
+     Latin Foods, que conserva sus clases y su estilo original. */
+  [hidden] { display: none !important; }
+
+  .dist-tabs {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  }
+  .dist-tabs button {
+    padding: 11px 22px; border: none; background: none; cursor: pointer;
+    font-family: inherit; font-size: .92rem; font-weight: 700;
+    color: var(--text-muted); border-bottom: 3px solid transparent;
+    margin-bottom: -1px; transition: color .15s, border-color .15s;
+  }
+  .dist-tabs button:hover { color: var(--green-dark); }
+  .dist-tabs button.active { color: var(--green-dark); border-bottom-color: var(--green-mid); }
+  .dist-tabs .dist-sub { display: block; font-size: .68rem; font-weight: 600; opacity: .75; margin-top: 2px; }
+
+  #view-altagama .ag-note {
+    background: var(--gold-light); border: 1px solid #e8dcb0;
+    border-left: 4px solid var(--gold); border-radius: 12px;
+    padding: 15px 20px; margin-bottom: 24px;
+    font-size: .84rem; color: #6b551a; line-height: 1.65;
+  }
+  #view-altagama .ag-note strong { color: #4d3d10; }
+  #view-altagama .ag-note ul { margin: 8px 0 0 18px; }
+  #view-altagama .ag-note li { margin-bottom: 3px; }
+  #view-altagama .ag-cut {
+    display: inline-block; background: var(--gold); color: #fff;
+    border-radius: 20px; padding: 2px 11px; font-size: .72rem;
+    font-weight: 700; letter-spacing: .3px; margin-left: 4px;
+  }
+  #view-altagama .kpi-card.partial::before { background: var(--gold); }
+  #view-altagama .kpi-card.partial { border: 1px dashed var(--gold); }
+  #view-altagama .kpi-card.partial .kpi-value { color: #8a6a1a; }
+  #view-altagama th.partial-col, #view-altagama td.partial-col { background: #fdf7e6; }
+  #view-altagama .est-note {
+    font-size: .78rem; color: #6b551a; font-style: italic;
+    margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--gold);
+  }
+  .partial-badge {
+    display: inline-block; padding: 1px 8px; border-radius: 10px;
+    font-size: .66rem; font-weight: 700; letter-spacing: .3px;
+    background: var(--gold-light); color: #8a6a1a; border: 1px dashed var(--gold);
+    white-space: nowrap;
+  }
+  .delta-up   { color: var(--green-mid); font-weight: 600; }
+  .delta-down { color: #b04a3a; font-weight: 600; }
+  .delta-na   { color: var(--text-muted); font-style: italic; }
+  .na-cell    { color: var(--text-muted); font-style: italic; }
+  /* 0 = sin movimiento (dato real). Se atenúa para distinguirlo de un n/d. */
+  .zero-cell  { color: var(--text-muted); cursor: help; }
 </style>
 </head>
 <body>
 <script src="data.js"></script>
+<!-- Alta Gama: fuente y objeto (`altaGamaData`) independientes de data.js.
+     Si el archivo no está, el dashboard sigue funcionando solo con Latin Foods. -->
+<script src="data-altagama.js"></script>
 
 <header>
   <div class="header-brand">
@@ -237,6 +295,15 @@
 </header>
 
 <main>
+  <!-- Pestañas de distribuidor. Cada sección es independiente: sus filtros,
+       KPI y gráficos solo leen su propia fuente de datos. -->
+  <div class="dist-tabs" id="dist-tabs">
+    <button data-dist="latinfoods" class="active">Latin Foods<span class="dist-sub">Ventas, ingresos y vendedores</span></button>
+    <button data-dist="altagama" hidden>Alta Gama<span class="dist-sub">Sell-through en unidades</span></button>
+  </div>
+
+<!-- ══════════ LATIN FOODS — sección existente, sin cambios ══════════ -->
+<section id="view-latinfoods">
   <div class="month-selector" id="month-selector"></div>
   <div class="kpi-grid" id="kpi-grid"></div>
 
@@ -350,6 +417,99 @@
       </div>
     </div>
   </div>
+</section>
+<!-- ════════════════ FIN LATIN FOODS ════════════════ -->
+
+<!-- ══════════════════════ ALTA GAMA ══════════════════════
+     Distribuidor con información más limitada: solo unidades vendidas por
+     producto y por mes. Sin precios, clientes, órdenes ni inventario, así que
+     la sección NO muestra ingresos, márgenes ni sell-through porcentual. -->
+<section id="view-altagama" hidden>
+  <div class="ag-note">
+    <strong>Alcance de los datos de Alta Gama</strong>
+    <ul>
+      <li>Alta Gama proporciona información de sell-through en unidades. El reporte no incluye precios ni valores monetarios.</li>
+      <li>Los datos de julio corresponden al periodo comprendido entre el 1 y el 25 de julio de 2026.<span class="ag-cut" id="ag-cutoff"></span></li>
+      <li>No se muestran ingresos, márgenes, inventario disponible ni sell-through porcentual: la fuente no permite calcularlos de forma confiable.</li>
+      <li>Un <strong>0</strong> significa que <strong>no hubo movimiento</strong> en ese periodo: es un dato real informado por Alta Gama, no un vacío. Si alguna vez llegara una celda en blanco, aparecerá como <em>n/d</em> y no se contará como cero.</li>
+    </ul>
+    <div id="ag-source" style="margin-top:8px;font-size:.76rem;opacity:.85"></div>
+  </div>
+
+  <div class="month-selector" id="ag-period-selector"></div>
+  <div class="kpi-grid" id="ag-kpi-grid"></div>
+
+  <div class="chart-card">
+    <div class="section-title">Evolución mensual — unidades vendidas</div>
+    <div class="chart-wrap rank"><canvas id="agTrendChart"></canvas></div>
+    <div class="est-note" id="ag-projection"></div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card" style="margin:0">
+      <div class="section-title" id="ag-rank-title">Ranking de productos — unidades</div>
+      <div class="chart-wrap rank"><canvas id="agRankChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin:0">
+      <div class="section-title" id="ag-share-title">Participación por producto</div>
+      <div class="chart-wrap rank"><canvas id="agShareChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Detalle producto × periodo -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Detalle por producto y mes — unidades vendidas</div>
+      <small style="color:var(--text-muted)">La columna en tono ámbar es un periodo parcial</small>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr id="ag-matrix-head"></tr></thead>
+        <tbody id="ag-matrix-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Evolución mensual con variación -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Evolución mensual y variación</div>
+      <small style="color:var(--text-muted)">La variación solo se calcula entre meses completos consecutivos</small>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Periodo</th>
+            <th>Cobertura</th>
+            <th class="num">Unidades</th>
+            <th class="num">Variación</th>
+            <th class="num">Variación %</th>
+            <th class="num">% del total</th>
+          </tr>
+        </thead>
+        <tbody id="ag-months-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Validación de la fuente -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Validación contra el archivo fuente</div>
+      <small style="color:var(--text-muted)">Totales recalculados desde las filas de producto vs. fila <code>TOTAL</code> del Excel</small>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Periodo</th><th class="num">Calculado</th><th class="num">TOTAL del Excel</th><th>Resultado</th></tr>
+        </thead>
+        <tbody id="ag-validation-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- ════════════════ FIN ALTA GAMA ════════════════ -->
 </main>
 
 <script>
@@ -392,13 +552,15 @@ const barValueLabel = {
 
 let charts = {};
 
-function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
+// `registry` es opcional y solo sirve para que otra sección (Alta Gama) lleve su
+// propio ciclo de vida de gráficos; sin él se usa `charts`, como siempre.
+function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip, registry) {
   const sorted = [...items].sort((a, b) => b.value - a.value);
   const labels = sorted.map(i => i.label);
   const data = sorted.map(i => i.value);
   const callbacks = { label: tooltipLabel };
   if (extraTooltip) callbacks.afterLabel = ctx => extraTooltip(sorted[ctx.dataIndex].meta);
-  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+  (registry || charts)[canvasId] = new Chart(document.getElementById(canvasId), {
     type: 'bar',
     plugins: [barValueLabel],
     data: {
@@ -602,6 +764,340 @@ selector.addEventListener('click', e => {
 
 // Render inicial: vista general
 render(VIEWS[0].view, VIEWS[0].header);
+</script>
+
+<!-- ══════════════════ ALTA GAMA — lógica de la sección ══════════════════
+     Bloque autónomo y posterior al render de Latin Foods. Solo lee
+     `altaGamaData` y solo escribe dentro de #view-altagama (más el texto del
+     encabezado al cambiar de pestaña). No toca `reportData`, ni `charts`, ni
+     ninguna función de render de Latin Foods. -->
+<script>
+(function () {
+  const tabs      = document.getElementById('dist-tabs');
+  const agTab     = tabs.querySelector('[data-dist="altagama"]');
+  const lfSection = document.getElementById('view-latinfoods');
+  const agSection = document.getElementById('view-altagama');
+
+  // Sin data-altagama.js el dashboard sigue funcionando solo con Latin Foods.
+  const hasAg = typeof altaGamaData !== 'undefined'
+             && altaGamaData && Array.isArray(altaGamaData.products)
+             && altaGamaData.products.length > 0;
+  if (!hasAg) { tabs.hidden = true; return; }
+
+  const ag       = altaGamaData;
+  const periods  = ag.periods;
+  const partialP = periods.find(p => p.partial) || null;
+  const agCharts = {};                 // registro propio: no comparte ciclo de vida
+  let   agView   = 'ytd';              // 'ytd' | clave de periodo
+  let   agBuilt  = false;
+
+  agTab.hidden = false;
+
+  // ── Formateo ──────────────────────────────────────────────────────────
+  const pc     = n => (n === null || n === undefined) ? '—' : `${n.toFixed(1)}%`;
+  const signed = n => (n === null || n === undefined) ? '—' : `${n > 0 ? '+' : ''}${qty(n)}`;
+  const signedPc = n => (n === null || n === undefined) ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+  const deltaCls = n => n === null || n === undefined ? 'delta-na' : (n > 0 ? 'delta-up' : (n < 0 ? 'delta-down' : ''));
+  // Un `0` es un dato real: Alta Gama lo usa para "sin movimiento". Un `null`
+  // es DATO NO DISPONIBLE y nunca se muestra ni se cuenta como cero.
+  const cell = v => v === null || v === undefined
+    ? '<span class="na-cell">n/d</span>'
+    : (v === 0 ? '<span class="zero-cell" title="Sin movimiento en el periodo">0</span>' : qty(v));
+  const uOf    = (prod, key) => key === 'ytd' ? prod.units : prod.byPeriod[key];
+  const pOf    = key => periods.find(p => p.key === key) || null;
+  const partialTag = p => p.partial
+    ? ` <span class="partial-badge">parcial 1–${+p.end.slice(-2)}</span>` : '';
+
+  // ── Encabezado: se intercambia el texto al cambiar de pestaña ─────────
+  const subEl    = document.querySelector('.header-title p');
+  const periodEl = document.getElementById('report-period');
+  const rangeEl  = document.getElementById('report-range');
+  let lfHeader = null;
+  const setHeader = (sub, period, range) => {
+    subEl.textContent = sub; periodEl.textContent = period; rangeEl.textContent = range;
+  };
+
+  // ── Notas fijas de la sección ─────────────────────────────────────────
+  function buildStatic() {
+    document.getElementById('ag-cutoff').textContent =
+      `Corte: ${fmtDate(ag.meta.cutoffDate)}`;
+    document.getElementById('ag-source').innerHTML =
+      `Fuente: <strong>${ag.meta.source}</strong> · Métrica: ${ag.meta.metric} · ` +
+      `Periodo cubierto: ${fmtDate(ag.meta.periodStart)} – ${fmtDate(ag.meta.periodEnd)}`;
+
+    // Proyección de julio: métrica secundaria, opcional y fuera de todo total.
+    const pr = document.getElementById('ag-projection');
+    if (!partialP) { pr.hidden = true; }
+    else {
+      const est = Math.round(partialP.units / partialP.coverageDays * partialP.monthDays);
+      pr.innerHTML =
+        `⚠ ${partialP.label} es un <strong>periodo parcial</strong>: cubre ${partialP.coverageDays} de ` +
+        `${partialP.monthDays} días (1 al ${+partialP.end.slice(-2)}), por eso su barra va en ámbar y ` +
+        `rayada. No es comparable directamente con los meses completos.<br>` +
+        `Proyección de cierre <em>(estimación — NO incluida en ningún total ni KPI de esta sección)</em>: ` +
+        `<strong>${qty(est)} u.</strong> — fórmula: unidades reportadas ÷ días cubiertos × días del mes ` +
+        `(${qty(partialP.units)} ÷ ${partialP.coverageDays} × ${partialP.monthDays}). Supone ritmo de venta constante.`;
+    }
+
+    // Selector de periodo (solo Alta Gama)
+    const sel = document.getElementById('ag-period-selector');
+    sel.innerHTML = [{ id: 'ytd', label: 'Todos' }]
+      .concat(periods.map(p => ({ id: p.key, label: p.short })))
+      .map((v, i) => `<button data-key="${v.id}" class="${i === 0 ? 'active' : ''}">${v.label}</button>`).join('');
+    sel.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      sel.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      agView = btn.dataset.key;
+      renderView();
+    });
+
+    buildMatrix();
+    buildMonths();
+    buildValidation();
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────────────
+  function kpisYTD() {
+    const h = ag.highlights, t = ag.totals;
+    const out = [
+      { label: 'Unidades vendidas 2026 (YTD)', value: qty(t.units),
+        sub: `${qty(t.products)} productos · ${t.fullMonths} meses completos + ${t.partialPeriods} parcial` },
+      { label: 'Producto con más unidades', value: h.topProduct.shortName, small: true, gold: true,
+        sub: `${qty(h.topProduct.units)} u. · ${pc(h.topProduct.share)} del total` },
+      { label: 'Mejor mes completo', value: qty(h.bestFullMonth.units),
+        sub: h.bestFullMonth.label },
+      { label: 'Promedio mensual', value: qty(t.avgFullMonth),
+        sub: `Solo meses completos (${t.fullMonths})` },
+    ];
+    if (h.partial) out.push({
+      label: `${h.partial.label} (1–${+h.partial.end.slice(-2)})`, value: qty(h.partial.units),
+      sub: `Periodo parcial · ${h.partial.coverageDays} de ${h.partial.monthDays} días`, partial: true });
+    return out;
+  }
+
+  function kpisPeriod(p) {
+    const withSales = ag.products.filter(x => x.byPeriod[p.key] > 0).length;
+    const ranked = [...ag.products]
+      .filter(x => x.byPeriod[p.key] !== null)
+      .sort((a, b) => b.byPeriod[p.key] - a.byPeriod[p.key]);
+    const top = ranked[0];
+    const out = [
+      { label: 'Unidades del periodo', value: qty(p.units), partial: p.partial,
+        sub: p.partial ? `1 al ${+p.end.slice(-2)} de ${p.label.toLowerCase()} · parcial` : p.label },
+      { label: 'Producto top del periodo', value: top ? top.shortName : '—', small: true, gold: true,
+        sub: top ? `${qty(top.byPeriod[p.key])} u. · ${pc(p.units ? top.byPeriod[p.key] / p.units * 100 : null)} del periodo` : 'Sin datos' },
+      p.partial
+        ? { label: 'Variación vs mes anterior', value: 'No comparable', small: true, partial: true,
+            sub: `Periodo parcial (${p.coverageDays} de ${p.monthDays} días)` }
+        : { label: 'Variación vs mes anterior', value: signed(p.delta),
+            sub: p.delta === null ? 'Primer mes del reporte' : signedPc(p.deltaPct) },
+      { label: '% sobre el total YTD', value: pc(ag.totals.units ? p.units / ag.totals.units * 100 : null),
+        sub: `${qty(p.units)} de ${qty(ag.totals.units)} u.` },
+      { label: 'Productos con venta', value: `${qty(withSales)}/${qty(ag.totals.products)}`,
+        sub: 'Con al menos 1 unidad en el periodo' },
+    ];
+    return out;
+  }
+
+  function renderKpis() {
+    const p = agView === 'ytd' ? null : pOf(agView);
+    const kpis = p ? kpisPeriod(p) : kpisYTD();
+    document.getElementById('ag-kpi-grid').innerHTML = kpis.map(k => `
+      <div class="kpi-card ${k.gold ? 'gold' : ''} ${k.partial ? 'partial' : ''}">
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      </div>`).join('');
+  }
+
+  // ── Gráficos ──────────────────────────────────────────────────────────
+  function renderCharts() {
+    Object.values(agCharts).forEach(c => c.destroy());
+    Object.keys(agCharts).forEach(k => delete agCharts[k]);
+
+    // Evolución mensual (siempre el histórico completo). El periodo parcial va
+    // en ámbar y con borde rayado para que no se lea como un mes completo.
+    agCharts.agTrendChart = new Chart(document.getElementById('agTrendChart'), {
+      type: 'bar',
+      data: {
+        labels: periods.map(p => p.short),
+        datasets: [{
+          data: periods.map(p => p.units),
+          backgroundColor: periods.map(p => p.partial ? 'rgba(200,168,75,.55)' : '#4a8c3f'),
+          borderColor: periods.map(p => p.partial ? '#c8a84b' : '#4a8c3f'),
+          borderWidth: periods.map(p => p.partial ? 2 : 0),
+          borderDash: [4, 3],
+          borderRadius: 5, borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            title: items => periods[items[0].dataIndex].label,
+            label: ctx => ` ${qty(ctx.parsed.y)} unidades`,
+            afterLabel: ctx => {
+              const p = periods[ctx.dataIndex];
+              return p.partial
+                ? `⚠ Periodo parcial: 1 al ${+p.end.slice(-2)} (${p.coverageDays} de ${p.monthDays} días).\nNo comparable con un mes completo.`
+                : 'Mes completo';
+            }
+          } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+          y: { beginAtZero: true, grid: { color: '#e8f5e0' }, ticks: { font: { size: 10 }, callback: v => qty(v) } }
+        }
+      }
+    });
+
+    // Ranking y participación: responden al filtro de periodo.
+    const key   = agView;
+    const label = agView === 'ytd' ? 'acumulado 2026' : pOf(agView).label + (pOf(agView).partial ? ' (1–25)' : '');
+    document.getElementById('ag-rank-title').textContent  = `Ranking de productos — unidades · ${label}`;
+    document.getElementById('ag-share-title').textContent = `Participación por producto · ${label}`;
+
+    const items = ag.products
+      .map(p => ({ label: p.shortName, value: uOf(p, key) || 0, meta: p }))
+      .filter(i => uOf(i.meta, key) !== null);
+    const totalSel = items.reduce((s, i) => s + i.value, 0);
+
+    horizontalBarChart('agRankChart', items, qty,
+      ctx => ` ${qty(ctx.parsed.x)} unidades`,
+      p => `${pc(totalSel ? uOf(p, key) / totalSel * 100 : null)} del periodo · YTD ${qty(p.units)} u.`,
+      agCharts);
+
+    const shareItems = [...items].filter(i => i.value > 0).sort((a, b) => b.value - a.value);
+    agCharts.agShareChart = new Chart(document.getElementById('agShareChart'), {
+      type: 'doughnut',
+      data: {
+        labels: shareItems.map(i => i.label),
+        datasets: [{
+          data: shareItems.map(i => i.value),
+          backgroundColor: shareItems.map((_, i) => palette[i % palette.length]),
+          borderColor: '#fff', borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '52%',
+        plugins: {
+          legend: { position: 'right', labels: { font: { size: 11 }, boxWidth: 12, padding: 8 } },
+          tooltip: { callbacks: {
+            label: ctx => ` ${qty(ctx.parsed)} u. · ${pc(totalSel ? ctx.parsed / totalSel * 100 : null)}`
+          } }
+        }
+      }
+    });
+  }
+
+  // ── Tabla producto × periodo ──────────────────────────────────────────
+  function buildMatrix() {
+    document.getElementById('ag-matrix-head').innerHTML =
+      `<th>Producto</th>` +
+      periods.map(p => `<th class="num ${p.partial ? 'partial-col' : ''}" data-key="${p.key}">` +
+        `${p.short}${p.partial ? '<br><span class="partial-badge">parcial</span>' : ''}</th>`).join('') +
+      `<th class="num">YTD</th><th class="num">% total</th><th>Mejor mes completo</th>`;
+
+    const body = ag.products.map(p => `
+      <tr>
+        <td><strong>${p.shortName}</strong><br>
+            <small style="color:var(--text-muted)">SKU Alta Gama: ${p.sku || 'sin SKU'}</small></td>
+        ${periods.map(per => `<td class="num ${per.partial ? 'partial-col' : ''}" data-key="${per.key}">${cell(p.byPeriod[per.key])}</td>`).join('')}
+        <td class="num"><strong>${qty(p.units)}</strong></td>
+        <td class="num"><span class="pct-badge">${pc(p.share)}</span></td>
+        <td>${p.best ? `${p.best.label} · ${qty(p.best.units)} u.` : '—'}</td>
+      </tr>`).join('');
+
+    const total = `
+      <tr class="total-row">
+        <td>TOTAL</td>
+        ${periods.map(per => `<td class="num" data-key="${per.key}">${qty(per.units)}</td>`).join('')}
+        <td class="num">${qty(ag.totals.units)}</td>
+        <td class="num">100.0%</td>
+        <td></td>
+      </tr>`;
+    document.getElementById('ag-matrix-tbody').innerHTML = body + total;
+  }
+
+  function highlightMatrix() {
+    document.querySelectorAll('#ag-matrix-head [data-key], #ag-matrix-tbody [data-key]').forEach(el => {
+      el.style.outline = (agView !== 'ytd' && el.dataset.key === agView)
+        ? '2px solid var(--green-mid)' : '';
+      el.style.outlineOffset = '-2px';
+    });
+  }
+
+  // ── Tabla de evolución mensual ────────────────────────────────────────
+  function buildMonths() {
+    const rows = periods.map(p => `
+      <tr>
+        <td><strong>${p.label}</strong>${partialTag(p)}</td>
+        <td>${p.partial
+              ? `1 al ${+p.end.slice(-2)} · ${p.coverageDays} de ${p.monthDays} días`
+              : `Mes completo · ${p.monthDays} días`}</td>
+        <td class="num"><strong>${qty(p.units)}</strong></td>
+        <td class="num ${deltaCls(p.delta)}">${p.partial ? '<span class="delta-na">No comparable</span>' : signed(p.delta)}</td>
+        <td class="num ${deltaCls(p.deltaPct)}">${p.partial ? '<span class="delta-na">No comparable</span>' : signedPc(p.deltaPct)}</td>
+        <td class="num"><span class="pct-badge">${pc(ag.totals.units ? p.units / ag.totals.units * 100 : null)}</span></td>
+      </tr>`).join('');
+    const total = `
+      <tr class="total-row">
+        <td>TOTAL</td>
+        <td>${ag.totals.fullMonths} meses completos + ${ag.totals.partialPeriods} parcial</td>
+        <td class="num">${qty(ag.totals.units)}</td>
+        <td class="num"></td><td class="num"></td>
+        <td class="num">100.0%</td>
+      </tr>`;
+    document.getElementById('ag-months-tbody').innerHTML = rows + total;
+  }
+
+  // ── Tabla de validación ───────────────────────────────────────────────
+  function buildValidation() {
+    const v = ag.meta.validation;
+    document.getElementById('ag-validation-tbody').innerHTML = v.checks.map(c => `
+      <tr>
+        <td>${c.label}</td>
+        <td class="num">${qty(c.computed)}</td>
+        <td class="num">${c.excelTotal === null ? '<span class="na-cell">n/d</span>' : qty(c.excelTotal)}</td>
+        <td>${c.ok ? '<span class="free-badge">✓ Cuadra</span>' : '<span class="partial-badge">✗ No cuadra</span>'}</td>
+      </tr>`).join('') + `
+      <tr class="total-row">
+        <td>Resultado</td><td class="num"></td><td class="num"></td>
+        <td>${v.allMatch ? '✓ Todos los periodos cuadran con la fila TOTAL' : '✗ Hay diferencias — revisar el Excel'}</td>
+      </tr>`;
+  }
+
+  function renderView() { renderKpis(); renderCharts(); highlightMatrix(); }
+
+  // ── Cambio de pestaña ─────────────────────────────────────────────────
+  function showDist(id) {
+    const toAg = id === 'altagama';
+    // Se guarda el encabezado tal como lo dejó Latin Foods (mes seleccionado
+    // incluido) para restaurarlo exactamente igual al volver.
+    if (toAg) lfHeader = { sub: subEl.textContent, period: periodEl.textContent, range: rangeEl.textContent };
+
+    lfSection.hidden = toAg;
+    agSection.hidden = !toAg;
+    tabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.dist === id));
+
+    if (toAg) {
+      setHeader('Alta Gama', ag.meta.periodLabel,
+                `${fmtDay(ag.meta.periodStart)} – ${fmtDay(ag.meta.periodEnd)}`);
+      if (!agBuilt) { buildStatic(); agBuilt = true; }
+      renderView();   // Chart.js necesita el contenedor visible para medir
+    } else if (lfHeader) {
+      setHeader(lfHeader.sub, lfHeader.period, lfHeader.range);
+    }
+  }
+
+  tabs.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (btn) showDist(btn.dataset.dist);
+  });
+})();
 </script>
 </body>
 </html>
