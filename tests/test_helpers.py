@@ -42,3 +42,15 @@ def test_state_of():
     # desconocido
     unk = tx(D(2026, 6, 1), "S4", "[GET01] x", "c", "sp", company="Otra Cosa")
     assert sx.state_of(unk, "?? Jun") == "?"
+
+
+def test_state_of_prefijo_fl():
+    """Ago-2026: el distribuidor renombro las hojas MIA -> FL, y su Company
+    ('Florida- LatinFood FL Inc.') nunca estuvo en STATE_BY_COMPANY."""
+    fl = tx(D(2026, 8, 1), "S5", "[GET01] x", "c", "sp",
+            company="Florida- LatinFood FL Inc.")
+    assert sx.state_of(fl, "FL Ago - Jack Mackerel") == "Florida"
+    # Sin columna Company (las hojas de NY la perdieron en agosto)
+    sin = tx(D(2026, 8, 1), "S6", "[GET01] x", "c", "sp", company=None)
+    assert sx.state_of(sin, "FL Ago - GOA") == "Florida"
+    assert sx.state_of(sin, "NY Ago - GOA") == "Nueva York"

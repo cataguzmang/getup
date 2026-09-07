@@ -3,33 +3,68 @@ const reportData = {
     "brand": "Garden of the Andes",
     "distributor": "LatinFood US Corp",
     "periodStart": "2026-02-24",
-    "periodEnd": "2026-07-29",
-    "periodLabel": "Febrero 2026 – Julio 2026",
-    "lineItems": 208,
+    "periodEnd": "2026-08-27",
+    "periodLabel": "Febrero 2026 – Agosto 2026",
+    "lineItems": 225,
     "sources": [
       "GOA clientes recurrentes.xlsx",
       "GOA-2026-06.xlsx",
       "GOA-2026-07.xlsx",
+      "GOA-2026-08.xlsx",
       "Latin-GOA-MAY.xlsx"
     ],
     "carriedForward": [],
     "duplicateOrders": []
   },
   "totals": {
-    "units": 242,
-    "revenue": 4436.63,
-    "orders": 52,
-    "customers": 36,
-    "salespeople": 9,
-    "freeUnits": 11
+    "units": 264,
+    "revenue": 4870.35,
+    "orders": 61,
+    "customers": 40,
+    "salespeople": 10,
+    "freeUnits": 13
   },
   "products": [
     {
+      "sku": "GOA02",
+      "name": "Pure Chamoline Herbal Tea",
+      "units": 51,
+      "revenue": 692.64,
+      "orders": 32,
+      "salespeople": [
+        {
+          "name": "Mireya Fernandez",
+          "units": 25,
+          "revenue": 346.32
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 12,
+          "revenue": 131.1
+        },
+        {
+          "name": "Luis Soler",
+          "units": 8,
+          "revenue": 84.12
+        },
+        {
+          "name": "Daniela Davila",
+          "units": 4,
+          "revenue": 87.4
+        },
+        {
+          "name": "Luisa Fernanda",
+          "units": 2,
+          "revenue": 43.7
+        }
+      ]
+    },
+    {
       "sku": "GOA05",
       "name": "Rosehip & Hibiscus Herbal Tea",
-      "units": 44,
-      "revenue": 827.02,
-      "orders": 25,
+      "units": 45,
+      "revenue": 848.87,
+      "orders": 26,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
@@ -48,45 +83,11 @@ const reportData = {
         },
         {
           "name": "Katherine Osorio Duque",
-          "units": 4,
-          "revenue": 87.4
-        },
-        {
-          "name": "Daniela Davila",
-          "units": 2,
-          "revenue": 43.7
-        }
-      ]
-    },
-    {
-      "sku": "GOA02",
-      "name": "Pure Chamoline Herbal Tea",
-      "units": 43,
-      "revenue": 564.82,
-      "orders": 28,
-      "salespeople": [
-        {
-          "name": "Mireya Fernandez",
-          "units": 19,
-          "revenue": 262.2
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "units": 11,
+          "units": 5,
           "revenue": 109.25
         },
         {
-          "name": "Luis Soler",
-          "units": 8,
-          "revenue": 84.12
-        },
-        {
           "name": "Daniela Davila",
-          "units": 3,
-          "revenue": 65.55
-        },
-        {
-          "name": "Luisa Fernanda",
           "units": 2,
           "revenue": 43.7
         }
@@ -95,9 +96,9 @@ const reportData = {
     {
       "sku": "GOA04",
       "name": "Lemon Verbena Herbal Tea",
-      "units": 31,
-      "revenue": 652.22,
-      "orders": 20,
+      "units": 32,
+      "revenue": 674.07,
+      "orders": 21,
       "salespeople": [
         {
           "name": "Luisa Fernanda",
@@ -121,8 +122,8 @@ const reportData = {
         },
         {
           "name": "Daniela Davila",
-          "units": 1,
-          "revenue": 21.85
+          "units": 2,
+          "revenue": 43.7
         },
         {
           "name": "Alexandra J",
@@ -132,11 +133,45 @@ const reportData = {
       ]
     },
     {
+      "sku": "GOA01",
+      "name": "Green Tea Herbal Tea",
+      "units": 32,
+      "revenue": 608.52,
+      "orders": 27,
+      "salespeople": [
+        {
+          "name": "Mireya Fernandez",
+          "units": 17,
+          "revenue": 284.05
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 8,
+          "revenue": 174.8
+        },
+        {
+          "name": "Luis Soler",
+          "units": 4,
+          "revenue": 84.12
+        },
+        {
+          "name": "Daniela Davila",
+          "units": 2,
+          "revenue": 43.7
+        },
+        {
+          "name": "Luisa Fernanda",
+          "units": 1,
+          "revenue": 21.85
+        }
+      ]
+    },
+    {
       "sku": "GOA03",
       "name": "Ginger Lemongrass Herbal Tea",
-      "units": 29,
-      "revenue": 560.45,
-      "orders": 27,
+      "units": 31,
+      "revenue": 604.15,
+      "orders": 29,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
@@ -155,11 +190,16 @@ const reportData = {
         },
         {
           "name": "Daniela Davila",
-          "units": 2,
-          "revenue": 43.7
+          "units": 3,
+          "revenue": 65.55
         },
         {
           "name": "Raquel L",
+          "units": 1,
+          "revenue": 21.85
+        },
+        {
+          "name": "LuzAlba A",
           "units": 1,
           "revenue": 21.85
         },
@@ -171,55 +211,21 @@ const reportData = {
       ]
     },
     {
-      "sku": "GOA01",
-      "name": "Green Tea Herbal Tea",
-      "units": 28,
-      "revenue": 521.12,
-      "orders": 25,
+      "sku": "GOA07",
+      "name": "Assorted Herbal Tea",
+      "units": 19,
+      "revenue": 393.3,
+      "orders": 19,
       "salespeople": [
-        {
-          "name": "Mireya Fernandez",
-          "units": 14,
-          "revenue": 218.5
-        },
         {
           "name": "Katherine Osorio Duque",
           "units": 8,
           "revenue": 174.8
         },
         {
-          "name": "Luis Soler",
-          "units": 4,
-          "revenue": 84.12
-        },
-        {
-          "name": "Luisa Fernanda",
-          "units": 1,
-          "revenue": 21.85
-        },
-        {
-          "name": "Daniela Davila",
-          "units": 1,
-          "revenue": 21.85
-        }
-      ]
-    },
-    {
-      "sku": "GOA07",
-      "name": "Assorted Herbal Tea",
-      "units": 16,
-      "revenue": 327.75,
-      "orders": 16,
-      "salespeople": [
-        {
           "name": "Mireya Fernandez",
           "units": 6,
           "revenue": 131.1
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "units": 5,
-          "revenue": 109.25
         },
         {
           "name": "Luis Soler",
@@ -236,17 +242,17 @@ const reportData = {
     {
       "sku": "GOA09",
       "name": "Chai Herbal Tea",
-      "units": 15,
-      "revenue": 327.75,
-      "orders": 15,
+      "units": 16,
+      "revenue": 349.6,
+      "orders": 16,
       "salespeople": [
         {
-          "name": "Mireya Fernandez",
-          "units": 6,
-          "revenue": 131.1
+          "name": "Katherine Osorio Duque",
+          "units": 7,
+          "revenue": 152.95
         },
         {
-          "name": "Katherine Osorio Duque",
+          "name": "Mireya Fernandez",
           "units": 6,
           "revenue": 131.1
         },
@@ -260,9 +266,9 @@ const reportData = {
     {
       "sku": "GOA06",
       "name": "Lemon Balm Herbal Tea",
-      "units": 13,
-      "revenue": 262.2,
-      "orders": 14,
+      "units": 14,
+      "revenue": 284.05,
+      "orders": 15,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
@@ -270,12 +276,12 @@ const reportData = {
           "revenue": 109.25
         },
         {
-          "name": "Luis Soler",
-          "units": 3,
-          "revenue": 65.55
+          "name": "Katherine Osorio Duque",
+          "units": 4,
+          "revenue": 87.4
         },
         {
-          "name": "Katherine Osorio Duque",
+          "name": "Luis Soler",
           "units": 3,
           "revenue": 65.55
         },
@@ -323,9 +329,9 @@ const reportData = {
     {
       "sku": "GOA10",
       "name": "Pepermint Tea",
-      "units": 6,
-      "revenue": 131.1,
-      "orders": 5,
+      "units": 7,
+      "revenue": 152.95,
+      "orders": 6,
       "salespeople": [
         {
           "name": "Katherine Osorio Duque",
@@ -336,6 +342,11 @@ const reportData = {
           "name": "Mireya Fernandez",
           "units": 2,
           "revenue": 43.7
+        },
+        {
+          "name": "Daniela Davila",
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
@@ -362,17 +373,17 @@ const reportData = {
   "salespeople": [
     {
       "name": "Mireya Fernandez",
-      "units": 98,
-      "revenue": 1616.9,
-      "orders": 14,
-      "customers": 9,
-      "freeUnits": 9
+      "units": 107,
+      "revenue": 1766.57,
+      "orders": 16,
+      "customers": 11,
+      "freeUnits": 11
     },
     {
       "name": "Katherine Osorio Duque",
-      "units": 59,
-      "revenue": 1158.05,
-      "orders": 19,
+      "units": 66,
+      "revenue": 1311.0,
+      "orders": 24,
       "customers": 9,
       "freeUnits": 2
     },
@@ -394,10 +405,10 @@ const reportData = {
     },
     {
       "name": "Daniela Davila",
-      "units": 13,
-      "revenue": 240.35,
-      "orders": 3,
-      "customers": 3,
+      "units": 18,
+      "revenue": 349.6,
+      "orders": 4,
+      "customers": 4,
       "freeUnits": 0
     },
     {
@@ -425,6 +436,14 @@ const reportData = {
       "freeUnits": 0
     },
     {
+      "name": "LuzAlba A",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1,
+      "customers": 1,
+      "freeUnits": 0
+    },
+    {
       "name": "Douglas Lovos",
       "units": 1,
       "revenue": 17.48,
@@ -442,9 +461,9 @@ const reportData = {
     },
     {
       "name": "Food Bazaar # 14 -West NY",
-      "units": 19,
-      "revenue": 371.45,
-      "orders": 6
+      "units": 21,
+      "revenue": 415.15,
+      "orders": 8
     },
     {
       "name": "Twin City- Elizabeth",
@@ -471,6 +490,12 @@ const reportData = {
       "orders": 2
     },
     {
+      "name": "Market Fresh - Middletown",
+      "units": 13,
+      "revenue": 240.35,
+      "orders": 4
+    },
+    {
       "name": "Food Bazaar # 46 - Elizabeth",
       "units": 13,
       "revenue": 196.65,
@@ -481,12 +506,6 @@ const reportData = {
       "units": 11,
       "revenue": 196.65,
       "orders": 1
-    },
-    {
-      "name": "Market Fresh - Middletown",
-      "units": 9,
-      "revenue": 152.95,
-      "orders": 2
     },
     {
       "name": "Shop fair market fresh",
@@ -513,6 +532,12 @@ const reportData = {
       "orders": 1
     },
     {
+      "name": "Shop for Less",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
       "name": "Associated Supermarket - Lindenwold",
       "units": 8,
       "revenue": 131.1,
@@ -531,13 +556,13 @@ const reportData = {
       "orders": 1
     },
     {
-      "name": "Food Bazaar # 36 Sylvan Ave",
-      "units": 5,
-      "revenue": 109.25,
-      "orders": 2
+      "name": "Market Fresh - Newburgh",
+      "units": 6,
+      "revenue": 131.1,
+      "orders": 3
     },
     {
-      "name": "Market Fresh - Newburgh",
+      "name": "Food Bazaar # 36 Sylvan Ave",
       "units": 5,
       "revenue": 109.25,
       "orders": 2
@@ -547,6 +572,12 @@ const reportData = {
       "units": 5,
       "revenue": 109.25,
       "orders": 2
+    },
+    {
+      "name": "Mi Tierra Spmkt-86",
+      "units": 5,
+      "revenue": 109.25,
+      "orders": 1
     },
     {
       "name": "Super Fresh - Jamaica",
@@ -627,6 +658,12 @@ const reportData = {
       "orders": 1
     },
     {
+      "name": "JM Las Americas Bakery",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
       "name": "Sabores De Mi Tierra LLC",
       "units": 1,
       "revenue": 21.85,
@@ -636,6 +673,12 @@ const reportData = {
       "name": "Mayta's Market International LLC",
       "units": 1,
       "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "name": "Mireya Fernandez",
+      "units": 1,
+      "revenue": 18.57,
       "orders": 1
     },
     {
@@ -873,20 +916,72 @@ const reportData = {
       "units": 2,
       "revenue": 43.7,
       "orders": 1
+    },
+    {
+      "date": "2026-08-05",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-12",
+      "units": 5,
+      "revenue": 109.25,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-13",
+      "units": 3,
+      "revenue": 65.55,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-21",
+      "units": 8,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-24",
+      "units": 1,
+      "revenue": 18.57,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-25",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-26",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-08-27",
+      "units": 2,
+      "revenue": 43.7,
+      "orders": 2
     }
   ],
   "incentives": {
     "freeUnitsBySalesperson": [
       {
-        "name": "Katherine Osorio D",
-        "free": 2
+        "name": "Mireya Fernandez",
+        "free": 11
       },
       {
-        "name": "Mireya Fernandez",
-        "free": 9
+        "name": "Katherine Osorio D",
+        "free": 2
       }
     ],
     "costItems": [
+      {
+        "label": "2 cajas x $14.19",
+        "amount": 28.38
+      },
       {
         "label": "NEW CUSTOMERS",
         "amount": 156.09
@@ -896,7 +991,7 @@ const reportData = {
         "amount": 13.5
       }
     ],
-    "totalDescuentos": 311.59
+    "totalDescuentos": 312.59
   },
   "months": [
     {
@@ -2802,6 +2897,311 @@ const reportData = {
         "freeUnitsBySalesperson": [],
         "costItems": [],
         "totalDescuentos": 0.0
+      }
+    },
+    {
+      "key": "2026-08",
+      "label": "Agosto 2026",
+      "periodStart": "2026-08-05",
+      "periodEnd": "2026-08-27",
+      "totals": {
+        "units": 22,
+        "revenue": 433.72,
+        "orders": 9,
+        "customers": 7,
+        "salespeople": 4,
+        "freeUnits": 2
+      },
+      "products": [
+        {
+          "sku": "GOA02",
+          "name": "Pure Chamoline Herbal Tea",
+          "units": 8,
+          "revenue": 127.82,
+          "orders": 4,
+          "salespeople": [
+            {
+              "name": "Mireya Fernandez",
+              "units": 6,
+              "revenue": 84.12
+            },
+            {
+              "name": "Daniela Davila",
+              "units": 1,
+              "revenue": 21.85
+            },
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA01",
+          "name": "Green Tea Herbal Tea",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 2,
+          "salespeople": [
+            {
+              "name": "Mireya Fernandez",
+              "units": 3,
+              "revenue": 65.55
+            },
+            {
+              "name": "Daniela Davila",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA07",
+          "name": "Assorted Herbal Tea",
+          "units": 3,
+          "revenue": 65.55,
+          "orders": 3,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 3,
+              "revenue": 65.55
+            }
+          ]
+        },
+        {
+          "sku": "GOA03",
+          "name": "Ginger Lemongrass Herbal Tea",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2,
+          "salespeople": [
+            {
+              "name": "Daniela Davila",
+              "units": 1,
+              "revenue": 21.85
+            },
+            {
+              "name": "LuzAlba A",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA04",
+          "name": "Lemon Verbena Herbal Tea",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Daniela Davila",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA10",
+          "name": "Pepermint Tea",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Daniela Davila",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA05",
+          "name": "Rosehip & Hibiscus Herbal Tea",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA06",
+          "name": "Lemon Balm Herbal Tea",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA09",
+          "name": "Chai Herbal Tea",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        }
+      ],
+      "salespeople": [
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 7,
+          "revenue": 152.95,
+          "orders": 5,
+          "customers": 3,
+          "freeUnits": 0
+        },
+        {
+          "name": "Mireya Fernandez",
+          "units": 9,
+          "revenue": 149.67,
+          "orders": 2,
+          "customers": 2,
+          "freeUnits": 2
+        },
+        {
+          "name": "Daniela Davila",
+          "units": 5,
+          "revenue": 109.25,
+          "orders": 1,
+          "customers": 1,
+          "freeUnits": 0
+        },
+        {
+          "name": "LuzAlba A",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1,
+          "customers": 1,
+          "freeUnits": 0
+        }
+      ],
+      "customers": [
+        {
+          "name": "Shop for Less",
+          "units": 8,
+          "revenue": 131.1,
+          "orders": 1
+        },
+        {
+          "name": "Mi Tierra Spmkt-86",
+          "units": 5,
+          "revenue": 109.25,
+          "orders": 1
+        },
+        {
+          "name": "Market Fresh - Middletown",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 2
+        },
+        {
+          "name": "Food Bazaar # 14 -West NY",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2
+        },
+        {
+          "name": "Market Fresh - Newburgh",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "name": "JM Las Americas Bakery",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "name": "Mireya Fernandez",
+          "units": 1,
+          "revenue": 18.57,
+          "orders": 1
+        }
+      ],
+      "daily": [
+        {
+          "date": "2026-08-05",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-12",
+          "units": 5,
+          "revenue": 109.25,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-13",
+          "units": 3,
+          "revenue": 65.55,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-21",
+          "units": 8,
+          "revenue": 131.1,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-24",
+          "units": 1,
+          "revenue": 18.57,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-25",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-26",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "date": "2026-08-27",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2
+        }
+      ],
+      "incentives": {
+        "freeUnitsBySalesperson": [
+          {
+            "name": "Mireya Fernandez",
+            "free": 2
+          }
+        ],
+        "costItems": [
+          {
+            "label": "2 cajas x $14.19",
+            "amount": 28.38
+          }
+        ],
+        "totalDescuentos": 1.0
       }
     }
   ]

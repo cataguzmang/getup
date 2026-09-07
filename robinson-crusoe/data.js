@@ -3,12 +3,13 @@ const reportData = {
     "brand": "Robinson Crusoe",
     "distributor": "LatinFood US Corp",
     "periodStart": "2026-06-01",
-    "periodEnd": "2026-07-28",
-    "periodLabel": "Junio 2026 – Julio 2026",
+    "periodEnd": "2026-08-31",
+    "periodLabel": "Junio 2026 – Agosto 2026",
     "lineItems": 2,
     "sources": [
       "ROB-2026-06.xlsx",
-      "ROB-2026-07.xlsx"
+      "ROB-2026-07.xlsx",
+      "ROB-2026-08.xlsx"
     ],
     "carriedForward": [],
     "duplicateOrders": []
@@ -219,6 +220,30 @@ const reportData = {
           "orders": 1
         }
       ],
+      "incentives": {
+        "freeUnitsBySalesperson": [],
+        "costItems": [],
+        "totalDescuentos": 0.0
+      }
+    },
+    {
+      "key": "2026-08",
+      "label": "Agosto 2026",
+      "periodStart": "2026-08-01",
+      "periodEnd": "2026-08-31",
+      "empty": true,
+      "totals": {
+        "units": 0,
+        "revenue": 0,
+        "orders": 0,
+        "customers": 0,
+        "salespeople": 0,
+        "freeUnits": 0
+      },
+      "products": [],
+      "salespeople": [],
+      "customers": [],
+      "daily": [],
       "incentives": {
         "freeUnitsBySalesperson": [],
         "costItems": [],

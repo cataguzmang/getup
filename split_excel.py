@@ -8,12 +8,17 @@ cuyo generador ya entiende el formato canónico (por ahora: GOA).
 
 Uso:
     python split_excel.py [--input entrada] [--no-build] [--only GOA,KOM]
+                          [--keep-input]
+
+Tras una corrida completa y sin errores, los Excel consumidos se mueven a
+entrada/procesados/ para que la corrida del mes siguiente no los reprocese.
 """
 
 import argparse
 import datetime
 import os
 import re
+import shutil
 import subprocess
 import sys
 import unicodedata
@@ -72,6 +77,10 @@ def canonical_row(row, cols, state=None):
         vals[COL_COMPANY] = CANONICAL_COMPANY[state]
     return vals
 
+# Subcarpeta de entrada/ donde van los Excel ya consumidos. Al ser hija de
+# entrada/ la cubre el .gitignore, y iter_input_files() no baja a subcarpetas.
+ARCHIVE_DIRNAME = "procesados"
+
 SKU_PREFIX_RE = re.compile(r"^\s*\[([A-Z]{2,4})\d+\]")
 
 STATE_BY_COMPANY = {
@@ -79,7 +88,9 @@ STATE_BY_COMPANY = {
     "latinfood us corp.": "Nueva York",
     "latinfood us corp": "Nueva York",
 }
-STATE_BY_SHEET_PREFIX = {"MIA": "Florida", "NY": "Nueva York"}
+# El distribuidor renombró las hojas de Miami: MIA (hasta jul-2026) → FL (desde
+# ago-2026). Se mantienen ambos para poder reprocesar meses viejos.
+STATE_BY_SHEET_PREFIX = {"MIA": "Florida", "FL": "Florida", "NY": "Nueva York"}
 
 # Valor canónico de Company por estado (lo que se escribe en fuentes/)
 CANONICAL_COMPANY = {"Florida": "LatinFood Florida", "Nueva York": "LatinFood US Corp."}
@@ -273,17 +284,44 @@ def parse_args(argv=None):
     p.add_argument("--input", default="entrada", help="Carpeta con los .xlsx sucios.")
     p.add_argument("--no-build", action="store_true", help="No regenerar ningún data.js.")
     p.add_argument("--only", default="", help="Limitar a códigos de marca (ej. GOA,KOM).")
+    p.add_argument("--keep-input", action="store_true",
+                   help="No archivar los Excel de entrada/ al terminar.")
     return p.parse_args(argv)
+
+
+def resolve_input_dir(input_dir):
+    """Carpeta de entrada como Path absoluto (relativa se resuelve contra ROOT)."""
+    d = Path(input_dir)
+    return d if d.is_absolute() else ROOT / d
 
 
 def iter_input_files(input_dir):
     """Todos los .xlsx de la carpeta (sin temporales ~$), en orden de nombre."""
-    d = Path(input_dir)
-    if not d.is_absolute():
-        d = ROOT / d
+    d = resolve_input_dir(input_dir)
     if not d.exists():
         return []
     return sorted(p for p in d.glob("*.xlsx") if not p.name.startswith("~$"))
+
+
+def archive_inputs(files, input_dir):
+    """Mueve los Excel ya consumidos a <entrada>/procesados/.
+
+    Se mueve, no se copia: lo que queda en entrada/ es siempre "lo que falta por
+    procesar". Ante un nombre ya archivado añade sufijo -2, -3, … en vez de
+    pisarlo, para no perder la versión anterior de un mes reprocesado.
+    Devuelve [(origen, destino), ...]."""
+    dest_dir = resolve_input_dir(input_dir) / ARCHIVE_DIRNAME
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    moved = []
+    for src in files:
+        dest = dest_dir / src.name
+        n = 2
+        while dest.exists():
+            dest = dest_dir / f"{src.stem}-{n}{src.suffix}"
+            n += 1
+        shutil.move(str(src), str(dest))
+        moved.append((src, dest))
+    return moved
 
 
 def run_generator(brand):
@@ -393,6 +431,22 @@ def main(argv=None):
               f"({', '.join(written)})  (prefijos: {', '.join(prefixes)})")
     else:
         print("\n  ⚠ SKUs no mapeados: (ninguno)")
+
+    # Archivar sólo tras una corrida completa y limpia: si el build falló hay que
+    # reintentar, y con --no-build/--only la corrida quedó a medias a propósito.
+    # En cualquiera de esos casos el Excel sigue haciendo falta en entrada/.
+    if build_failed:
+        print(f"\n  ⚠ Los Excel se quedan en {args.input}/: hubo errores. "
+              f"Corrige y vuelve a correr.")
+    elif args.keep_input:
+        print("\n  ⏸ Excel no archivados (--keep-input)")
+    elif args.no_build or only:
+        flag = "--no-build" if args.no_build else "--only"
+        print(f"\n  ⏸ Excel no archivados (corrida parcial: {flag})")
+    else:
+        moved = archive_inputs(files, args.input)
+        names = ", ".join(d.name for _, d in moved)
+        print(f"\n  → Archivados en {args.input}/{ARCHIVE_DIRNAME}/: {names}")
 
     return 1 if build_failed else 0
 

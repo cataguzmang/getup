@@ -8,13 +8,16 @@ def test_parse_args_defaults():
     assert args.input == "entrada"
     assert args.no_build is False
     assert args.only == ""
+    assert args.keep_input is False
 
 
 def test_parse_args_flags():
-    args = sx.parse_args(["--input", "otra", "--no-build", "--only", "GOA,KOM"])
+    args = sx.parse_args(["--input", "otra", "--no-build", "--only", "GOA,KOM",
+                          "--keep-input"])
     assert args.input == "otra"
     assert args.no_build is True
     assert args.only == "GOA,KOM"
+    assert args.keep_input is True
 
 
 def test_iter_input_files_sorted_and_skips_temp(tmp_path):
