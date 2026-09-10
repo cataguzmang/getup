@@ -38,7 +38,7 @@
         17,
         115,
         61,
-        100.95
+        101
       ],
       "pv": [
         866.4,
@@ -142,7 +142,7 @@
         13,
         94,
         51,
-        82.95
+        83
       ]
     },
     "ny": {
@@ -302,7 +302,7 @@
         71,
         116,
         85,
-        144.95
+        145
       ],
       "pv": [
         866.4,
@@ -406,7 +406,7 @@
         52,
         95,
         69,
-        114.94999999999999
+        115
       ]
     }
   },
@@ -414,18 +414,18 @@
     "ALL": {
       "summary": {
         "rev": 39093.75,
-        "cajas": 1101.95,
+        "cajas": 1102,
         "pc": 250,
         "pv": 11400.0,
         "ord": 159,
-        "avg_price": 45.89,
+        "avg_price": 45.88,
         "descuentos": 1822.52,
         "revNeto": 37271.23,
         "clientesNuevos": 86,
         "promoPct": 22.7,
         "roi": 3.43,
-        "revPorCaja": 45.89,
-        "pagadas": 851.95,
+        "revPorCaja": 45.88,
+        "pagadas": 852,
         "ticket": 245.87
       },
       "states": {
@@ -443,7 +443,7 @@
         },
         "Florida": {
           "rev": 28791.38,
-          "cajas": 807.95,
+          "cajas": 808,
           "pc": 184,
           "pv": 8390.4,
           "ord": 86,
@@ -1113,7 +1113,7 @@
           "name": "Hola Supermarket (Aguila)",
           "state": "Florida",
           "revenue": 45.6,
-          "cajas": 0.95,
+          "cajas": 1,
           "promo_qty": 0,
           "promo_pct": 0.0
         },
@@ -1362,7 +1362,7 @@
         {
           "name": "Jack Mackerel in Brine",
           "revenue": 32657.77,
-          "cajas": 894.95,
+          "cajas": 895,
           "promo_pct": 20.6
         },
         {
@@ -1847,7 +1847,7 @@
             "reportado": 49
           },
           "sold": {
-            "computado": 807.95,
+            "computado": 808,
             "reportado": 267
           }
         }
@@ -4819,18 +4819,18 @@
     "Ago 26": {
       "summary": {
         "rev": 5266.34,
-        "cajas": 144.95,
+        "cajas": 145,
         "pc": 30,
         "pv": 1368.0,
         "ord": 13,
-        "avg_price": 45.81,
+        "avg_price": 45.79,
         "descuentos": 893.84,
         "revNeto": 4372.5,
         "clientesNuevos": 7,
         "promoPct": 20.7,
         "roi": 3.85,
-        "revPorCaja": 45.81,
-        "pagadas": 114.94999999999999,
+        "revPorCaja": 45.79,
+        "pagadas": 115,
         "ticket": 405.1
       },
       "states": {
@@ -4848,7 +4848,7 @@
         },
         "Florida": {
           "rev": 3807.14,
-          "cajas": 100.95,
+          "cajas": 101,
           "pc": 18,
           "pv": 820.8,
           "ord": 5,
@@ -4856,7 +4856,7 @@
           "revNeto": 3269.34,
           "promoPct": 17.8,
           "roi": 4.64,
-          "revPorCaja": 45.9
+          "revPorCaja": 45.87
         }
       },
       "customerChart": [
@@ -5042,7 +5042,7 @@
           "name": "Hola Supermarket (Aguila)",
           "state": "Florida",
           "revenue": 45.6,
-          "cajas": 0.95,
+          "cajas": 1,
           "promo_qty": 0,
           "promo_pct": 0.0
         }
@@ -5051,7 +5051,7 @@
         {
           "name": "Jack Mackerel in Brine",
           "revenue": 3299.16,
-          "cajas": 85.95,
+          "cajas": 86,
           "promo_pct": 16.3
         },
         {
@@ -5141,7 +5141,7 @@
             "reportado": 18
           },
           "sold": {
-            "computado": 100.95,
+            "computado": 101,
             "reportado": 101
           }
         }
