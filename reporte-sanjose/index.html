@@ -236,8 +236,17 @@ function initUI(){
   const sel=$('momSel');PLBLS.forEach(function(pair,i){const opt=document.createElement('option');opt.value=i;opt.textContent=pair[0]+' vs. '+pair[1];sel.appendChild(opt);});
 }
 
+// El cross-check es andamiaje interno de control de calidad, no información para el
+// cliente: se muestra sólo en el preview local (localhost o archivo abierto del disco),
+// o forzado con ?qa=1 sobre el sitio publicado.
+function qaVisible(){
+  try{ if(new URLSearchParams(location.search).has('qa')) return true; }catch(e){}
+  return ['localhost','127.0.0.1','[::1]','0.0.0.0',''].indexOf(location.hostname)!==-1;
+}
+
 function renderCrossCheck(m){
   const el=$('ccIndicator');
+  if(!qaVisible()){el.innerHTML='';return;}
   // El cross-check es un control por mes (revisar antes de publicar); en "Todos" no aplica.
   if(m===-1){el.innerHTML='';return;}
   const gd=getGD(m),cc=gd.crossCheck||{};const issues=[];
