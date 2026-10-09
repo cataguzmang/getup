@@ -10,7 +10,8 @@
     "May 26",
     "Jun 26",
     "Jul 26",
-    "Ago 26"
+    "Ago 26",
+    "Sep 26"
   ],
   "D": {
     "fl": {
@@ -25,7 +26,8 @@
         592.8,
         4286.4,
         2371.2,
-        3807.14
+        3807.14,
+        820.8
       ],
       "cajas": [
         78,
@@ -38,7 +40,8 @@
         17,
         115,
         61,
-        101
+        101,
+        21
       ],
       "pv": [
         866.4,
@@ -51,7 +54,8 @@
         182.4,
         957.6,
         456.0,
-        820.8
+        820.8,
+        136.8
       ],
       "pc": [
         19,
@@ -64,7 +68,8 @@
         4,
         21,
         10,
-        18
+        18,
+        3
       ],
       "ord": [
         15,
@@ -77,7 +82,8 @@
         3,
         8,
         3,
-        5
+        5,
+        4
       ],
       "descuentos": [
         0.0,
@@ -90,7 +96,8 @@
         0.0,
         628.68,
         300.0,
-        537.8
+        537.8,
+        89.56
       ],
       "revNeto": [
         2690.4,
@@ -103,7 +110,8 @@
         592.8,
         3657.72,
         2071.2,
-        3269.34
+        3269.34,
+        731.24
       ],
       "promoPct": [
         24.4,
@@ -116,7 +124,8 @@
         23.5,
         18.3,
         16.4,
-        17.8
+        17.8,
+        14.3
       ],
       "roi": [
         3.11,
@@ -129,7 +138,8 @@
         3.25,
         4.48,
         5.2,
-        4.64
+        4.64,
+        6.0
       ],
       "pagadas": [
         59,
@@ -142,7 +152,8 @@
         13,
         94,
         51,
-        83
+        83,
+        18
       ]
     },
     "ny": {
@@ -157,7 +168,8 @@
         1778.4,
         21.85,
         820.8,
-        1459.2
+        1459.2,
+        410.4
       ],
       "cajas": [
         0,
@@ -170,7 +182,8 @@
         54,
         1,
         24,
-        44
+        44,
+        12
       ],
       "pv": [
         0.0,
@@ -183,7 +196,8 @@
         684.0,
         0.0,
         273.6,
-        547.2
+        547.2,
+        136.8
       ],
       "pc": [
         0,
@@ -196,7 +210,8 @@
         15,
         0,
         6,
-        12
+        12,
+        3
       ],
       "ord": [
         0,
@@ -209,7 +224,8 @@
         10,
         1,
         3,
-        8
+        8,
+        3
       ],
       "descuentos": [
         0.0,
@@ -222,7 +238,8 @@
         0.0,
         0.0,
         0.0,
-        356.04
+        356.04,
+        88.68
       ],
       "revNeto": [
         0.0,
@@ -235,7 +252,8 @@
         1778.4,
         21.85,
         820.8,
-        1103.16
+        1103.16,
+        321.72
       ],
       "promoPct": [
         0.0,
@@ -248,7 +266,8 @@
         27.8,
         0.0,
         25.0,
-        27.3
+        27.3,
+        25.0
       ],
       "roi": [
         0.0,
@@ -261,7 +280,8 @@
         2.6,
         0.0,
         3.0,
-        2.67
+        2.67,
+        3.0
       ],
       "pagadas": [
         0,
@@ -274,7 +294,8 @@
         39,
         1,
         18,
-        32
+        32,
+        9
       ]
     },
     "total": {
@@ -289,7 +310,8 @@
         2371.2,
         4308.25,
         3192.0,
-        5266.34
+        5266.34,
+        1231.2
       ],
       "cajas": [
         78,
@@ -302,7 +324,8 @@
         71,
         116,
         85,
-        145
+        145,
+        33
       ],
       "pv": [
         866.4,
@@ -315,7 +338,8 @@
         866.4,
         957.6,
         729.6,
-        1368.0
+        1368.0,
+        273.6
       ],
       "pc": [
         19,
@@ -328,7 +352,8 @@
         19,
         21,
         16,
-        30
+        30,
+        6
       ],
       "ord": [
         15,
@@ -341,7 +366,8 @@
         13,
         9,
         6,
-        13
+        13,
+        7
       ],
       "descuentos": [
         0.0,
@@ -354,7 +380,8 @@
         0.0,
         628.68,
         300.0,
-        893.84
+        893.84,
+        178.24
       ],
       "revNeto": [
         2690.4,
@@ -367,7 +394,8 @@
         2371.2,
         3679.57,
         2892.0,
-        4372.5
+        4372.5,
+        1052.96
       ],
       "promoPct": [
         24.4,
@@ -380,7 +408,8 @@
         26.8,
         18.1,
         18.8,
-        20.7
+        20.7,
+        18.2
       ],
       "roi": [
         3.11,
@@ -393,7 +422,8 @@
         2.74,
         4.5,
         4.38,
-        3.85
+        3.85,
+        4.5
       ],
       "pagadas": [
         59,
@@ -406,52 +436,53 @@
         52,
         95,
         69,
-        115
+        115,
+        27
       ]
     }
   },
   "GENERAL_DATA": {
     "ALL": {
       "summary": {
-        "rev": 39093.75,
-        "cajas": 1102,
-        "pc": 250,
-        "pv": 11400.0,
-        "ord": 159,
+        "rev": 40324.95,
+        "cajas": 1135,
+        "pc": 256,
+        "pv": 11673.6,
+        "ord": 166,
         "avg_price": 45.88,
-        "descuentos": 1822.52,
-        "revNeto": 37271.23,
-        "clientesNuevos": 86,
-        "promoPct": 22.7,
-        "roi": 3.43,
+        "descuentos": 2000.76,
+        "revNeto": 38324.19,
+        "clientesNuevos": 87,
+        "promoPct": 22.6,
+        "roi": 3.45,
         "revPorCaja": 45.88,
-        "pagadas": 852,
-        "ticket": 245.87
+        "pagadas": 879,
+        "ticket": 242.92
       },
       "states": {
         "Nueva York": {
-          "rev": 10302.37,
-          "cajas": 294,
-          "pc": 66,
-          "pv": 3009.6,
-          "ord": 73,
-          "descuentos": 356.04,
-          "revNeto": 9946.33,
-          "promoPct": 22.4,
-          "roi": 3.42,
-          "revPorCaja": 45.19
+          "rev": 10712.77,
+          "cajas": 306,
+          "pc": 69,
+          "pv": 3146.4,
+          "ord": 76,
+          "descuentos": 444.72,
+          "revNeto": 10268.05,
+          "promoPct": 22.5,
+          "roi": 3.4,
+          "revPorCaja": 45.2
         },
         "Florida": {
-          "rev": 28791.38,
-          "cajas": 808,
-          "pc": 184,
-          "pv": 8390.4,
-          "ord": 86,
-          "descuentos": 1466.48,
-          "revNeto": 27324.9,
-          "promoPct": 22.8,
-          "roi": 3.43,
-          "revPorCaja": 46.14
+          "rev": 29612.18,
+          "cajas": 829,
+          "pc": 187,
+          "pv": 8527.2,
+          "ord": 90,
+          "descuentos": 1556.04,
+          "revNeto": 28056.14,
+          "promoPct": 22.6,
+          "roi": 3.47,
+          "revPorCaja": 46.12
         }
       },
       "customerChart": [
@@ -491,6 +522,11 @@
           "s": "fl"
         },
         {
+          "n": "Price Choice #3",
+          "v": 866.4,
+          "s": "fl"
+        },
+        {
           "n": "Festival Supermarket # 5",
           "v": 729.6,
           "s": "fl"
@@ -499,17 +535,12 @@
           "n": "Key Food Hillsboro Coconut Creek",
           "v": 638.4,
           "s": "fl"
-        },
-        {
-          "n": "Price Choice #3",
-          "v": 638.4,
-          "s": "fl"
         }
       ],
       "salesChart": [
         {
           "n": "Alexandra J",
-          "v": 16229.04
+          "v": 16320.24
         },
         {
           "n": "Emily Rivas",
@@ -517,7 +548,7 @@
         },
         {
           "n": "Raquel L",
-          "v": 3237.6
+          "v": 3921.6
         },
         {
           "n": "Luis Soler",
@@ -525,11 +556,11 @@
         },
         {
           "n": "Katherine Osorio Duque",
-          "v": 2885.53
+          "v": 2931.13
         },
         {
           "n": "Mireya Fernandez",
-          "v": 2508.0
+          "v": 2827.2
         },
         {
           "n": "Andrea P",
@@ -541,7 +572,7 @@
         },
         {
           "n": "Angela Q",
-          "v": 1094.4
+          "v": 1140.0
         },
         {
           "n": "Diana Angel",
@@ -606,6 +637,14 @@
           "promo_pct": 30.0
         },
         {
+          "name": "Price Choice #3",
+          "state": "Florida",
+          "revenue": 866.4,
+          "cajas": 26,
+          "promo_qty": 7,
+          "promo_pct": 26.9
+        },
+        {
           "name": "Festival Supermarket # 5",
           "state": "Florida",
           "revenue": 729.6,
@@ -622,15 +661,15 @@
           "promo_pct": 17.6
         },
         {
-          "name": "Price Choice #3",
-          "state": "Florida",
+          "name": "Trade Fair # 8",
+          "state": "Nueva York",
           "revenue": 638.4,
           "cajas": 20,
           "promo_qty": 6,
           "promo_pct": 30.0
         },
         {
-          "name": "Trade Fair # 8",
+          "name": "Extra Supermarket - Maplewood",
           "state": "Nueva York",
           "revenue": 638.4,
           "cajas": 20,
@@ -644,6 +683,14 @@
           "cajas": 20,
           "promo_qty": 6,
           "promo_pct": 30.0
+        },
+        {
+          "name": "Ideal Food Basket Davie",
+          "state": "Florida",
+          "revenue": 501.6,
+          "cajas": 13,
+          "promo_qty": 2,
+          "promo_pct": 15.4
         },
         {
           "name": "SABORES CHILENOS, CORP.",
@@ -711,14 +758,6 @@
         },
         {
           "name": "Súper Fresh Irvington",
-          "state": "Nueva York",
-          "revenue": 319.2,
-          "cajas": 10,
-          "promo_qty": 3,
-          "promo_pct": 30.0
-        },
-        {
-          "name": "Extra Supermarket - Maplewood",
           "state": "Nueva York",
           "revenue": 319.2,
           "cajas": 10,
@@ -878,6 +917,14 @@
           "promo_pct": 0.0
         },
         {
+          "name": "Kwang Hang c-town",
+          "state": "Nueva York",
+          "revenue": 228.0,
+          "cajas": 5,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        },
+        {
           "name": "Ideal food basket Port Saint Lucie",
           "state": "Florida",
           "revenue": 228.0,
@@ -908,14 +955,6 @@
           "cajas": 6,
           "promo_qty": 1,
           "promo_pct": 16.7
-        },
-        {
-          "name": "Kwang Hang c-town",
-          "state": "Nueva York",
-          "revenue": 182.4,
-          "cajas": 4,
-          "promo_qty": 0,
-          "promo_pct": 0.0
         },
         {
           "name": "Mango Tree Homestead",
@@ -974,7 +1013,23 @@
           "promo_pct": 0.0
         },
         {
+          "name": "Sabor Tropical #1",
+          "state": "Florida",
+          "revenue": 136.8,
+          "cajas": 3,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        },
+        {
           "name": "Bravo Supermarket ( Ocala)",
+          "state": "Florida",
+          "revenue": 91.2,
+          "cajas": 2,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        },
+        {
+          "name": "Hola Supermarket (Aguila)",
           "state": "Florida",
           "revenue": 91.2,
           "cajas": 2,
@@ -1110,8 +1165,8 @@
           "promo_pct": 0.0
         },
         {
-          "name": "Hola Supermarket (Aguila)",
-          "state": "Florida",
+          "name": "Caicedonia Multiservice",
+          "state": "Nueva York",
           "revenue": 45.6,
           "cajas": 1,
           "promo_qty": 0,
@@ -1159,14 +1214,6 @@
         },
         {
           "name": "Portofino Fresh Market",
-          "state": "Florida",
-          "revenue": 45.6,
-          "cajas": 1,
-          "promo_qty": 0,
-          "promo_pct": 0.0
-        },
-        {
-          "name": "Sabor Tropical #1",
           "state": "Florida",
           "revenue": 45.6,
           "cajas": 1,
@@ -1318,14 +1365,6 @@
           "promo_pct": 0.0
         },
         {
-          "name": "Ideal Food Basket Davie",
-          "state": "Florida",
-          "revenue": 45.6,
-          "cajas": 1,
-          "promo_qty": 0,
-          "promo_pct": 0.0
-        },
-        {
           "name": "Food Bazaar # 42- 445 East",
           "state": "Nueva York",
           "revenue": 45.6,
@@ -1361,35 +1400,35 @@
       "productsCards": [
         {
           "name": "Jack Mackerel in Brine",
-          "revenue": 32657.77,
-          "cajas": 895,
-          "promo_pct": 20.6
+          "revenue": 33159.37,
+          "cajas": 910,
+          "promo_pct": 20.7
         },
         {
           "name": "Jack Mackerel in Tomato Sauce",
-          "revenue": 6435.98,
-          "cajas": 207,
-          "promo_pct": 31.9
+          "revenue": 7165.58,
+          "cajas": 225,
+          "promo_pct": 30.2
         }
       ],
       "descuentosPorProducto": [
         {
           "product": "In Brine",
+          "state": "Nueva York",
+          "cases": 12,
+          "amount": 354.72
+        },
+        {
+          "product": "In Brine",
           "state": "Florida",
-          "cases": 8,
-          "amount": 236.48
+          "cases": 9,
+          "amount": 266.04
         },
         {
           "product": "Tomate",
           "state": "Florida",
-          "cases": 41,
-          "amount": 1230.0
-        },
-        {
-          "product": "In Brine",
-          "state": "Nueva York",
-          "cases": 9,
-          "amount": 266.04
+          "cases": 43,
+          "amount": 1290.0
         },
         {
           "product": "Tomate",
@@ -1413,6 +1452,11 @@
           "name": "Ideal food basket Port Saint Lucie",
           "state": "Florida",
           "salesperson": "Emily Rivas"
+        },
+        {
+          "name": "Caicedonia Multiservice",
+          "state": "Nueva York",
+          "salesperson": "Katherine Osorio Duque"
         },
         {
           "name": "Total Supermarket 2",
@@ -1833,22 +1877,22 @@
       "crossCheck": {
         "Nueva York": {
           "free": {
-            "computado": 66,
-            "reportado": 12
+            "computado": 69,
+            "reportado": 15
           },
           "sold": {
-            "computado": 294,
-            "reportado": 44
+            "computado": 306,
+            "reportado": 56
           }
         },
         "Florida": {
           "free": {
-            "computado": 184,
-            "reportado": 49
+            "computado": 187,
+            "reportado": 52
           },
           "sold": {
-            "computado": 808,
-            "reportado": 267
+            "computado": 829,
+            "reportado": 288
           }
         }
       }
@@ -5143,6 +5187,234 @@
           "sold": {
             "computado": 101,
             "reportado": 101
+          }
+        }
+      }
+    },
+    "Sep 26": {
+      "summary": {
+        "rev": 1231.2,
+        "cajas": 33,
+        "pc": 6,
+        "pv": 273.6,
+        "ord": 7,
+        "avg_price": 45.6,
+        "descuentos": 178.24,
+        "revNeto": 1052.96,
+        "clientesNuevos": 1,
+        "promoPct": 18.2,
+        "roi": 4.5,
+        "revPorCaja": 45.6,
+        "pagadas": 27,
+        "ticket": 175.89
+      },
+      "states": {
+        "Nueva York": {
+          "rev": 410.4,
+          "cajas": 12,
+          "pc": 3,
+          "pv": 136.8,
+          "ord": 3,
+          "descuentos": 88.68,
+          "revNeto": 321.72,
+          "promoPct": 25.0,
+          "roi": 3.0,
+          "revPorCaja": 45.6
+        },
+        "Florida": {
+          "rev": 820.8,
+          "cajas": 21,
+          "pc": 3,
+          "pv": 136.8,
+          "ord": 4,
+          "descuentos": 89.56,
+          "revNeto": 731.24,
+          "promoPct": 14.3,
+          "roi": 6.0,
+          "revPorCaja": 45.6
+        }
+      },
+      "customerChart": [
+        {
+          "n": "Ideal Food Basket Davie",
+          "v": 456.0,
+          "s": "fl"
+        },
+        {
+          "n": "Extra Supermarket - Maplewood",
+          "v": 319.2,
+          "s": "ny"
+        },
+        {
+          "n": "Price Choice #3",
+          "v": 228.0,
+          "s": "fl"
+        },
+        {
+          "n": "Sabor Tropical #1",
+          "v": 91.2,
+          "s": "fl"
+        },
+        {
+          "n": "Kwang Hang c-town",
+          "v": 45.6,
+          "s": "ny"
+        },
+        {
+          "n": "Caicedonia Multiservice",
+          "v": 45.6,
+          "s": "ny"
+        },
+        {
+          "n": "Hola Supermarket (Aguila)",
+          "v": 45.6,
+          "s": "fl"
+        }
+      ],
+      "salesChart": [
+        {
+          "n": "Raquel L",
+          "v": 684.0
+        },
+        {
+          "n": "Mireya Fernandez",
+          "v": 319.2
+        },
+        {
+          "n": "Alexandra J",
+          "v": 91.2
+        },
+        {
+          "n": "Daniela Davila",
+          "v": 45.6
+        },
+        {
+          "n": "Katherine Osorio Duque",
+          "v": 45.6
+        },
+        {
+          "n": "Angela Q",
+          "v": 45.6
+        }
+      ],
+      "customerTable": [
+        {
+          "name": "Ideal Food Basket Davie",
+          "state": "Florida",
+          "revenue": 456.0,
+          "cajas": 12,
+          "promo_qty": 2,
+          "promo_pct": 16.7
+        },
+        {
+          "name": "Extra Supermarket - Maplewood",
+          "state": "Nueva York",
+          "revenue": 319.2,
+          "cajas": 10,
+          "promo_qty": 3,
+          "promo_pct": 30.0
+        },
+        {
+          "name": "Price Choice #3",
+          "state": "Florida",
+          "revenue": 228.0,
+          "cajas": 6,
+          "promo_qty": 1,
+          "promo_pct": 16.7
+        },
+        {
+          "name": "Sabor Tropical #1",
+          "state": "Florida",
+          "revenue": 91.2,
+          "cajas": 2,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        },
+        {
+          "name": "Kwang Hang c-town",
+          "state": "Nueva York",
+          "revenue": 45.6,
+          "cajas": 1,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        },
+        {
+          "name": "Caicedonia Multiservice",
+          "state": "Nueva York",
+          "revenue": 45.6,
+          "cajas": 1,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        },
+        {
+          "name": "Hola Supermarket (Aguila)",
+          "state": "Florida",
+          "revenue": 45.6,
+          "cajas": 1,
+          "promo_qty": 0,
+          "promo_pct": 0.0
+        }
+      ],
+      "productsCards": [
+        {
+          "name": "Jack Mackerel in Tomato Sauce",
+          "revenue": 729.6,
+          "cajas": 18,
+          "promo_pct": 11.1
+        },
+        {
+          "name": "Jack Mackerel in Brine",
+          "revenue": 501.6,
+          "cajas": 15,
+          "promo_pct": 26.7
+        }
+      ],
+      "descuentosPorProducto": [
+        {
+          "product": "In Brine",
+          "state": "Nueva York",
+          "cases": 3,
+          "amount": 88.68
+        },
+        {
+          "product": "In Brine",
+          "state": "Florida",
+          "cases": 1,
+          "amount": 29.56
+        },
+        {
+          "product": "Tomate",
+          "state": "Florida",
+          "cases": 2,
+          "amount": 60.0
+        }
+      ],
+      "clientesNuevosLista": [
+        {
+          "name": "Caicedonia Multiservice",
+          "state": "Nueva York",
+          "salesperson": "Katherine Osorio Duque"
+        }
+      ],
+      "crossCheck": {
+        "Nueva York": {
+          "free": {
+            "computado": 3,
+            "reportado": 3
+          },
+          "sold": {
+            "computado": 12,
+            "reportado": 12
+          }
+        },
+        "Florida": {
+          "free": {
+            "computado": 3,
+            "reportado": 3
+          },
+          "sold": {
+            "computado": 21,
+            "reportado": 21
           }
         }
       }

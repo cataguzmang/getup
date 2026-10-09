@@ -3,13 +3,14 @@ const reportData = {
     "brand": "Kombuchacha",
     "distributor": "LatinFood US Corp",
     "periodStart": "2026-05-04",
-    "periodEnd": "2026-08-31",
-    "periodLabel": "Mayo 2026 – Agosto 2026",
-    "lineItems": 22,
+    "periodEnd": "2026-09-30",
+    "periodLabel": "Mayo 2026 – Septiembre 2026",
+    "lineItems": 26,
     "sources": [
       "KOM-2026-06.xlsx",
       "KOM-2026-07.xlsx",
       "KOM-2026-08.xlsx",
+      "KOM-2026-09.xlsx",
       "Sales Kombuchacha.xlsx"
     ],
     "carriedForward": [],
@@ -18,21 +19,79 @@ const reportData = {
     ]
   },
   "totals": {
-    "units": 12.5,
+    "units": 106.0,
     "revenue": 641.0,
-    "orders": 9,
-    "customers": 8,
-    "salespeople": 3,
+    "orders": 10,
+    "customers": 9,
+    "salespeople": 4,
     "freeUnits": 0
   },
   "products": [
     {
+      "sku": "KOM02",
+      "name": "Kombuchacha Zero Raspberry",
+      "units": 31.0,
+      "revenue": 151.92,
+      "orders": 6,
+      "salespeople": [
+        {
+          "name": "Douglas Lovos",
+          "units": 28.0,
+          "revenue": 0.0
+        },
+        {
+          "name": "Mireya Fernandez",
+          "units": 1.0,
+          "revenue": 50.64
+        },
+        {
+          "name": "Luisa Fernanda",
+          "units": 1.0,
+          "revenue": 50.64
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 1.0,
+          "revenue": 50.64
+        }
+      ]
+    },
+    {
+      "sku": "KOM03",
+      "name": "Kombuchacha Zero Ginger",
+      "units": 27.0,
+      "revenue": 155.92,
+      "orders": 6,
+      "salespeople": [
+        {
+          "name": "Douglas Lovos",
+          "units": 24.0,
+          "revenue": 0.0
+        },
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 2.0,
+          "revenue": 105.28
+        },
+        {
+          "name": "Mireya Fernandez",
+          "units": 1.0,
+          "revenue": 50.64
+        }
+      ]
+    },
+    {
       "sku": "KOM01",
       "name": "Kombuchacha Zero Blueberry",
-      "units": 4.5,
+      "units": 25.0,
       "revenue": 231.88,
-      "orders": 8,
+      "orders": 9,
       "salespeople": [
+        {
+          "name": "Douglas Lovos",
+          "units": 20.5,
+          "revenue": 0.0
+        },
         {
           "name": "Katherine Osorio Duque",
           "units": 2.0,
@@ -51,55 +110,17 @@ const reportData = {
       ]
     },
     {
-      "sku": "KOM03",
-      "name": "Kombuchacha Zero Ginger",
-      "units": 3.0,
-      "revenue": 155.92,
-      "orders": 5,
-      "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "units": 2.0,
-          "revenue": 105.28
-        },
-        {
-          "name": "Mireya Fernandez",
-          "units": 1.0,
-          "revenue": 50.64
-        }
-      ]
-    },
-    {
-      "sku": "KOM02",
-      "name": "Kombuchacha Zero Raspberry",
-      "units": 3.0,
-      "revenue": 151.92,
-      "orders": 5,
-      "salespeople": [
-        {
-          "name": "Mireya Fernandez",
-          "units": 1.0,
-          "revenue": 50.64
-        },
-        {
-          "name": "Luisa Fernanda",
-          "units": 1.0,
-          "revenue": 50.64
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "units": 1.0,
-          "revenue": 50.64
-        }
-      ]
-    },
-    {
       "sku": "KOM04",
       "name": "Kombuchacha Zero Mate",
-      "units": 2.0,
+      "units": 23.0,
       "revenue": 101.28,
-      "orders": 4,
+      "orders": 5,
       "salespeople": [
+        {
+          "name": "Douglas Lovos",
+          "units": 21.0,
+          "revenue": 0.0
+        },
         {
           "name": "Katherine Osorio Duque",
           "units": 1.0,
@@ -134,6 +155,14 @@ const reportData = {
       "name": "Luisa Fernanda",
       "units": 2.0,
       "revenue": 101.28,
+      "orders": 1,
+      "customers": 1,
+      "freeUnits": 0
+    },
+    {
+      "name": "Douglas Lovos",
+      "units": 93.5,
+      "revenue": 0.0,
       "orders": 1,
       "customers": 1,
       "freeUnits": 0
@@ -187,6 +216,12 @@ const reportData = {
       "units": 0.5,
       "revenue": 25.32,
       "orders": 1
+    },
+    {
+      "name": "ISLAND HARVEST, LTD.",
+      "units": 93.5,
+      "revenue": 0.0,
+      "orders": 1
     }
   ],
   "daily": [
@@ -230,6 +265,12 @@ const reportData = {
       "date": "2026-06-18",
       "units": 1.0,
       "revenue": 50.64,
+      "orders": 1
+    },
+    {
+      "date": "2026-09-30",
+      "units": 93.5,
+      "revenue": 0.0,
       "orders": 1
     }
   ],
@@ -571,6 +612,109 @@ const reportData = {
       "salespeople": [],
       "customers": [],
       "daily": [],
+      "incentives": {
+        "freeUnitsBySalesperson": [],
+        "costItems": [],
+        "totalDescuentos": 0.0
+      }
+    },
+    {
+      "key": "2026-09",
+      "label": "Septiembre 2026",
+      "periodStart": "2026-09-30",
+      "periodEnd": "2026-09-30",
+      "totals": {
+        "units": 93.5,
+        "revenue": 0.0,
+        "orders": 1,
+        "customers": 1,
+        "salespeople": 1,
+        "freeUnits": 0
+      },
+      "products": [
+        {
+          "sku": "KOM02",
+          "name": "Kombuchacha Zero Raspberry",
+          "units": 28.0,
+          "revenue": 0.0,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Douglas Lovos",
+              "units": 28.0,
+              "revenue": 0.0
+            }
+          ]
+        },
+        {
+          "sku": "KOM03",
+          "name": "Kombuchacha Zero Ginger",
+          "units": 24.0,
+          "revenue": 0.0,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Douglas Lovos",
+              "units": 24.0,
+              "revenue": 0.0
+            }
+          ]
+        },
+        {
+          "sku": "KOM04",
+          "name": "Kombuchacha Zero Mate",
+          "units": 21.0,
+          "revenue": 0.0,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Douglas Lovos",
+              "units": 21.0,
+              "revenue": 0.0
+            }
+          ]
+        },
+        {
+          "sku": "KOM01",
+          "name": "Kombuchacha Zero Blueberry",
+          "units": 20.5,
+          "revenue": 0.0,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Douglas Lovos",
+              "units": 20.5,
+              "revenue": 0.0
+            }
+          ]
+        }
+      ],
+      "salespeople": [
+        {
+          "name": "Douglas Lovos",
+          "units": 93.5,
+          "revenue": 0.0,
+          "orders": 1,
+          "customers": 1,
+          "freeUnits": 0
+        }
+      ],
+      "customers": [
+        {
+          "name": "ISLAND HARVEST, LTD.",
+          "units": 93.5,
+          "revenue": 0.0,
+          "orders": 1
+        }
+      ],
+      "daily": [
+        {
+          "date": "2026-09-30",
+          "units": 93.5,
+          "revenue": 0.0,
+          "orders": 1
+        }
+      ],
       "incentives": {
         "freeUnitsBySalesperson": [],
         "costItems": [],
