@@ -100,3 +100,81 @@ def test_descuento_sin_monto_no_agarra_el_free(tmp_path, monkeypatch):
     assert productos["In Brine"]["amount"] == 0.0
     assert productos["Tomate"]["amount"] == 300
     assert fl["totalDescuentos"] == 300.0
+
+
+# ── Septiembre 2026: layout "matriz" ─────────────────────────────────────────
+# El distribuidor pasó a un bloque con el nombre del vendedor en la columna
+# inmediatamente a la izquierda de SOLD (que ya no es la col A), una subfila
+# Brine/Tomato bajo cada grupo, y los descuentos como montos por producto
+# (Florida) o como una sola columna "Descuentos" (Nueva York).
+
+def _bloque_matriz_ny():
+    return [
+        _pad(["__INCENTIVOS__", "Nueva York"]),
+        [None] * 5 + [D(2026, 9, 1), "SOLD", None, "FREE", None, "Free Total", "Descuentos"],
+        [None] * 6 + ["Brine", "Tomato", "Brine", "Tomato", None, None],
+        [None] * 5 + ["Daniela Davila", None, 1, None, None, 0, None],
+        [None] * 5 + ["Luis Soler", None, None, None, None, 0, None],
+        [None] * 5 + ["Mireya Fernandez", 5, 5, 3, None, 3, 88.67999999999999],
+        [None] * 5 + ["Total", 5, 7, 3, 0, 3, None],
+    ]
+
+
+def _bloque_matriz_fl():
+    return [
+        _pad(["__INCENTIVOS__", "Florida"]),
+        [None] * 4 + [D(2026, 9, 1), "SOLD", None, "Units FREE", None,
+                      "Total Units FREE", None, None, None],
+        [None] * 5 + ["Brine", "Tomato"] * 4,
+        [None] * 4 + ["Alexandra", 1, 1, None, None, 0, 0, 0, 0],
+        [None] * 4 + ["Angela", None, 1, None, None, None, None, None, None],
+        [None] * 4 + ["Raquel", 9, 9, 1, 2, 1, 2, 29.56, 60],
+        [None] * 4 + ["Total", 10, 11, 1, 2, 1, 2, 29.56, 60],
+        [None] * 11 + [89.56, None],
+    ]
+
+
+def _fuentes_matriz(tmp_path):
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    rows = [
+        canon_row(D(2026, 9, 30), "S1", "[GET01] Jack Mackerel in Brine",
+                  "Extra", "Mireya Fernandez", "LatinFood US Corp.", 2, 45.6, 91.2),
+        canon_row(D(2026, 9, 11), "S2", "[GET01] Jack Mackerel in Brine",
+                  "Ideal", "Raquel L", "LatinFood Florida", 5, 45.6, 228),
+    ]
+    make_canonical(fuentes / "San-Jose-2026-09.xlsx",
+                   rows + _bloque_matriz_ny() + [_pad([])] + _bloque_matriz_fl())
+    return fuentes
+
+
+def test_matriz_descuentos_por_producto_florida(tmp_path, monkeypatch):
+    monkeypatch.setattr(g, "SOURCES_DIR", _fuentes_matriz(tmp_path))
+    fl = g.load_incentivos()[(2026, 9)]["Florida"]
+    productos = {d["product"]: d for d in fl["descuentos"]}
+    assert productos["In Brine"] == {"product": "In Brine", "cases": 1, "amount": 29.56}
+    assert productos["Tomate"] == {"product": "Tomate", "cases": 2, "amount": 60.0}
+    assert fl["totalDescuentos"] == 89.56
+    assert fl["soldReportado"] == {"Alexandra": 2, "Angela": 1, "Raquel": 18}
+    assert fl["freeReportado"] == {"Raquel": 3}
+    assert "Total" not in fl["soldReportado"]      # la fila de totales no es vendedor
+
+
+def test_matriz_descuento_unico_se_atribuye_al_producto_con_free(tmp_path, monkeypatch):
+    """NY trae una sola columna 'Descuentos' sin producto: se atribuye al único
+    producto con cajas gratis de ese vendedor (Brine, 3 cajas)."""
+    monkeypatch.setattr(g, "SOURCES_DIR", _fuentes_matriz(tmp_path))
+    ny = g.load_incentivos()[(2026, 9)]["Nueva York"]
+    assert ny["descuentos"] == [{"product": "In Brine", "cases": 3, "amount": 88.68}]
+    assert ny["totalDescuentos"] == 88.68
+    assert ny["soldReportado"] == {"Daniela Davila": 1, "Mireya Fernandez": 10}
+    assert ny["freeReportado"] == {"Mireya Fernandez": 3}
+    assert ny["vendedoresNuevos"] == []
+
+
+def test_layout_legacy_no_se_confunde_con_matriz(tmp_path, monkeypatch):
+    """'In Brine == > 3 cases' bajo el encabezado SOLD NO es una subfila de productos."""
+    monkeypatch.setattr(g, "SOURCES_DIR", _fuentes_con_bloque(tmp_path))
+    fl = g.load_incentivos()[(2026, 6)]["Florida"]
+    assert round(fl["totalDescuentos"], 2) == 628.68
+    assert fl["soldReportado"]["Lina Raquel"] == 50

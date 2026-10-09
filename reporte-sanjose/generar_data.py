@@ -204,8 +204,146 @@ def load_incentivos():
     return out
 
 
+# ── Layout "matriz" (desde sep-2026) ───────────────────────────────────────
+# El distribuidor cambió el bloque: el nombre del vendedor vive en la columna
+# inmediatamente a la izquierda de SOLD (que ya no es la col A), bajo cada
+# grupo (SOLD / FREE / Descuentos) hay una subfila con el producto (Brine /
+# Tomato), y los descuentos vienen como monto por producto (Florida) o como
+# una sola columna "Descuentos" sin producto (Nueva York).
+_MATRIX_PRODUCT_RE = re.compile(r"^\s*(in\s+)?(brine|tomato|tomate)\s*$", re.I)
+
+
+def _matrix_product(cell):
+    """Celda de la subfila de productos -> 'In Brine' / 'Tomate'. None si no es
+    exactamente un nombre de producto (p.ej. 'In Brine == > 3 cases' NO lo es)."""
+    if not isinstance(cell, str):
+        return None
+    m = _MATRIX_PRODUCT_RE.match(cell)
+    if not m:
+        return None
+    return "In Brine" if m.group(2).lower() == "brine" else "Tomate"
+
+
+def _find_sold_header(seg):
+    """(índice de fila, índice de columna) de la celda 'SOLD'; (None, None) si no hay."""
+    for i, row in enumerate(seg):
+        for c, cell in enumerate(row):
+            if isinstance(cell, str) and cell.strip().upper() == "SOLD":
+                return i, c
+    return None, None
+
+
+def _is_matrix_layout(seg):
+    """Matriz = la fila siguiente al encabezado SOLD es una subfila de productos."""
+    i, c = _find_sold_header(seg)
+    if i is None or i + 1 >= len(seg):
+        return False
+    return any(_matrix_product(x) for x in seg[i + 1][c:])
+
+
+def _num(cell):
+    if isinstance(cell, (int, float)) and not isinstance(cell, bool) and cell == cell:
+        return float(cell)
+    return None
+
+
+def _matrix_groups(header, sub, sold_col):
+    """Agrupa las columnas desde SOLD: cada etiqueta del encabezado abre un grupo y
+    una secuencia de productos que se reinicia (Brine tras Tomato) también, aunque
+    el encabezado venga vacío (los montos de descuento de Florida no traen título).
+    Devuelve [{'label': str|None, 'cols': [(col, producto|None), ...]}]."""
+    groups = []
+    for c in range(sold_col, max(len(header), len(sub))):
+        label = header[c] if c < len(header) else None
+        label = label.strip() if isinstance(label, str) and label.strip() else None
+        prod = _matrix_product(sub[c]) if c < len(sub) else None
+        restart = bool(groups) and prod is not None and prod in {p for _, p in groups[-1]["cols"]}
+        if label or restart or not groups:
+            groups.append({"label": label, "cols": []})
+        groups[-1]["cols"].append((c, prod))
+    return groups
+
+
+def _group_kind(label):
+    t = (label or "").upper()
+    if "SOLD" in t:
+        return "sold"
+    if "FREE" in t and "TOTAL" in t:
+        return "free_total"      # redundante con FREE: se ignora
+    if "FREE" in t:
+        return "free"
+    if "DESCUENTO" in t or not t:
+        return "desc"            # sin título = montos de descuento (Florida)
+    return "otro"
+
+
+def _parse_matrix_segment(seg):
+    hdr_i, sold_col = _find_sold_header(seg)
+    name_col = sold_col - 1
+    groups = _matrix_groups(seg[hdr_i], seg[hdr_i + 1], sold_col)
+    sold_cols = [c for g in groups if _group_kind(g["label"]) == "sold" for c, _ in g["cols"]]
+    free_cols = [cp for g in groups if _group_kind(g["label"]) == "free" for cp in g["cols"]]
+    desc_cols = [cp for g in groups if _group_kind(g["label"]) == "desc" for cp in g["cols"]]
+
+    descuentos = []
+    free_rep, sold_rep = {}, {}
+    vendedores_nuevos = []
+    in_new_customers = False
+    for row in seg[hdr_i + 2:]:
+        name = row[name_col] if name_col < len(row) else None
+        name = name.strip() if isinstance(name, str) else None
+        if name and name.upper() == "NEW CUSTOMERS":
+            in_new_customers = True
+            continue
+        if in_new_customers:
+            if name:
+                vendedores_nuevos.append(name)
+            continue
+        if not name or name.upper() == "TOTAL":
+            continue
+        sold_vals = [_num(row[c]) for c in sold_cols if c < len(row)]
+        if any(v is not None for v in sold_vals):
+            sold_rep[name] = int(round(sum(v for v in sold_vals if v is not None)))
+        free_by_prod = {}
+        for c, prod in free_cols:
+            v = _num(row[c]) if c < len(row) else None
+            if v is not None:
+                free_by_prod[prod] = free_by_prod.get(prod, 0) + v
+        if free_by_prod:
+            free_rep[name] = int(round(sum(free_by_prod.values())))
+        for c, prod in desc_cols:
+            amount = _num(row[c]) if c < len(row) else None
+            if not amount:
+                continue
+            if prod is None:
+                # Una sola columna "Descuentos": se atribuye al único producto con
+                # cajas gratis del vendedor; si es ambiguo se registra sin detalle
+                # (el monto se suma igual: lo que no se puede perder es la plata).
+                con_free = [p for p, v in free_by_prod.items() if v > 0 and p]
+                if len(con_free) == 1:
+                    prod = con_free[0]
+                else:
+                    print(f"  ⚠ Descuento de {name} (${amount:.2f}) sin producto "
+                          f"atribuible; se registra como 'Sin detalle'")
+                    prod = "Sin detalle"
+            cases = int(round(free_by_prod.get(prod, 0)))
+            descuentos.append({"product": prod, "cases": cases, "amount": round(amount, 2)})
+    total = round(sum(d["amount"] for d in descuentos), 2)
+    return {
+        "descuentos": descuentos,
+        "totalDescuentos": total,
+        "freeReportado": free_rep,
+        "soldReportado": sold_rep,
+        "vendedoresNuevos": vendedores_nuevos,
+    }
+
+
 def _parse_incentive_segment(seg):
-    """Parsea un segmento de incentivos en descuentos / free / sold / vendedores nuevos."""
+    """Parsea un segmento de incentivos en descuentos / free / sold / vendedores nuevos.
+    Dos layouts: el histórico (nombre en col A, etiqueta 'In Brine == > N cases') y
+    el "matriz" de sep-2026 (ver _parse_matrix_segment)."""
+    if _is_matrix_layout(seg):
+        return _parse_matrix_segment(seg)
     descuentos = []
     free_rep, sold_rep = {}, {}
     vendedores_nuevos = []
