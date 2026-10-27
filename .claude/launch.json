@@ -3,25 +3,25 @@
   "configurations": [
     {
       "name": "goa-dashboard",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8140", "--directory", "goa-inventory"],
       "port": 8140
     },
     {
       "name": "sanjose-dashboard",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8137", "--directory", "reporte-sanjose"],
       "port": 8137
     },
     {
       "name": "kombuchacha-dashboard",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8138", "--directory", "kombuchacha"],
       "port": 8138
     },
     {
       "name": "robinson-dashboard",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8139", "--directory", "robinson-crusoe"],
       "port": 8139
     }
