@@ -230,10 +230,59 @@
     border: 1px solid var(--amarillo); border-radius: 10px;
     padding: 10px 16px; font-size: .82rem; margin-bottom: 20px;
   }
+
+  /* ── Distribuidores: pestañas + sección Alta Gama ───────────────────
+     Bloque ADITIVO. Todos los selectores están scopeados a `.dist-tabs`
+     o a `#view-altagama`, así que ninguna regla alcanza al reporte de
+     Latin Foods, que conserva sus clases y su estilo original. */
+  [hidden] { display: none !important; }
+
+  .dist-tabs {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    border-bottom: 1px solid var(--borde); margin-bottom: 24px;
+  }
+  .dist-tabs button {
+    padding: 11px 22px; border: none; background: none; cursor: pointer;
+    font-family: inherit; font-size: .92rem; font-weight: 700;
+    color: var(--texto-suave); border-bottom: 3px solid transparent;
+    margin-bottom: -1px; transition: color .15s, border-color .15s;
+  }
+  .dist-tabs button:hover { color: var(--rojo); }
+  .dist-tabs button.active { color: var(--negro); border-bottom-color: var(--rojo); }
+  .dist-tabs .dist-sub { display: block; font-size: .72rem; font-weight: 600; opacity: .75; margin-top: 2px; }
+  @media (max-width: 480px) {
+    .dist-tabs { flex-wrap: nowrap; }
+    .dist-tabs button { flex: 1; padding: 10px 6px; }
+  }
+
+  /* Unidad junto al número grande del KPI, para que no quede en el aire. */
+  #view-altagama .kpi-unit { font-size: .42em; font-weight: 700; color: var(--texto-suave); margin-left: 5px; }
+  /* La dona necesita alto extra: los nombres van fuera del anillo. */
+  #view-altagama .chart-wrap.donut { height: 340px; }
+  #view-altagama .charts-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 16px; margin-bottom: 16px;
+  }
+  @media (max-width: 400px) { #view-altagama .charts-row { grid-template-columns: 1fr; } }
+
+  /* Único aviso del corte de mes: discreto, al inicio de la sección. */
+  #view-altagama .ag-cutoff-note {
+    font-size: .8rem; color: var(--texto-suave); font-style: italic;
+    margin: -6px 0 18px;
+  }
+  #view-altagama .delta-up   { color: #1F8A5B; font-weight: 600; }
+  #view-altagama .delta-down { color: var(--rojo); font-weight: 600; }
+  #view-altagama .delta-na   { color: var(--texto-suave); font-style: italic; }
+  #view-altagama .na-cell    { color: var(--texto-suave); font-style: italic; }
+  /* 0 = sin movimiento (dato real). Se atenúa para distinguirlo de un n/d. */
+  #view-altagama .zero-cell  { color: var(--texto-suave); cursor: help; }
 </style>
 </head>
 <body>
 <script src="data.js"></script>
+<!-- Alta Gama: fuente y objeto (`altaGamaData`) independientes de data.js.
+     Si el archivo no está, el dashboard sigue funcionando solo con Latin Foods. -->
+<script src="data-altagama.js"></script>
 
 <header>
   <div class="header-brand">
@@ -250,6 +299,16 @@
 </header>
 
 <main>
+  <!-- Pestañas de distribuidor. Cada sección es independiente: sus filtros,
+       KPI y gráficos solo leen su propia fuente de datos, y nunca se suman
+       (Latin Foods reporta cajas con precio; Alta Gama, unidades sin precio). -->
+  <div class="dist-tabs" id="dist-tabs">
+    <button data-dist="latinfoods" class="active">Latin Foods<span class="dist-sub">Ventas, ingresos y vendedores</span></button>
+    <button data-dist="altagama" hidden>Alta Gama<span class="dist-sub">Sell-through en unidades</span></button>
+  </div>
+
+<!-- ══════════ LATIN FOODS — sección existente, sin cambios ══════════ -->
+<section id="view-latinfoods">
   <div class="sparse-note" id="sparse-note">Datos iniciales — el reporte se enriquece a medida que se acumulan meses.</div>
   <div class="month-selector" id="month-selector"></div>
   <div class="sparse-note" id="empty-month-note" style="display:none">Mes sin ventas — el distribuidor lo reportó sin movimientos ("No sales reported").</div>
@@ -362,6 +421,70 @@
       </div>
     </div>
   </div>
+</section>
+<!-- ════════════════ FIN LATIN FOODS ════════════════ -->
+
+<!-- ══════════════════════ ALTA GAMA ══════════════════════
+     Distribuidor con información más limitada: solo unidades vendidas por
+     producto y por mes. Sin precios, clientes, órdenes ni inventario, así que
+     la sección NO muestra ingresos ni vendedores. -->
+<section id="view-altagama" hidden>
+  <p class="ag-cutoff-note" id="ag-cutoff-note"></p>
+
+  <div class="month-selector" id="ag-period-selector"></div>
+  <div class="kpi-grid" id="ag-kpi-grid"></div>
+
+  <div class="charts-row">
+    <div class="chart-card" style="margin:0">
+      <div class="section-title">Evolución mensual — unidades vendidas</div>
+      <div class="chart-wrap rank"><canvas id="agTrendChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin:0">
+      <div class="section-title" id="ag-rank-title">Ranking de sabores — unidades</div>
+      <div class="chart-wrap rank"><canvas id="agRankChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="section-title" id="ag-share-title">Participación por sabor</div>
+    <div class="chart-wrap rank donut"><canvas id="agShareChart"></canvas></div>
+  </div>
+
+  <!-- Detalle sabor × periodo -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Detalle por sabor y mes — unidades vendidas</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr id="ag-matrix-head"></tr></thead>
+        <tbody id="ag-matrix-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Evolución mensual con variación -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <div class="section-title" style="margin:0">Evolución mensual y variación</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th class="num">Unidades</th>
+            <th class="num">Variación</th>
+            <th class="num">Variación %</th>
+            <th class="num">% del total</th>
+          </tr>
+        </thead>
+        <tbody id="ag-months-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+<!-- ════════════════ FIN ALTA GAMA ════════════════ -->
 </main>
 
 <script>
@@ -410,13 +533,13 @@ const barValueLabel = {
 
 let charts = {};
 
-function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip) {
+function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip, registry = charts) {
   const sorted = [...items].sort((a, b) => b.value - a.value);
   const labels = sorted.map(i => i.label);
   const data = sorted.map(i => i.value);
   const callbacks = { label: tooltipLabel };
   if (extraTooltip) callbacks.afterLabel = ctx => extraTooltip(sorted[ctx.dataIndex].meta);
-  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+  registry[canvasId] = new Chart(document.getElementById(canvasId), {
     type: 'bar',
     plugins: [barValueLabel],
     data: {
@@ -646,6 +769,414 @@ if (d.months.length < 2) document.getElementById('month-selector').style.display
 
 // Render inicial: vista general
 render(VIEWS[0].view, VIEWS[0].header);
+</script>
+<!-- ══════════════════ ALTA GAMA — lógica de la sección ══════════════════
+     Bloque autónomo y posterior al render de Latin Foods. Solo lee
+     `altaGamaData` y solo escribe dentro de #view-altagama (más el texto del
+     encabezado al cambiar de pestaña). No toca `reportData`, ni `charts`, ni
+     ninguna función de render de Latin Foods. -->
+<script>
+(function () {
+  const tabs      = document.getElementById('dist-tabs');
+  const agTab     = tabs.querySelector('[data-dist="altagama"]');
+  const lfSection = document.getElementById('view-latinfoods');
+  const agSection = document.getElementById('view-altagama');
+
+  // Sin data-altagama.js el dashboard sigue funcionando solo con Latin Foods.
+  const hasAg = typeof altaGamaData !== 'undefined'
+             && altaGamaData && Array.isArray(altaGamaData.products)
+             && altaGamaData.products.length > 0;
+  if (!hasAg) { tabs.hidden = true; return; }
+
+  const ag       = altaGamaData;
+  const periods  = ag.periods;
+  const agCharts = {};                 // registro propio: no comparte ciclo de vida
+  let   agView   = 'ytd';              // 'ytd' | clave de periodo
+  let   agBuilt  = false;
+
+  // Identidad visual por sabor: mismo color y lata que en Latin Foods. Es solo
+  // presentación; los datos de los dos distribuidores nunca se cruzan.
+  const FLAVORS = [
+    { re: /blueberry/i, sku: 'KOM01', text: '#ffffff' },
+    { re: /raspberry/i, sku: 'KOM02', text: '#ffffff' },
+    { re: /ginger/i,    sku: 'KOM03', text: '#1E1E1E' },
+    { re: /mate/i,      sku: 'KOM04', text: '#ffffff' },
+  ];
+  const flavorOf = (prod, i) => {
+    const f = FLAVORS.find(x => x.re.test(prod.sku || prod.name));
+    return f ? { color: SKU_COLORS[f.sku], text: f.text, img: SKU_IMAGES[f.sku] }
+             : { color: palette[i % palette.length], text: '#1E1E1E', img: null };
+  };
+
+  // ── Plugin: valor encima de cada barra vertical ───────────────────────
+  const agBarTopLabel = {
+    id: 'agBarTopLabel',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      ctx.save();
+      ctx.font = '700 11px "Poppins", system-ui, sans-serif';
+      ctx.fillStyle = '#1E1E1E';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      chart.getDatasetMeta(0).data.forEach((bar, i) => {
+        ctx.fillText(qty(chart.data.datasets[0].data[i]), bar.x, bar.y - 5);
+      });
+      ctx.restore();
+    }
+  };
+
+  // ── Plugin: dona con % dentro y nombre fuera unido por una línea guía ──
+  // Con poco ancho no hay sitio para los nombres al costado: en ese caso se
+  // deja la leyenda debajo y solo se dibuja el porcentaje dentro del anillo.
+  const agDoughnutLabels = {
+    id: 'agDoughnutLabels',
+    beforeLayout(chart) {
+      const wide = chart.width >= 520;
+      const pad = wide ? Math.min(140, Math.round(chart.width * 0.24)) : 4;
+      chart.options.layout.padding = { left: pad, right: pad, top: 14, bottom: 14 };
+      chart.options.plugins.legend.display = !wide;
+    },
+    afterDatasetsDraw(chart) {
+      const meta = chart.getDatasetMeta(0);
+      if (!meta.data.length) return;
+      const data = chart.data.datasets[0].data;
+      const textColors = chart.data.datasets[0].textColors;
+      const total = data.reduce((a, b) => a + b, 0);
+      if (!total) return;
+
+      const { ctx, chartArea } = chart;
+      const cx = meta.data[0].x, cy = meta.data[0].y;
+      ctx.save();
+
+      const inside = meta.data.map(arc =>
+        (arc.endAngle - arc.startAngle) * ((arc.innerRadius + arc.outerRadius) / 2) >= 30);
+
+      meta.data.forEach((arc, i) => {
+        if (!inside[i]) return;
+        const r = (arc.innerRadius + arc.outerRadius) / 2;
+        const a = (arc.startAngle + arc.endAngle) / 2;
+        ctx.font = (i === 0 ? '800 13px' : '700 11px') + ' "Poppins", system-ui, sans-serif';
+        ctx.fillStyle = textColors[i];
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${(data[i] / total * 100).toFixed(1)}%`, cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      });
+
+      if (chart.width < 520) { ctx.restore(); return; }
+
+      const R = meta.data[0].outerRadius;
+      const items = meta.data.map((arc, i) => {
+        const a = (arc.startAngle + arc.endAngle) / 2;
+        return {
+          i, right: Math.cos(a) >= 0,
+          label: chart.data.labels[i] +
+                 (inside[i] ? '' : ` · ${(data[i] / total * 100).toFixed(1)}%`),
+          x0: cx + Math.cos(a) * R, y0: cy + Math.sin(a) * R,
+          y1: cy + Math.sin(a) * (R + 16),
+        };
+      });
+
+      const GAP = 15;
+      ['right', 'left'].forEach(side => {
+        const g = items.filter(it => it.right === (side === 'right')).sort((a, b) => a.y1 - b.y1);
+        if (!g.length) return;
+        for (let k = 1; k < g.length; k++)
+          if (g[k].y1 - g[k - 1].y1 < GAP) g[k].y1 = g[k - 1].y1 + GAP;
+        const over = g[g.length - 1].y1 - (chartArea.bottom - 6);
+        if (over > 0) g.forEach(it => { it.y1 -= over; });
+        for (let k = 0; k < g.length; k++)
+          g[k].y1 = Math.max(g[k].y1, chartArea.top + 6 + k * GAP);
+      });
+
+      items.forEach(it => {
+        const dir = it.right ? 1 : -1;
+        const xElbow = cx + dir * (R + 16);
+        const xEnd = xElbow + dir * 10;
+        const maxText = (it.right ? chart.width - (xEnd + 4) : xEnd - 4) - 6;
+        ctx.beginPath();
+        ctx.moveTo(it.x0, it.y0);
+        ctx.lineTo(xElbow, it.y1);
+        ctx.lineTo(xEnd, it.y1);
+        ctx.strokeStyle = '#E3D3BC';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.font = (it.i === 0 ? '700 11.5px' : '600 11px') + ' "Poppins", system-ui, sans-serif';
+        ctx.fillStyle = it.i === 0 ? '#1E1E1E' : '#8A8177';
+        ctx.textAlign = it.right ? 'left' : 'right';
+        ctx.textBaseline = 'middle';
+        let text = it.label;
+        while (text.length > 4 && ctx.measureText(text).width > maxText) text = text.slice(0, -1);
+        if (text !== it.label) text = text.trimEnd() + '…';
+        ctx.fillText(text, xEnd + dir * 4, it.y1);
+      });
+      ctx.restore();
+    }
+  };
+
+  agTab.hidden = false;
+
+  // ── Formateo ──────────────────────────────────────────────────────────
+  const pc     = n => (n === null || n === undefined) ? '—' : `${n.toFixed(1)}%`;
+  const signed = n => (n === null || n === undefined) ? '—' : `${n > 0 ? '+' : ''}${qty(n)}`;
+  const signedPc = n => (n === null || n === undefined) ? '—' : `${n > 0 ? '+' : ''}${n.toFixed(1)}%`;
+  const deltaCls = n => n === null || n === undefined ? 'delta-na' : (n > 0 ? 'delta-up' : (n < 0 ? 'delta-down' : ''));
+  // Un `0` es un dato real: Alta Gama lo usa para "sin movimiento". Un `null`
+  // es DATO NO DISPONIBLE y nunca se muestra ni se cuenta como cero.
+  const cell = v => v === null || v === undefined
+    ? '<span class="na-cell">n/d</span>'
+    : (v === 0 ? '<span class="zero-cell" title="Sin movimiento en el periodo">0</span>' : qty(v));
+  const uOf    = (prod, key) => key === 'ytd' ? prod.units : prod.byPeriod[key];
+  const pOf    = key => periods.find(p => p.key === key) || null;
+
+  // ── Encabezado: se intercambia el texto al cambiar de pestaña ─────────
+  const subEl    = document.querySelector('.header-title p');
+  const periodEl = document.getElementById('report-period');
+  const rangeEl  = document.getElementById('report-range');
+  let lfHeader = null;
+  const setHeader = (sub, period, range) => {
+    subEl.textContent = sub; periodEl.textContent = period; rangeEl.textContent = range;
+  };
+
+  // ── Contenido fijo de la sección ──────────────────────────────────────
+  function buildStatic() {
+    const note = document.getElementById('ag-cutoff-note');
+    const short = ag.meta.partialNote && ag.meta.partialNote.short;
+    if (short) note.textContent = short; else note.hidden = true;
+
+    const sel = document.getElementById('ag-period-selector');
+    sel.innerHTML = [{ id: 'ytd', label: 'Todos' }]
+      .concat(periods.map(p => ({ id: p.key, label: p.short })))
+      .map((v, i) => `<button data-key="${v.id}" class="${i === 0 ? 'active' : ''}">${v.label}</button>`).join('');
+    sel.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      sel.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      agView = btn.dataset.key;
+      renderView();
+    });
+
+    buildMatrix();
+    buildMonths();
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────────────
+  function kpisYTD() {
+    const h = ag.highlights, t = ag.totals;
+    const out = [
+      { label: 'Unidades vendidas 2026', value: qty(t.units), unit: 'u.',
+        sub: `${qty(t.products)} sabores · ${qty(t.periods)} meses` },
+      { label: 'Sabor con más unidades', value: h.topProduct.shortName, small: true, gold: true,
+        sub: `${qty(h.topProduct.units)} u. · ${pc(h.topProduct.share)} del total` },
+      { label: 'Mejor mes', value: qty(h.bestMonth.units), unit: 'u.', sub: h.bestMonth.label },
+    ];
+    if (h.lastMonth) out.push({
+      label: 'Último mes', value: qty(h.lastMonth.units), unit: 'u.', gold: true,
+      sub: `${h.lastMonth.label}${h.lastMonth.deltaPct === null ? '' : ` · ${signedPc(h.lastMonth.deltaPct)} vs. mes anterior`}` });
+    return out;
+  }
+
+  function kpisPeriod(p) {
+    const ranked = [...ag.products]
+      .filter(x => x.byPeriod[p.key] !== null)
+      .sort((a, b) => b.byPeriod[p.key] - a.byPeriod[p.key]);
+    const top = p.units ? ranked[0] : null;
+    return [
+      { label: 'Unidades del mes', value: qty(p.units), unit: 'u.', sub: p.label },
+      { label: 'Sabor top del mes', value: top ? top.shortName : '—', small: true, gold: true,
+        sub: top ? `${qty(top.byPeriod[p.key])} u. · ${pc(top.byPeriod[p.key] / p.units * 100)} del mes` : 'Sin movimiento en el mes' },
+      { label: 'Variación vs mes anterior', value: signed(p.delta), unit: p.delta === null ? '' : 'u.',
+        sub: p.delta === null ? 'Primer mes del reporte' : signedPc(p.deltaPct) },
+      { label: '% sobre el total del año', value: pc(ag.totals.units ? p.units / ag.totals.units * 100 : null),
+        sub: `${qty(p.units)} de ${qty(ag.totals.units)} u.` },
+    ];
+  }
+
+  function renderKpis() {
+    const p = agView === 'ytd' ? null : pOf(agView);
+    const kpis = p ? kpisPeriod(p) : kpisYTD();
+    document.getElementById('ag-kpi-grid').innerHTML = kpis.map(k => `
+      <div class="kpi-card ${k.gold ? 'gold' : ''}">
+        <div class="kpi-label">${k.label}</div>
+        <div class="kpi-value ${k.small ? 'sm' : ''}">${k.value}${k.unit ? `<span class="kpi-unit">${k.unit}</span>` : ''}</div>
+        <div class="kpi-sub">${k.sub}</div>
+      </div>`).join('');
+  }
+
+  // ── Gráficos ──────────────────────────────────────────────────────────
+  function renderCharts() {
+    Object.values(agCharts).forEach(c => c.destroy());
+    Object.keys(agCharts).forEach(k => delete agCharts[k]);
+
+    // Evolución mensual (siempre el año completo, sin depender del filtro).
+    agCharts.agTrendChart = new Chart(document.getElementById('agTrendChart'), {
+      type: 'bar',
+      plugins: [agBarTopLabel],
+      data: {
+        labels: periods.map(p => p.short),
+        datasets: [{
+          data: periods.map(p => p.units),
+          backgroundColor: '#E80D0D',
+          borderRadius: 5, borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: {
+            title: items => periods[items[0].dataIndex].label,
+            label: ctx => ` ${qty(ctx.parsed.y)} unidades`,
+            afterLabel: ctx => {
+              const p = periods[ctx.dataIndex];
+              return p.delta === null ? '' : `${signed(p.delta)} u. vs. mes anterior (${signedPc(p.deltaPct)})`;
+            }
+          } }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+          y: { beginAtZero: true, suggestedMax: Math.max(...periods.map(p => p.units), 0) * 1.14,
+               grid: { color: '#F3E9DB' }, ticks: { font: { size: 10 }, callback: v => qty(v) } }
+        }
+      }
+    });
+
+    // Ranking y participación: responden al filtro de periodo.
+    const key   = agView;
+    const label = agView === 'ytd' ? 'acumulado 2026' : pOf(agView).label;
+    document.getElementById('ag-rank-title').textContent  = `Ranking de sabores — unidades · ${label}`;
+    document.getElementById('ag-share-title').textContent = `Participación por sabor · ${label}`;
+
+    const items = ag.products
+      .map((p, i) => ({ label: p.shortName, value: uOf(p, key) || 0, meta: p, color: flavorOf(p, i).color }))
+      .filter(i => uOf(i.meta, key) !== null);
+    const totalSel = items.reduce((s, i) => s + i.value, 0);
+
+    horizontalBarChart('agRankChart', items, qty,
+      ctx => ` ${qty(ctx.parsed.x)} unidades`,
+      p => `${pc(totalSel ? uOf(p, key) / totalSel * 100 : null)} del periodo · YTD ${qty(p.units)} u.`,
+      agCharts);
+
+    const shareItems = [...items].filter(i => i.value > 0).sort((a, b) => b.value - a.value);
+    agCharts.agShareChart = new Chart(document.getElementById('agShareChart'), {
+      type: 'doughnut',
+      plugins: [agDoughnutLabels],
+      data: {
+        labels: shareItems.map(i => i.label),
+        datasets: [{
+          data: shareItems.map(i => i.value),
+          backgroundColor: shareItems.map(i => i.color),
+          textColors: shareItems.map(i => flavorOf(i.meta, 0).text),
+          borderColor: '#fff', borderWidth: 2,
+          hoverOffset: 6,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '46%',
+        // El anillo se queda corto a propósito: el hueco que deja es el que
+        // ocupan los nombres y sus líneas guía.
+        radius: '76%',
+        // Sin animación: si no, las líneas guía bailan mientras el anillo crece.
+        animation: false,
+        layout: { padding: 0 },
+        plugins: {
+          legend: { display: false, position: 'bottom',
+                    labels: { font: { size: 10 }, boxWidth: 10, padding: 6 } },
+          tooltip: { callbacks: {
+            label: ctx => ` ${qty(ctx.parsed)} u. · ${pc(totalSel ? ctx.parsed / totalSel * 100 : null)}`
+          } }
+        }
+      }
+    });
+  }
+
+  // ── Tabla sabor × periodo ─────────────────────────────────────────────
+  function buildMatrix() {
+    document.getElementById('ag-matrix-head').innerHTML =
+      `<th>Sabor</th>` +
+      periods.map(p => `<th class="num" data-key="${p.key}">${p.short}</th>`).join('') +
+      `<th class="num">Total año</th><th class="num">% total</th>`;
+
+    const body = ag.products.map((p, i) => {
+      const f = flavorOf(p, i);
+      return `
+      <tr>
+        <td>${f.img ? `<img class="can-thumb" src="${f.img}" alt="">` : ''}<strong>${p.shortName}</strong></td>
+        ${periods.map(per => `<td class="num" data-key="${per.key}">${cell(p.byPeriod[per.key])}</td>`).join('')}
+        <td class="num"><strong>${qty(p.units)}</strong></td>
+        <td class="num"><span class="pct-badge">${pc(p.share)}</span></td>
+      </tr>`;
+    }).join('');
+
+    const total = `
+      <tr class="total-row">
+        <td>TOTAL</td>
+        ${periods.map(per => `<td class="num" data-key="${per.key}">${qty(per.units)}</td>`).join('')}
+        <td class="num">${qty(ag.totals.units)}</td>
+        <td class="num">100.0%</td>
+      </tr>`;
+    document.getElementById('ag-matrix-tbody').innerHTML = body + total;
+  }
+
+  function highlightMatrix() {
+    document.querySelectorAll('#ag-matrix-head [data-key], #ag-matrix-tbody [data-key]').forEach(el => {
+      el.style.outline = (agView !== 'ytd' && el.dataset.key === agView)
+        ? '2px solid var(--rojo)' : '';
+      el.style.outlineOffset = '-2px';
+    });
+  }
+
+  // ── Tabla de evolución mensual ────────────────────────────────────────
+  function buildMonths() {
+    const rows = periods.map(p => `
+      <tr>
+        <td><strong>${p.label}</strong></td>
+        <td class="num"><strong>${cell(p.units)}</strong></td>
+        <td class="num ${deltaCls(p.delta)}">${signed(p.delta)}</td>
+        <td class="num ${deltaCls(p.deltaPct)}">${signedPc(p.deltaPct)}</td>
+        <td class="num"><span class="pct-badge">${pc(ag.totals.units ? p.units / ag.totals.units * 100 : null)}</span></td>
+      </tr>`).join('');
+    const total = `
+      <tr class="total-row">
+        <td>TOTAL</td>
+        <td class="num">${qty(ag.totals.units)}</td>
+        <td class="num"></td><td class="num"></td>
+        <td class="num">100.0%</td>
+      </tr>`;
+    document.getElementById('ag-months-tbody').innerHTML = rows + total;
+  }
+
+  function renderView() { renderKpis(); renderCharts(); highlightMatrix(); }
+
+  // ── Cambio de pestaña ─────────────────────────────────────────────────
+  function showDist(id) {
+    const toAg = id === 'altagama';
+    // Se guarda el encabezado tal como lo dejó Latin Foods (mes seleccionado
+    // incluido) para restaurarlo igual al volver; solo al salir de verdad.
+    if (toAg && agSection.hidden) {
+      lfHeader = { sub: subEl.textContent, period: periodEl.textContent, range: rangeEl.textContent };
+    }
+
+    lfSection.hidden = toAg;
+    agSection.hidden = !toAg;
+    tabs.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.dist === id));
+
+    if (toAg) {
+      setHeader('la bebida de todos · Alta Gama', ag.meta.periodLabel,
+                `${fmtDay(ag.meta.periodStart)} – ${fmtDay(ag.meta.periodEnd)}`);
+      if (!agBuilt) { buildStatic(); agBuilt = true; }
+      renderView();   // Chart.js necesita el contenedor visible para medir
+    } else if (lfHeader) {
+      setHeader(lfHeader.sub, lfHeader.period, lfHeader.range);
+    }
+  }
+
+  tabs.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (btn) showDist(btn.dataset.dist);
+  });
+})();
 </script>
 </body>
 </html>
