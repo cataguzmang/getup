@@ -62,7 +62,8 @@ de la tabla, meses que cubre, otras marcas mezcladas). El script se adapta solo.
 
 1. Deja el Excel nuevo en `Inventarios-GOA-altagama/` (carpeta privada, entera
    en `.gitignore`). **No borres los anteriores**: el script los combina.
-2. Ejecuta: `python parse_altagama.py`
+2. Ejecuta: `python parse_altagama.py` (wrapper de `altagama_core.py`, en la raíz
+   del repo; Kombuchacha usa el mismo núcleo y la misma carpeta)
    - Combina el histórico `altagama-historico.json` (ene–jun 2026, reconstruido
      desde lo ya publicado porque el Excel YTD original se perdió) con todos los
      Excel de la carpeta. **Cada mes lo aporta el archivo con el corte más

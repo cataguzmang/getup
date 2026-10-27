@@ -55,4 +55,24 @@ sufijo `-2`, `-3`, …
 Cada dashboard conserva su propio generador (`fuentes/ → data.js`); `split_excel.py` los
 llama al final. Ver el README de cada carpeta para el detalle de cada reporte.
 
+### Alta Gama (otro distribuidor, otro flujo)
+
+Alta Gama manda, cuando manda, **un solo Excel con varias marcas mezcladas**
+(GOA, Kombuchacha y El Charrua, que es marca propia pero no de la agencia y no
+va a ningún dashboard). Solo trae unidades vendidas por producto y mes.
+
+1. Deja el Excel en `goa-inventory/Inventarios-GOA-altagama/` (privada, no se sube).
+   No borres los anteriores: se combinan, y cada mes sale del corte más reciente.
+2. Genera cada marca:
+   ```
+   python goa-inventory/parse_altagama.py
+   python kombuchacha/build_altagama.py
+   ```
+   Ambos usan `altagama_core.py`, que filtra por prefijo de SKU (`GA …`,
+   `Kombuchacha …`). Las filas de otras marcas solo se listan en la consola.
+3. Sube los `data-altagama.js` cambiados.
+
+Cada dashboard muestra Alta Gama en su propia pestaña y **nunca** la suma con
+Latin Foods: uno reporta cajas con precio, el otro unidades sin precio.
+
 > **Requisitos:** `pip install openpyxl`
