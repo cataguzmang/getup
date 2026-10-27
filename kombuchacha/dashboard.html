@@ -11,31 +11,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --rojo:      #E80D0D;
-    --amarillo:  #FFD22E;
-    --am-palido: #FFF3C9;
-    --negro:     #1E1E1E;
-    --crema:     #FFF9F0;
+    /* Paleta azul, celeste y blanco (la misma del PDF de Alta Gama). El
+       celeste es el del logo de Kombuchacha. Los colores por sabor
+       (SKU_COLORS) son identidad de producto y no dependen de esto. */
+    --azul:      #0F2C59;
+    --celeste:   #19C9B2;
+    --celeste-claro: #E6F8F5;
+    --fondo:     #F7FBFB;
     --blanco:    #ffffff;
-    --borde:     #F0E4D2;
-    --texto:     #1E1E1E;
-    --texto-suave: #8A8177;
-    --morado:    #8E2E88;
-    --rosa:      #E91E7B;
-    --turquesa:  #2BBFCB;
-    --shadow:    0 2px 12px rgba(232,13,13,.07);
+    --borde:     #D3E9E6;
+    --texto:     #0F2C59;
+    --texto-suave: #5A6B80;
+    --text-muted: var(--texto-suave);
+    --baja:      #C0392B;
+    --shadow:    0 2px 12px rgba(15,44,89,.06);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Poppins', system-ui, sans-serif; background: var(--crema); color: var(--texto); min-height: 100vh; }
+  body { font-family: 'Poppins', system-ui, sans-serif; background: var(--fondo); color: var(--texto); min-height: 100vh; }
 
   header {
-    background: var(--rojo);
+    background: var(--azul);
     color: #fff;
     padding: 20px 32px 18px;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
   }
   .header-brand { display: flex; align-items: center; gap: 14px; }
-  .brand-logo { width: 54px; height: 54px; border-radius: 50%; flex-shrink: 0; background: #fff; }
+  .brand-logo { height: 54px; width: auto; flex-shrink: 0; }
   .header-title h1 { font-size: 1.4rem; font-weight: 800; letter-spacing: .3px; }
   .header-title p  { font-size: .82rem; opacity: .88; margin-top: 2px; font-weight: 600; }
   .header-meta { text-align: right; font-size: .82rem; opacity: .88; line-height: 1.6; }
@@ -59,22 +60,20 @@
   }
   .kpi-card::before {
     content: ''; position: absolute; top: 0; left: 0;
-    width: 4px; height: 100%; background: var(--turquesa);
+    width: 4px; height: 100%; background: var(--celeste);
   }
-  .kpi-card:nth-child(4n+1)::before { background: var(--rojo); }
-  .kpi-card:nth-child(4n+2)::before { background: var(--morado); }
-  .kpi-card:nth-child(4n+3)::before { background: var(--turquesa); }
-  .kpi-card:nth-child(4n)::before   { background: var(--rosa); }
-  .kpi-card.gold { background: var(--am-palido); border-color: var(--amarillo); }
-  .kpi-card.gold::before { background: var(--amarillo); }
+  .kpi-card:nth-child(odd)::before  { background: var(--azul); }
+  .kpi-card:nth-child(even)::before { background: var(--celeste); }
+  .kpi-card.gold { background: var(--celeste-claro); border-color: var(--celeste); }
+  .kpi-card.gold::before { background: var(--celeste); }
   .kpi-label { font-size: .72rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .6px; }
-  .kpi-value { font-size: 2.0rem; font-weight: 800; color: var(--negro); line-height: 1.1; }
+  .kpi-value { font-size: 2.0rem; font-weight: 800; color: var(--azul); line-height: 1.1; }
   .kpi-value.sm { font-size: 1.25rem; }   /* valores de texto (ej. nombre del vendedor) */
-  .kpi-card.gold .kpi-value { color: var(--negro); }
+  .kpi-card.gold .kpi-value { color: var(--azul); }
   .kpi-sub   { font-size: .80rem; color: var(--texto-suave); }
 
   .section-title {
-    font-size: .72rem; font-weight: 800; color: var(--negro);
+    font-size: .72rem; font-weight: 800; color: var(--azul);
     text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px;
   }
 
@@ -87,9 +86,9 @@
     color: var(--texto-suave); transition: all .15s; box-shadow: var(--shadow);
     font-family: inherit;
   }
-  .month-selector button:hover { border-color: var(--rojo); color: var(--rojo); }
+  .month-selector button:hover { border-color: var(--azul); color: var(--azul); }
   .month-selector button.active {
-    background: var(--rojo); color: #fff; border-color: var(--rojo);
+    background: var(--azul); color: #fff; border-color: var(--azul);
   }
 
   .chart-card {
@@ -108,7 +107,7 @@
     background: none; font-size: .74rem; font-weight: 600; cursor: pointer;
     color: var(--texto-suave); transition: all .15s; font-family: inherit;
   }
-  .chart-toolbar button.active { background: var(--rojo); color: #fff; border-color: var(--rojo); }
+  .chart-toolbar button.active { background: var(--azul); color: #fff; border-color: var(--azul); }
 
   .table-card {
     background: var(--blanco); border: 1px solid var(--borde);
@@ -122,18 +121,18 @@
 
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { width: 100%; border-collapse: collapse; font-size: .875rem; min-width: 520px; }
-  thead tr { background: var(--am-palido); }
+  thead tr { background: var(--celeste-claro); }
   th {
     padding: 11px 16px; text-align: left;
     font-size: .7rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .6px; color: var(--negro); white-space: nowrap;
+    letter-spacing: .6px; color: var(--azul); white-space: nowrap;
   }
   th.num, td.num { text-align: right; }
   td { padding: 11px 16px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
   tbody tr:last-child td { border-bottom: none; }
 
   .product-row { cursor: pointer; transition: background .12s; }
-  .product-row:hover { background: var(--am-palido); }
+  .product-row:hover { background: var(--celeste-claro); }
   .product-row td:first-child { font-weight: 600; }
 
   .toggle-btn {
@@ -142,19 +141,19 @@
     background: none; font-size: .72rem; cursor: pointer;
     color: var(--texto-suave); transition: background .15s; font-family: inherit;
   }
-  .toggle-btn:hover { background: var(--am-palido); }
+  .toggle-btn:hover { background: var(--celeste-claro); }
   .arrow { transition: transform .2s; display: inline-block; }
   .arrow.open { transform: rotate(90deg); }
 
   .sp-row { display: none; }
   .sp-row.visible { display: table-row; }
-  .sp-row td { background: #FFFCF5; font-size: .82rem; color: var(--texto-suave); padding: 9px 16px; }
+  .sp-row td { background: #F4FBFA; font-size: .82rem; color: var(--texto-suave); padding: 9px 16px; }
   .sp-row td:first-child { padding-left: 36px; font-style: italic; }
 
   .sku-badge {
     display: inline-block; padding: 2px 8px;
     border-radius: 10px; font-size: .68rem; font-weight: 700;
-    background: var(--rojo); color: #fff;
+    background: var(--azul); color: #fff;
     margin-right: 8px;
   }
   .can-thumb { height: 34px; width: auto; vertical-align: middle; margin-right: 8px; }
@@ -164,23 +163,23 @@
     flex: 1; height: 7px; background: var(--borde);
     border-radius: 4px; overflow: hidden; min-width: 70px;
   }
-  .bar-fill { height: 100%; background: var(--turquesa); border-radius: 4px; }
+  .bar-fill { height: 100%; background: var(--celeste); border-radius: 4px; }
 
   .total-row td {
-    font-weight: 700; background: var(--am-palido);
-    border-top: 2px solid var(--rojo); color: var(--negro);
+    font-weight: 700; background: var(--celeste-claro);
+    border-top: 2px solid var(--celeste); color: var(--azul);
   }
 
   .sp-rank { font-weight: 700; color: var(--texto-suave); }
   .pct-badge {
     display: inline-block; padding: 1px 7px; border-radius: 10px;
     font-size: .72rem; font-weight: 600;
-    background: var(--am-palido); color: #8A6A00;
+    background: var(--celeste-claro); color: var(--azul);
   }
   .free-badge {
     display: inline-block; padding: 1px 7px; border-radius: 10px;
     font-size: .72rem; font-weight: 600;
-    background: var(--am-palido); color: #8A6A00;
+    background: var(--celeste-claro); color: var(--azul);
   }
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
@@ -192,11 +191,11 @@
     padding: 10px 0; border-bottom: 1px solid var(--borde); font-size: .87rem;
   }
   .incentive-list li:last-child { border-bottom: none; }
-  .incentive-list .amount { font-weight: 700; color: var(--rojo); }
+  .incentive-list .amount { font-weight: 700; color: var(--azul); }
   .incentive-total {
     display: flex; justify-content: space-between; padding: 12px 0 2px;
-    margin-top: 6px; border-top: 2px solid var(--rojo);
-    font-weight: 700; color: var(--negro);
+    margin-top: 6px; border-top: 2px solid var(--celeste);
+    font-weight: 700; color: var(--azul);
   }
   .muted-note { font-size: .74rem; color: var(--texto-suave); margin-top: 10px; font-style: italic; }
 
@@ -226,8 +225,8 @@
 
   /* Nota discreta cuando hay pocos datos (marca nueva) */
   .sparse-note {
-    background: var(--am-palido); color: #8A6A00;
-    border: 1px solid var(--amarillo); border-radius: 10px;
+    background: var(--celeste-claro); color: var(--azul);
+    border: 1px solid var(--celeste); border-radius: 10px;
     padding: 10px 16px; font-size: .82rem; margin-bottom: 20px;
   }
 
@@ -247,8 +246,8 @@
     color: var(--texto-suave); border-bottom: 3px solid transparent;
     margin-bottom: -1px; transition: color .15s, border-color .15s;
   }
-  .dist-tabs button:hover { color: var(--rojo); }
-  .dist-tabs button.active { color: var(--negro); border-bottom-color: var(--rojo); }
+  .dist-tabs button:hover { color: var(--azul); }
+  .dist-tabs button.active { color: var(--azul); border-bottom-color: var(--celeste); }
   .dist-tabs .dist-sub { display: block; font-size: .72rem; font-weight: 600; opacity: .75; margin-top: 2px; }
   @media (max-width: 480px) {
     .dist-tabs { flex-wrap: nowrap; }
@@ -271,7 +270,7 @@
     margin: -6px 0 18px;
   }
   #view-altagama .delta-up   { color: #1F8A5B; font-weight: 600; }
-  #view-altagama .delta-down { color: var(--rojo); font-weight: 600; }
+  #view-altagama .delta-down { color: var(--baja); font-weight: 600; }
   #view-altagama .delta-na   { color: var(--texto-suave); font-style: italic; }
   #view-altagama .na-cell    { color: var(--texto-suave); font-style: italic; }
   /* 0 = sin movimiento (dato real). Se atenúa para distinguirlo de un n/d. */
@@ -286,7 +285,7 @@
 
 <header>
   <div class="header-brand">
-    <img class="brand-logo" src="img/logo.png" alt="Kombuchacha">
+    <img class="brand-logo" src="img/logo-celeste.png" alt="Kombuchacha">
     <div class="header-title">
       <h1>Kombuchacha</h1>
       <p>la bebida de todos · Latin Foods</p>
@@ -502,7 +501,7 @@ const fmtDay = iso => new Date(iso + 'T00:00:00').toLocaleDateString('es-ES', { 
 const shortName = name => name.replace('Kombuchacha ', '');
 const firstName = name => name.split(' ')[0];
 // Paleta de respaldo (marca): para vendedores, clientes y SKUs sin color propio
-const palette = ['#E80D0D','#FFD22E','#2BBFCB','#E91E7B','#8E2E88','#F2802E','#7CC576','#B85AA6','#5AB0C0'];
+const palette = ['#0F2C59','#19C9B2','#3A6EA5','#7FD8CC','#5A6B80','#2BBFCB','#1B4F8C','#A6E6DE','#8FA3B8'];
 
 // Identidad por SKU: color e imagen de la lata (presentación; nuevos sabores caen a `palette`)
 const SKU_COLORS = { KOM01: '#8E2E88', KOM02: '#E91E7B', KOM03: '#2BBFCB', KOM04: '#2A2A2A' };
@@ -517,7 +516,7 @@ const barValueLabel = {
     const { ctx, chartArea } = chart;
     ctx.save();
     ctx.font = '600 11px "Poppins", system-ui, sans-serif';
-    ctx.fillStyle = '#1E1E1E';
+    ctx.fillStyle = '#0F2C59';
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'left';
     chart.getDatasetMeta(0).data.forEach((bar, i) => {
@@ -558,7 +557,7 @@ function horizontalBarChart(canvasId, items, fmt, tooltipLabel, extraTooltip, re
         barValueLabel: { formatter: fmt },
       },
       scales: {
-        x: { grid: { color: '#F3E9DB' }, suggestedMax: Math.max(...data, 0) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
+        x: { grid: { color: '#E3F1EF' }, suggestedMax: Math.max(...data, 0) * 1.18, ticks: { font: { size: 11 }, callback: fmt } },
         y: { ticks: { font: { size: 11 } } }
       }
     }
@@ -633,8 +632,8 @@ function render(view, header) {
       labels: view.daily.map(x => fmtDay(x.date)),
       datasets: [{
         label: 'Ingresos', data: view.daily.map(x => x.revenue),
-        borderColor: '#E80D0D', backgroundColor: 'rgba(255,210,46,.25)',
-        fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#FFD22E', borderWidth: 2,
+        borderColor: '#0F2C59', backgroundColor: 'rgba(25,201,178,.18)',
+        fill: true, tension: .3, pointRadius: 4, pointBackgroundColor: '#19C9B2', borderWidth: 2,
       }]
     },
     options: {
@@ -648,7 +647,7 @@ function render(view, header) {
       },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-        y: { grid: { color: '#F3E9DB' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
+        y: { grid: { color: '#E3F1EF' }, ticks: { font: { size: 10 }, callback: v => money0(v) } }
       }
     }
   });
@@ -815,7 +814,7 @@ render(VIEWS[0].view, VIEWS[0].header);
       const { ctx } = chart;
       ctx.save();
       ctx.font = '700 11px "Poppins", system-ui, sans-serif';
-      ctx.fillStyle = '#1E1E1E';
+      ctx.fillStyle = '#0F2C59';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
       chart.getDatasetMeta(0).data.forEach((bar, i) => {
@@ -897,12 +896,12 @@ render(VIEWS[0].view, VIEWS[0].header);
         ctx.moveTo(it.x0, it.y0);
         ctx.lineTo(xElbow, it.y1);
         ctx.lineTo(xEnd, it.y1);
-        ctx.strokeStyle = '#E3D3BC';
+        ctx.strokeStyle = '#C7E3DF';
         ctx.lineWidth = 1;
         ctx.stroke();
 
         ctx.font = (it.i === 0 ? '700 11.5px' : '600 11px') + ' "Poppins", system-ui, sans-serif';
-        ctx.fillStyle = it.i === 0 ? '#1E1E1E' : '#8A8177';
+        ctx.fillStyle = it.i === 0 ? '#0F2C59' : '#5A6B80';
         ctx.textAlign = it.right ? 'left' : 'right';
         ctx.textBaseline = 'middle';
         let text = it.label;
@@ -1017,7 +1016,7 @@ render(VIEWS[0].view, VIEWS[0].header);
         labels: periods.map(p => p.short),
         datasets: [{
           data: periods.map(p => p.units),
-          backgroundColor: '#E80D0D',
+          backgroundColor: '#0F2C59',
           borderRadius: 5, borderSkipped: false,
         }]
       },
@@ -1037,7 +1036,7 @@ render(VIEWS[0].view, VIEWS[0].header);
         scales: {
           x: { grid: { display: false }, ticks: { font: { size: 11 } } },
           y: { beginAtZero: true, suggestedMax: Math.max(...periods.map(p => p.units), 0) * 1.14,
-               grid: { color: '#F3E9DB' }, ticks: { font: { size: 10 }, callback: v => qty(v) } }
+               grid: { color: '#E3F1EF' }, ticks: { font: { size: 10 }, callback: v => qty(v) } }
         }
       }
     });
@@ -1122,7 +1121,7 @@ render(VIEWS[0].view, VIEWS[0].header);
   function highlightMatrix() {
     document.querySelectorAll('#ag-matrix-head [data-key], #ag-matrix-tbody [data-key]').forEach(el => {
       el.style.outline = (agView !== 'ytd' && el.dataset.key === agView)
-        ? '2px solid var(--rojo)' : '';
+        ? '2px solid var(--celeste)' : '';
       el.style.outlineOffset = '-2px';
     });
   }
