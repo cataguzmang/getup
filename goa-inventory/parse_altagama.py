@@ -6,15 +6,22 @@ una fila por producto y una columna por periodo, con las UNIDADES VENDIDAS de
 cada periodo. No trae precios, clientes, órdenes, inventario ni fechas de
 transacción, así que el análisis se limita al sell-through EN UNIDADES.
 
-Estructura del Excel (`GOA_CM Sell Through Data_2026_YTD.xlsx`, hoja Sheet1):
-  - Fila 1: `Products` | un encabezado por periodo. Los meses completos vienen
-    como fecha (Excel interpreta "Jan 26" → 2026-01-26: el 26 es el AÑO), y el
-    periodo parcial como texto libre ("Jul 1 - 25, 26").
-  - Una fila por producto, con el formato `"<SKU> (<Nombre>)"` — el mismo SKU y
-    el mismo nombre que traen los snapshots de inventario de Alta Gama, así que
-    la homologación es exacta y no necesita heurísticas.
-  - Última fila `TOTAL`: NO se importa como producto; se usa solo para validar
-    los totales recalculados desde las filas de producto.
+Estructura del Excel (hoja Sheet1; la posición de la tabla cambia entre envíos):
+  - Una fila de encabezado con un periodo por columna. Los meses completos
+    vienen como fecha (Excel interpreta "Jan 26" → 2026-01-26: el 26 es el AÑO)
+    o como texto ("Jul 26"), y el periodo parcial como texto libre
+    ("Jul 1 - 25, 26"). Puede haber una columna `TOTAL` por fila (se usa para
+    validar) y filas sin cifras como `Qty` o `Products` (se ignoran).
+  - Una fila por producto, con el formato `"<SKU> (<Nombre>)"`. Solo se
+    importan los SKU `GA …`: desde jul–oct 2026 Alta Gama mezcla en el mismo
+    archivo Kombuchacha y El Charrua.
+  - Fila de total (`TOTAL` o `Total Inventory`, que pese al nombre suma
+    ventas): NO se importa como producto; solo valida el archivo.
+
+Varias fuentes: el script combina todos los Excel de la carpeta con el
+histórico `altagama-historico.json` (ene–jul 2026, reconstruido desde lo ya
+publicado). Cada mes lo aporta el archivo con el corte más reciente que lo
+traiga; ver `merge_sources`.
 
 Este script escribe `data-altagama.js` (objeto `altaGamaData`). Es
 independiente de `parse_excel.py` / `data.js` (Latin Foods): ni lee ni escribe
@@ -37,15 +44,18 @@ import openpyxl
 # ─────────────────────────────────────────────────────────────────────────────
 HERE = Path(__file__).parent
 SOURCE_DIR = HERE / "Inventarios-GOA-altagama"
-SOURCE_GLOB = "*Sell Through*.xlsx"
+SOURCE_GLOB = "*.xlsx"           # Alta Gama cambia el nombre en cada envío
+HISTORY_FILE = HERE / "altagama-historico.json"
 OUTPUT_FILE = HERE / "data-altagama.js"
 
 BRAND = "Garden of the Andes"
 DISTRIBUTOR = "Alta Gama"
 METRIC = "Unidades vendidas (sell-through en unidades)"
 
-TOTAL_LABEL = "TOTAL"          # fila de control, no es un producto
-PRODUCTS_HEADER = "Products"
+SKU_PREFIX = "GA "             # el resto de las filas son de otras marcas
+TOTAL_LABEL = "TOTAL"          # fila/columna de control, no es un producto
+TOTAL_LABELS = {"TOTAL", "TOTAL INVENTORY"}   # "Total Inventory" suma ventas, no stock
+SKIP_LABELS = {"PRODUCTS"}     # rótulo de sección, sin cifras
 
 MESES_ES = [
     "", "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -203,13 +213,12 @@ def pct(part, whole, digits=1):
 # ─────────────────────────────────────────────────────────────────────────────
 # Lectura
 # ─────────────────────────────────────────────────────────────────────────────
-def find_source(folder=SOURCE_DIR, pattern=SOURCE_GLOB):
-    """Excel de sell-through más reciente por nombre; ignora temporales (~$)."""
+def find_sources(folder=SOURCE_DIR, pattern=SOURCE_GLOB):
+    """Todos los Excel de la carpeta, por nombre; ignora temporales (~$)."""
     folder = Path(folder)
     if not folder.exists():
-        return None
-    matches = sorted(p for p in folder.glob(pattern) if not p.name.startswith("~$"))
-    return matches[-1] if matches else None
+        return []
+    return sorted(p for p in folder.glob(pattern) if not p.name.startswith("~$"))
 
 
 def read_sheet_rows(path):
@@ -219,52 +228,91 @@ def read_sheet_rows(path):
     return list(ws.iter_rows(values_only=True))
 
 
-def parse_sheet(rows):
-    """Filas crudas → (periodos, productos, fila TOTAL, incidencias).
+def locate_header(rows):
+    """Primera fila con al menos un encabezado de periodo → (índice, [(col, periodo)]).
 
-    La fila `TOTAL` se devuelve aparte: nunca entra como producto.
+    Alta Gama mueve la tabla de un envío a otro (la de 2026 YTD empezaba en A1;
+    la de jul–oct empieza en la columna E con una fila `Qty` debajo), así que no
+    se asume ninguna posición fija."""
+    for idx, row in enumerate(rows):
+        found = []
+        for col, cell in enumerate(row or ()):
+            if cell is None or clean_str(cell) == "":
+                continue
+            try:
+                found.append((col, parse_period_header(cell)))
+            except ValueError:
+                pass
+        if found:
+            return idx, found
+    raise RuntimeError("No se encontró ninguna fila con encabezados de periodo.")
+
+
+def row_label(row, first_period_col):
+    """Etiqueta de la fila: la última celda con texto a la izquierda de los periodos."""
+    for cell in reversed(row[:first_period_col]):
+        text = clean_str(cell)
+        if text:
+            return text
+    return ""
+
+
+def parse_sheet(rows):
+    """Filas crudas → fuente con periodos, productos GOA, filas ajenas y controles.
+
+    La fila de total se devuelve aparte (`totalRow`): nunca entra como producto.
+    Las filas que no son de Garden of the Andes (Alta Gama mezcla Kombuchacha y
+    El Charrua en el mismo archivo) van a `excluded` y no se importan.
     """
     if not rows:
         raise RuntimeError("La hoja está vacía.")
 
-    header = rows[0]
-    if clean_str(header[0]).lower() != PRODUCTS_HEADER.lower():
-        raise RuntimeError(
-            "Se esperaba %r en A1 y se encontró %r."
-            % (PRODUCTS_HEADER, clean_str(header[0])))
-
-    periods, columns = [], []
-    for idx, cell in enumerate(header[1:], start=1):
-        if cell is None or clean_str(cell) == "":
-            continue
-        periods.append(parse_period_header(cell))
-        columns.append(idx)
-
-    if not periods:
-        raise RuntimeError("No se reconoció ninguna columna de periodo.")
+    header_idx, period_cols = locate_header(rows)
+    header = rows[header_idx]
+    periods = [p for _, p in period_cols]
+    columns = [c for c, _ in period_cols]
+    first_col = columns[0]
+    total_col = next((c for c, cell in enumerate(header)
+                      if c > first_col and clean_str(cell).upper() == TOTAL_LABEL), None)
 
     keys = [p["key"] for p in periods]
     if len(set(keys)) != len(keys):
         raise RuntimeError("Periodos duplicados en el encabezado: %s" % keys)
 
-    products, total_row, issues = [], None, []
-    for row_no, row in enumerate(rows[1:], start=2):
-        raw = clean_str(row[0]) if row else ""
-        if not raw:
+    products, excluded, total_row, issues = [], [], None, []
+    all_rows = {k: 0 for k in keys}        # todas las filas, para cuadrar con el total
+    for row_no, row in enumerate(rows[header_idx + 1:], start=header_idx + 2):
+        row = list(row or ())
+        raw = row_label(row, first_col)
+        if not raw or raw.upper() in SKIP_LABELS:
             continue
 
-        values = {}
+        values, reasons = {}, []
         for key, col in zip(keys, columns):
             value, reason = units(row[col] if col < len(row) else None)
             values[key] = value
             if reason:
-                issues.append("fila %d (%s) · %s: celda %s" % (row_no, raw, key, reason))
+                reasons.append("fila %d (%s) · %s: celda %s" % (row_no, raw, key, reason))
 
-        if raw.upper() == TOTAL_LABEL:
+        if raw.upper() in TOTAL_LABELS:
             total_row = values
             continue
 
+        for key in keys:
+            all_rows[key] += values[key] or 0
+
         sku, name = split_product(raw)
+        if not (sku and sku.startswith(SKU_PREFIX)):
+            excluded.append({"label": raw, "units": sum_units(values.values())})
+            continue
+
+        issues.extend(reasons)
+        if total_col is not None:
+            expected, _ = units(row[total_col] if total_col < len(row) else None)
+            if expected is not None and expected != sum_units(values.values()):
+                issues.append("fila %d (%s): la columna TOTAL dice %d y los periodos suman %d"
+                              % (row_no, raw, expected, sum_units(values.values())))
+
         products.append({
             "sku": sku,
             "name": name,
@@ -273,9 +321,9 @@ def parse_sheet(rows):
         })
 
     if not products:
-        raise RuntimeError("No se encontró ninguna fila de producto.")
+        raise RuntimeError("No se encontró ninguna fila de producto de %s." % BRAND)
 
-    skus = [p["sku"] for p in products if p["sku"]]
+    skus = [p["sku"] for p in products]
     dup = sorted({s for s in skus if skus.count(s) > 1})
     if dup:
         raise RuntimeError("SKU duplicados en el Excel: %s" % dup)
@@ -285,7 +333,55 @@ def parse_sheet(rows):
     if dup_names:
         raise RuntimeError("Productos duplicados por nombre: %s" % dup_names)
 
-    return periods, products, total_row, issues
+    return {
+        "periods": periods,
+        "products": products,
+        "excluded": excluded,
+        "totalRow": total_row,
+        "allRows": all_rows,
+        "issues": issues,
+    }
+
+
+def load_excel(path):
+    source = parse_sheet(read_sheet_rows(path))
+    source["name"] = Path(path).name
+    return source
+
+
+def period_from_range(start, end):
+    """'2026-07-01', '2026-07-25' → periodo completo o parcial."""
+    y, m, d_from = (int(x) for x in start.split("-"))
+    d_to = int(end.split("-")[2])
+    if d_from == 1 and d_to == calendar.monthrange(y, m)[1]:
+        return full_month_period(y, m)
+    return partial_period(y, m, d_from, d_to)
+
+
+def load_history(path=HISTORY_FILE):
+    """Histórico ya publicado (JSON del repo) → fuente con la misma forma que un Excel.
+
+    Existe porque el Excel 2026 YTD original se perdió: ene–jul se reconstruyeron
+    desde el `data-altagama.js` publicado. Siempre es la fuente de menor prioridad."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    periods = [period_from_range(p["start"], p["end"]) for p in raw["periods"]]
+    keys = [p["key"] for p in periods]
+    products = [{"sku": p["sku"], "name": p["name"],
+                 "shortName": short_name(p["name"], p["sku"]),
+                 "byPeriod": {k: p["byPeriod"].get(k) for k in keys}}
+                for p in raw["products"]]
+    return {
+        "name": raw["source"] + " (histórico)",
+        "periods": periods,
+        "products": products,
+        "excluded": [],
+        "totalRow": raw.get("totalRow"),
+        "allRows": {k: sum_units(p["byPeriod"][k] for p in products) for k in keys},
+        "issues": [],
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -296,9 +392,93 @@ def sum_units(values):
     return sum(v for v in values if v is not None)
 
 
-def build_report(path):
-    rows = read_sheet_rows(path)
-    periods, products, total_row, issues = parse_sheet(rows)
+def cutoff(source):
+    return max(p["end"] for p in source["periods"])
+
+
+def merge_sources(sources):
+    """Combina varias fuentes por periodo: cada mes lo aporta la fuente con el
+    corte más reciente que lo traiga (el histórico siempre pierde).
+
+    Así un mes parcial (jul 1–25) queda reemplazado por el mes completo cuando
+    llega, y un reporte de Alta Gama que solo trae los últimos meses no borra
+    los anteriores. Cada reemplazo queda registrado en `overrides`; si un
+    producto BAJA al reemplazar un parcial, o un mes completo cambia de cifra,
+    se anota como incidencia."""
+    ordered = sorted(sources, key=lambda s: (not s["name"].endswith("(histórico)"), cutoff(s)))
+    winner, overrides, issues = {}, [], []
+    for src in ordered:
+        issues.extend("%s · %s" % (src["name"], i) for i in src["issues"])
+        for period in src["periods"]:
+            key = period["key"]
+            prev = winner.get(key)
+            winner[key] = (src, period)
+            if prev is None:
+                continue
+            old_src, old_period = prev
+            old_vals = {p["sku"]: p["byPeriod"][key] for p in old_src["products"]}
+            new_vals = {p["sku"]: p["byPeriod"][key] for p in src["products"]}
+            overrides.append({
+                "key": key, "from": old_src["name"], "to": src["name"],
+                "before": sum_units(old_vals.values()),
+                "after": sum_units(new_vals.values()),
+                "partialBefore": old_period["partial"], "partialAfter": period["partial"],
+            })
+            for sku, old in old_vals.items():
+                new = new_vals.get(sku)
+                if old is None or new is None or old == new:
+                    continue
+                if old_period["partial"] and old_period["end"] < period["end"]:
+                    if new < old:
+                        issues.append("%s · %s: %s bajó de %d a %d al completar el mes"
+                                      % (src["name"], key, sku, old, new))
+                else:
+                    issues.append("%s · %s: %s reexpresado de %d a %d"
+                                  % (src["name"], key, sku, old, new))
+
+    keys = sorted(winner)
+    periods = [dict(winner[k][1]) for k in keys]
+
+    # Productos: unión de los SKU de las fuentes ganadoras. El nombre sale de la
+    # fuente más reciente que lo menciona.
+    catalog = {}
+    for k in keys:
+        for p in winner[k][0]["products"]:
+            catalog[p["sku"]] = {"sku": p["sku"], "name": p["name"], "shortName": p["shortName"]}
+    products = []
+    for sku, base in catalog.items():
+        by_period = {}
+        for k in keys:
+            src = winner[k][0]
+            row = next((p for p in src["products"] if p["sku"] == sku), None)
+            by_period[k] = None if row is None else row["byPeriod"][k]
+            if row is None:
+                issues.append("%s · %s: %s no aparece en el archivo (queda n/d)"
+                              % (src["name"], k, sku))
+        products.append(dict(base, byPeriod=by_period))
+
+    used = []
+    for src in ordered:
+        mine = [k for k in keys if winner[k][0] is src]
+        if mine:
+            used.append({"file": src["name"], "periods": mine})
+
+    latest = ordered[-1]
+    return {
+        "periods": periods,
+        "products": products,
+        "winner": {k: winner[k][0] for k in keys},
+        "sources": used,
+        "latest": latest["name"],
+        "excluded": [dict(e, file=latest["name"]) for e in latest["excluded"]],
+        "overrides": overrides,
+        "issues": issues,
+    }
+
+
+def build_report(sources):
+    merged = merge_sources(sources)
+    periods, products, issues = merged["periods"], merged["products"], merged["issues"]
 
     keys = [p["key"] for p in periods]
     full_keys = [p["key"] for p in periods if not p["partial"]]
@@ -308,14 +488,19 @@ def build_report(path):
     for period in periods:
         period["units"] = sum_units(p["byPeriod"][period["key"]] for p in products)
 
-    # Validación contra la fila TOTAL del Excel
+    # Validación contra la fila de total del archivo que aporta cada periodo. Se
+    # compara con TODAS sus filas (también las ajenas a GOA, que el total suma);
+    # si el archivo no trae fila de total, el periodo queda sin control (ok=None).
     checks, all_match = [], True
     for period in periods:
-        expected = (total_row or {}).get(period["key"])
-        ok = expected is not None and expected == period["units"]
-        all_match = all_match and ok
-        checks.append({"key": period["key"], "label": period["label"],
-                       "excelTotal": expected, "computed": period["units"], "ok": ok})
+        src = merged["winner"][period["key"]]
+        expected = (src["totalRow"] or {}).get(period["key"])
+        computed = src["allRows"][period["key"]]
+        ok = None if expected is None else expected == computed
+        all_match = all_match and ok is not False
+        checks.append({"key": period["key"], "label": period["label"], "source": src["name"],
+                       "excelTotal": expected, "computed": computed, "ok": ok,
+                       "mixedBrands": bool(src["excluded"])})
 
     grand_total = sum(p["units"] for p in periods)
     total_full = sum(p["units"] for p in periods if not p["partial"])
@@ -373,7 +558,7 @@ def build_report(path):
         }
     else:
         partial_note = None
-    july_note = partial_note["note"] if partial_note else \
+    cutoff_note = partial_note["note"] if partial_note else \
         "Todos los periodos del reporte son meses completos."
 
     return {
@@ -381,7 +566,8 @@ def build_report(path):
             "brand": BRAND,
             "distributor": DISTRIBUTOR,
             "metric": METRIC,
-            "source": path.name,
+            "source": merged["latest"],
+            "sources": merged["sources"],
             "periodStart": period_start,
             "periodEnd": period_end,
             "periodLabel": period_label,
@@ -391,12 +577,13 @@ def build_report(path):
             "notes": [
                 "Alta Gama proporciona información de sell-through en unidades. "
                 "El reporte no incluye precios ni valores monetarios.",
-                july_note,
+                cutoff_note,
             ],
             "validation": {
-                "totalRowPresent": total_row is not None,
+                "totalRowPresent": all(c["excelTotal"] is not None for c in checks),
                 "allMatch": all_match,
                 "checks": checks,
+                "overrides": merged["overrides"],
                 "issues": issues,
             },
         },
@@ -436,32 +623,55 @@ def build_report(path):
 
 
 def main():
-    path = find_source()
-    if path is None:
-        raise SystemExit("✗ No se encontró ningún '%s' en %s." % (SOURCE_GLOB, SOURCE_DIR))
+    paths = find_sources()
+    history = load_history()
+    if not paths and history is None:
+        raise SystemExit("✗ No se encontró ningún '%s' en %s ni el histórico %s."
+                         % (SOURCE_GLOB, SOURCE_DIR, HISTORY_FILE.name))
 
-    report = build_report(path)
-    js = "const altaGamaData = " + json.dumps(report, indent=2, ensure_ascii=False) + ";\n"
-    OUTPUT_FILE.write_text(js, encoding="utf-8")
+    sources = ([history] if history else []) + [load_excel(p) for p in paths]
+    report = build_report(sources)
+    excluded = merge_sources(sources)["excluded"]
 
     m, t, v = report["meta"], report["totals"], report["meta"]["validation"]
     print("✓ data-altagama.js generado")
     print("  Distribuidor: %s" % m["distributor"])
-    print("  Fuente:       %s" % m["source"])
+    print("  Fuentes:")
+    for s in m["sources"]:
+        print("    · %s → %s" % (s["file"], ", ".join(s["periods"])))
     print("  Periodo:      %s (%s → %s)" % (m["periodLabel"], m["periodStart"], m["periodEnd"]))
     print("  Productos:    %d   Periodos: %d (%d completos + %d parcial)"
           % (t["products"], t["periods"], t["fullMonths"], t["partialPeriods"]))
     print("  Unidades:     %d total · %d en meses completos"
           % (t["units"], t["unitsFullMonths"]))
     for c in v["checks"]:
-        print("    %s %s: calculado %s · Excel TOTAL %s"
-              % ("✓" if c["ok"] else "✗", c["key"], c["computed"], c["excelTotal"]))
+        mark = {True: "✓", False: "✗", None: "·"}[c["ok"]]
+        print("    %s %s: GOA %s · archivo %s (fila total %s)"
+              % (mark, c["key"], next(p["units"] for p in report["periods"] if p["key"] == c["key"]),
+                 c["computed"], "sin fila" if c["excelTotal"] is None else c["excelTotal"]))
     if not v["allMatch"]:
-        print("  ⚠ Los totales calculados NO cuadran con la fila TOTAL del Excel.")
+        print("  ⚠ Algún total calculado NO cuadra con la fila de total del Excel.")
+    for o in v["overrides"]:
+        print("  ↻ %s: %s (%d u.) reemplazado por %s (%d u.)"
+              % (o["key"], o["from"], o["before"], o["to"], o["after"]))
+    if excluded:
+        # Solo consola: data-altagama.js es público y lo ve GOA; las ventas de
+        # otras marcas no se publican ahí.
+        print("  Filas ajenas a %s (no se importan ni se publican):" % BRAND)
+        for e in excluded:
+            print("    · %s — %d u." % (e["label"], e["units"]))
     if v["issues"]:
-        print("  ⚠ Celdas no utilizables (tratadas como dato no disponible):")
+        print("  ⚠ Incidencias:")
         for i in v["issues"]:
             print("    · %s" % i)
+
+    # Si el archivo mezcla marcas, sus totales incluyen ventas ajenas a GOA:
+    # se quedan en la consola y en el JSON solo va si cuadró.
+    for check in v["checks"]:
+        if check.pop("mixedBrands"):
+            check["excelTotal"] = check["computed"] = None
+    js = "const altaGamaData = " + json.dumps(report, indent=2, ensure_ascii=False) + ";\n"
+    OUTPUT_FILE.write_text(js, encoding="utf-8")
 
 
 if __name__ == "__main__":

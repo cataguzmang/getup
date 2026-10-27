@@ -1,0 +1,143 @@
+{
+  "_nota": "Histórico ene–jul 2026 de Alta Gama, reconstruido desde data-altagama.js (commit eba9408) porque el Excel original (GOA_CM Sell Through Data_2026_YTD.xlsx) ya no está en la carpeta privada. Mismos números que se publicaron. Es la fuente de menor prioridad: cualquier Excel que traiga el mismo mes lo reemplaza.",
+  "source": "GOA_CM Sell Through Data_2026_YTD.xlsx",
+  "periods": [
+    {
+      "key": "2026-01",
+      "start": "2026-01-01",
+      "end": "2026-01-31"
+    },
+    {
+      "key": "2026-02",
+      "start": "2026-02-01",
+      "end": "2026-02-28"
+    },
+    {
+      "key": "2026-03",
+      "start": "2026-03-01",
+      "end": "2026-03-31"
+    },
+    {
+      "key": "2026-04",
+      "start": "2026-04-01",
+      "end": "2026-04-30"
+    },
+    {
+      "key": "2026-05",
+      "start": "2026-05-01",
+      "end": "2026-05-31"
+    },
+    {
+      "key": "2026-06",
+      "start": "2026-06-01",
+      "end": "2026-06-30"
+    },
+    {
+      "key": "2026-07",
+      "start": "2026-07-01",
+      "end": "2026-07-25"
+    }
+  ],
+  "products": [
+    {
+      "sku": "GA Green Tea 1.4oz",
+      "name": "Garden of the Andes - Green Tea 1.4oz",
+      "byPeriod": {
+        "2026-01": 138,
+        "2026-02": 144,
+        "2026-03": 72,
+        "2026-04": 114,
+        "2026-05": 72,
+        "2026-06": 66,
+        "2026-07": 54
+      }
+    },
+    {
+      "sku": "GA Roseship & Hibiscus 1.8oz",
+      "name": "Garden of the Andes - Roseship and Hibiscus 1.8oz",
+      "byPeriod": {
+        "2026-01": 42,
+        "2026-02": 102,
+        "2026-03": 132,
+        "2026-04": 66,
+        "2026-05": 36,
+        "2026-06": 84,
+        "2026-07": 60
+      }
+    },
+    {
+      "sku": "GA Ginger Lemongrass 1.4oz",
+      "name": "Garden of the Andes - Ginger Lemongrass 1.4oz",
+      "byPeriod": {
+        "2026-01": 108,
+        "2026-02": 84,
+        "2026-03": 114,
+        "2026-04": 90,
+        "2026-05": 66,
+        "2026-06": 0,
+        "2026-07": 18
+      }
+    },
+    {
+      "sku": "GA Pure Peppermint 1oz",
+      "name": "Garden of the Andes - Pure Peppermint 1oz",
+      "byPeriod": {
+        "2026-01": 12,
+        "2026-02": 126,
+        "2026-03": 84,
+        "2026-04": 84,
+        "2026-05": 78,
+        "2026-06": 48,
+        "2026-07": 12
+      }
+    },
+    {
+      "sku": "GA Pure Chamomile 0.8oz",
+      "name": "Garden of the Andes - Pure Chamomile 0.8oz",
+      "byPeriod": {
+        "2026-01": 12,
+        "2026-02": 142,
+        "2026-03": 66,
+        "2026-04": 90,
+        "2026-05": 66,
+        "2026-06": 42,
+        "2026-07": 12
+      }
+    },
+    {
+      "sku": "GA Chai Tea 1.4oz",
+      "name": "Garden of the Andes - Chai Tea 1.4oz",
+      "byPeriod": {
+        "2026-01": 6,
+        "2026-02": 114,
+        "2026-03": 6,
+        "2026-04": 12,
+        "2026-05": 6,
+        "2026-06": 24,
+        "2026-07": 12
+      }
+    },
+    {
+      "sku": "GA Pure Ceylon Tea 1.4oz",
+      "name": "Garden of the Andes - Pure Ceylon Tea 1.4oz",
+      "byPeriod": {
+        "2026-01": 12,
+        "2026-02": 36,
+        "2026-03": 0,
+        "2026-04": 0,
+        "2026-05": 0,
+        "2026-06": 0,
+        "2026-07": 0
+      }
+    }
+  ],
+  "totalRow": {
+    "2026-01": 330,
+    "2026-02": 748,
+    "2026-03": 474,
+    "2026-04": 456,
+    "2026-05": 324,
+    "2026-06": 264,
+    "2026-07": 168
+  }
+}

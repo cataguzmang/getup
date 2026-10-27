@@ -13,7 +13,7 @@ equivalentes.
 | Pestaña | Distribuidor | Fuente | Generador | Datos | Métricas |
 |---|---|---|---|---|---|
 | Latin Foods | LatinFood US Corp | `fuentes/*.xlsx` | `parse_excel.py` → `data.js` | Export transaccional | Unidades, **ingresos**, órdenes, clientes, vendedores, incentivos |
-| Alta Gama | Alta Gama | `Inventarios-GOA-altagama/GOA_CM Sell Through Data_*.xlsx` | `parse_altagama.py` → `data-altagama.js` | Unidades vendidas por producto y mes | **Solo unidades** |
+| Alta Gama | Alta Gama | `Inventarios-GOA-altagama/*.xlsx` + `altagama-historico.json` | `parse_altagama.py` → `data-altagama.js` | Unidades vendidas por producto y mes | **Solo unidades** |
 
 Cada pestaña lee su propio archivo de datos y lleva su propio filtro de periodo;
 un filtro nunca altera la otra sección. Si falta `data-altagama.js`, las
@@ -55,20 +55,28 @@ cada línea. El bloque de incentivos es opcional.
 
 ## Actualizar los datos de Alta Gama
 
-Alta Gama entrega un único Excel acumulado del año (`GOA_CM Sell Through
-Data_<AÑO>_YTD.xlsx`): una fila por producto y una columna por periodo con las
-**unidades vendidas**. No trae precios, clientes, órdenes ni inventario.
+Alta Gama manda, cuando manda, un Excel con una fila por producto y una columna
+por mes con las **unidades vendidas**. No trae precios, clientes, órdenes ni
+inventario, y el formato cambia de un envío a otro (nombre del archivo, posición
+de la tabla, meses que cubre, otras marcas mezcladas). El script se adapta solo.
 
 1. Deja el Excel nuevo en `Inventarios-GOA-altagama/` (carpeta privada, entera
-   en `.gitignore`). Reemplaza al anterior: es acumulado, no incremental.
+   en `.gitignore`). **No borres los anteriores**: el script los combina.
 2. Ejecuta: `python parse_altagama.py`
-   - Reconstruye `data-altagama.js` completo desde ese único archivo (por eso
-     no puede haber duplicados).
-   - Recalcula los totales desde las filas de producto y los compara con la
-     fila `TOTAL` del Excel; imprime ✓/✗ por periodo. **Si sale ✗, no publiques:
-     revisa el Excel primero.** Esta validación es interna: vive en la consola,
-     no en el dashboard.
-   - La última columna puede ser un periodo parcial (`Jul 1 - 25, 26`); se
+   - Combina el histórico `altagama-historico.json` (ene–jun 2026, reconstruido
+     desde lo ya publicado porque el Excel YTD original se perdió) con todos los
+     Excel de la carpeta. **Cada mes lo aporta el archivo con el corte más
+     reciente que lo traiga**: así un mes parcial (`Jul 1 - 25`) se reemplaza
+     por el completo cuando llega. Cada reemplazo se imprime (`↻`).
+   - Solo importa los SKU `GA …`. Las filas de otras marcas (Kombuchacha, El
+     Charrua) se listan en la consola y **no** entran ni se publican.
+   - Valida contra la fila de total del archivo (`TOTAL` o `Total Inventory`,
+     que pese al nombre suma ventas) y contra la columna `TOTAL` de cada fila
+     cuando existen; imprime ✓/✗ por periodo (`·` si el archivo no trae total).
+     Si sale ✗ o aparecen incidencias (`⚠`), **no publiques**: revisa el Excel.
+     Un producto que *baja* al completar un mes parcial, o un mes completo que
+     cambia de cifra, también es incidencia.
+   - La última columna puede ser un periodo parcial (`Oct 1 - 26, 26`); se
      detecta solo y genera el aviso de `meta.partialNote`.
 3. Sube `data-altagama.js` al repo (el Excel no se sube).
 
@@ -123,6 +131,7 @@ pip install openpyxl
 | `parse_excel.py` | Extrae y agrega el Excel de Latin Foods → `data.js` |
 | `data.js` | Datos de Latin Foods consumidos por el dashboard (`reportData`) |
 | `Inventarios-GOA-altagama/` | Carpeta local con los archivos de Alta Gama (no se sube al repo) |
+| `altagama-historico.json` | Ene–jun 2026 de Alta Gama, reconstruido desde lo publicado (el Excel original se perdió) |
 | `parse_altagama.py` | Extrae y valida el sell-through de Alta Gama → `data-altagama.js` |
 | `data-altagama.js` | Datos de Alta Gama consumidos por el dashboard (`altaGamaData`) |
 | `dashboard.html` | Dashboard con las dos pestañas (HTML + Chart.js, sin build) |
