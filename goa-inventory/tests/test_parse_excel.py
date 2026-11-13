@@ -228,3 +228,57 @@ def test_archivo_corrupto_no_levanta_excepcion(tmp_path, monkeypatch):
     # El archivo corrupto NO aparece en meta["sources"]
     assert "bad.xlsx" not in report["meta"]["sources"]
     assert "feb.xlsx" in report["meta"]["sources"]
+
+
+def test_empalme_usa_general_anterior_para_clientes_por_vendedor(tmp_path, monkeypatch):
+    """Sin las fuentes viejas (otro computador), el mes nuevo se combina con la
+    vista general del data.js anterior: los clientes distintos por vendedor del
+    histórico no se re-suman mes a mes."""
+    dt = datetime.datetime
+    folder = tmp_path / "fuentes"
+    folder.mkdir()
+    output = tmp_path / "data.js"
+    monkeypatch.setattr(pe, "SOURCES_DIR", folder)
+    monkeypatch.setattr(pe, "OUTPUT_FILE", output)
+
+    # Histórico: Ana vende a Tienda A en feb y en mar (1 cliente distinto)
+    make_xlsx(folder / "feb.xlsx", [HEADER,
+        line(dt(2026, 2, 2), "S1", "[GOA01] Green Tea", "Tienda A", "Ana")])
+    make_xlsx(folder / "mar.xlsx", [HEADER,
+        line(dt(2026, 3, 2), "S2", "[GOA01] Green Tea", "Tienda A", "Ana")])
+    pe.main()
+    (folder / "feb.xlsx").unlink()
+    (folder / "mar.xlsx").unlink()
+
+    # Mes nuevo: Ana vuelve a Tienda A y abre Tienda B; Luis (nuevo) vende a Tienda A
+    make_xlsx(folder / "abr.xlsx", [HEADER,
+        line(dt(2026, 4, 2), "S3", "[GOA02] Pure Chamoline", "Tienda B", "Ana"),
+        line(dt(2026, 4, 3), "S4", "[GOA02] Pure Chamoline", "Tienda A", "Ana"),
+        line(dt(2026, 4, 4), "S5", "[GOA01] Green Tea", "Tienda A", "Luis")])
+    report = pe.build_report()
+
+    assert report["meta"]["carriedForward"] == ["2026-02", "2026-03"]
+    ana = next(s for s in report["salespeople"] if s["name"] == "Ana")
+    assert ana["customers"] == 2          # Tienda A (histórico, una vez) + Tienda B
+    assert ana["orders"] == 4
+    luis = next(s for s in report["salespeople"] if s["name"] == "Luis")
+    assert luis["customers"] == 1         # vendedor nuevo: cuenta todos sus clientes
+    assert report["totals"]["customers"] == 2
+    assert report["meta"]["lineItems"] == 5
+    assert report["meta"]["sources"] == ["abr.xlsx", "feb.xlsx", "mar.xlsx"]
+
+
+def test_incentivos_layout_vendedor_oct_2026():
+    rows = [
+        [None] * 5 + ["Vendedor", "Punto de venta Nvo", "Vendidos", "Gratis", "Bono x Punto Nvo"],
+        [None] * 5 + ["Daniela Davila", None, None, None, 0],
+        [None] * 5 + ["Katherine Osorio", 2, 23, 4, 20],
+        [None] * 5 + ["Luis Soler", 2, 13, None, 20],
+        [None] * 5 + ["Mireya Fernandez", 1, 4, None, 10],
+        [None] * 5 + ["Luz Alba", 1, 4, None, 10],
+        [None] * 5 + ["Total", 6, 44, 4, 60],
+    ]
+    inc = pe.parse_incentives(rows)
+    assert inc["freeUnitsBySalesperson"] == [{"name": "Katherine Osorio", "free": 4}]
+    assert inc["costItems"] == [{"label": "Bono por punto de venta nuevo (6 puntos)", "amount": 60.0}]
+    assert inc["totalDescuentos"] == 60.0

@@ -178,3 +178,33 @@ def test_layout_legacy_no_se_confunde_con_matriz(tmp_path, monkeypatch):
     fl = g.load_incentivos()[(2026, 6)]["Florida"]
     assert round(fl["totalDescuentos"], 2) == 628.68
     assert fl["soldReportado"]["Lina Raquel"] == 50
+
+
+def test_matriz_cajas_del_descuento_salen_de_total_units_free(tmp_path, monkeypatch):
+    """Oct-2026 Florida: 'Units FREE' (14 regaladas) ya no es igual a 'Total Units
+    FREE' (6 descontadas). Las cajas de cada descuento son las de Total Units FREE;
+    el FREE reportado sigue siendo el de Units FREE (para el cross-check)."""
+    fuentes = tmp_path / "fuentes"
+    fuentes.mkdir()
+    rows = [canon_row(D(2026, 10, 7), "S1", "[GET01] Jack Mackerel in Brine",
+                      "Key Food", "Raquel L", "LatinFood Florida", 25, 45.6, 1140)]
+    block = [
+        _pad(["__INCENTIVOS__", "Florida"]),
+        [None] * 5 + [D(2026, 10, 1), "SOLD", None, "Units FREE", None,
+                      "Total Units FREE", None, None, None],
+        [None] * 6 + ["Brine", "Tomato"] * 4,
+        [None] * 5 + ["Alexandra", 30, 5, 3, None, 3, 0, 88.68, 0],
+        [None] * 5 + ["Angela", 5, 1, None, None, None, None, None, None],
+        [None] * 5 + ["Raquel", 39, 8, 8, 3, 1, 2, 29.56, 60],
+        [None] * 5 + ["Total", 74, 14, 11, 3, 4, 2, 118.24, 60],
+    ]
+    make_canonical(fuentes / "San-Jose-2026-10.xlsx", rows + block)
+    monkeypatch.setattr(g, "SOURCES_DIR", fuentes)
+    fl = g.load_incentivos()[(2026, 10)]["Florida"]
+    assert fl["descuentos"] == [
+        {"product": "In Brine", "cases": 3, "amount": 88.68},
+        {"product": "In Brine", "cases": 1, "amount": 29.56},
+        {"product": "Tomate", "cases": 2, "amount": 60.0},
+    ]
+    assert fl["totalDescuentos"] == 178.24
+    assert fl["freeReportado"] == {"Alexandra": 3, "Raquel": 11}

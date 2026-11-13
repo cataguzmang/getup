@@ -296,6 +296,8 @@ def test_archivos_reales_cuadran_y_no_dejan_incidencias():
     report = pa.build_report(sources)
     v = report["meta"]["validation"]
     assert v["allMatch"] is True
-    assert v["issues"] == []
+    # Un reporte nuevo de Alta Gama puede reexpresar meses cerrados (nov-2026:
+    # ago 317→324, sep 474→486): eso es dato, no error. Nada más se tolera.
+    assert [i for i in v["issues"] if "reexpresado" not in i] == []
     assert report["totals"]["units"] == sum(p["units"] for p in report["periods"])
     assert all(p["sku"].startswith(pa.SKU_PREFIX) for p in report["products"])

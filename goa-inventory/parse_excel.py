@@ -329,6 +329,10 @@ def parse_incentives(rows):
     Es defensivo a propósito: si el bloque cambia o falta, devuelve listas
     vacías en vez de romper el pipeline.
     """
+    bono = _parse_incentives_vendedor(rows)
+    if bono is not None:
+        return bono
+
     free_by_sp = []
     cost_items = []
     total_descuentos = 0.0
@@ -373,6 +377,59 @@ def parse_incentives(rows):
         "freeUnitsBySalesperson": free_by_sp,
         "costItems": cost_items,
         "totalDescuentos": total_descuentos,
+    }
+
+
+def _parse_incentives_vendedor(rows):
+    """Layout de oct-2026: encabezado 'Vendedor | Punto de venta Nvo | Vendidos |
+    Gratis | Bono x Punto Nvo' (en cualquier columna), una fila por vendedor y
+    una fila 'Total'. None si el bloque no tiene esta forma.
+
+    - Gratis            -> cajas gratis por vendedor
+    - Bono x Punto Nvo  -> un solo ítem de costo con la suma (y los puntos nuevos)
+    """
+    hdr_i, cols = None, {}
+    for i, row in enumerate(rows):
+        labels = {clean_str(c).upper(): j for j, c in enumerate(row) if isinstance(c, str)}
+        if "VENDEDOR" in labels and ("GRATIS" in labels or "VENDIDOS" in labels):
+            hdr_i, cols = i, labels
+            break
+    if hdr_i is None:
+        return None
+
+    def col_like(*keys):
+        for label, j in cols.items():
+            if all(k in label for k in keys):
+                return j
+        return None
+
+    c_name = cols["VENDEDOR"]
+    c_free = col_like("GRATIS")
+    c_bono = col_like("BONO")
+    c_nuevos = col_like("PUNTO", "VENTA")
+
+    def val(row, c):
+        return num(row[c]) if c is not None and c < len(row) else 0
+
+    free_by_sp, bono_total, nuevos = [], 0.0, 0
+    for row in rows[hdr_i + 1:]:
+        name = clean_str(row[c_name]) if c_name < len(row) else ""
+        if not name or name.upper() == "TOTAL":
+            continue
+        if val(row, c_free) > 0:
+            free_by_sp.append({"name": name, "free": int(val(row, c_free))})
+        bono_total += val(row, c_bono)
+        nuevos += int(val(row, c_nuevos))
+    cost_items = []
+    if bono_total:
+        label = "Bono por punto de venta nuevo"
+        if nuevos:
+            label += f" ({nuevos} {'punto' if nuevos == 1 else 'puntos'})"
+        cost_items.append({"label": label, "amount": round(bono_total, 2)})
+    return {
+        "freeUnitsBySalesperson": free_by_sp,
+        "costItems": cost_items,
+        "totalDescuentos": round(bono_total, 2),
     }
 
 
@@ -540,6 +597,38 @@ def carry_forward(months, prev_report):
     return months, sorted(carried)
 
 
+def _fix_customers_per_salesperson(general, prev_general, lines):
+    """Clientes distintos por vendedor en el empalme. El data.js no guarda qué
+    vendedor atendió a qué cliente, así que un cliente repetido no se puede
+    descontar con certeza. Regla: a un vendedor que ya estaba se le suman sólo los
+    clientes nuevos para todo el histórico (los clientes suelen quedarse con su
+    vendedor; con septiembre 2026 reprodujo exacto lo publicado). Un vendedor
+    nuevo cuenta todos sus clientes."""
+    hist = {c["name"] for c in prev_general["customers"]}
+    prev_sp = {s["name"]: s["customers"] for s in prev_general["salespeople"]}
+    by_sp = {}
+    for ln in lines:
+        by_sp.setdefault(ln["salesperson"], set()).add(ln["customer"])
+    for s in general["salespeople"]:
+        new = by_sp.get(s["name"], set())
+        if s["name"] in prev_sp:
+            s["customers"] = prev_sp[s["name"]] + len(new - hist)
+        else:
+            s["customers"] = len(new)
+
+
+def _previous_general(prev, carried):
+    """Vista general del data.js anterior, si sirve como base del empalme: sus
+    meses son exactamente los conservados (las fuentes sólo traen meses nuevos).
+    None en cualquier otro caso (p.ej. se reprocesa un mes que ya estaba)."""
+    keys = ("totals", "products", "salespeople", "customers", "daily", "incentives")
+    if not prev or not all(k in prev for k in keys) or "meta" not in prev:
+        return None
+    if {m["key"] for m in prev.get("months", [])} != set(carried):
+        return None
+    return {k: prev[k] for k in keys}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Orquestación
 # ─────────────────────────────────────────────────────────────────────────────
@@ -554,13 +643,25 @@ def build_report():
 
     # Vista general: desde las líneas presentes; si hay meses conservados, se combinan.
     general = build_view(lines, merge_incentives(list(inc_by_month.values())))
+    line_items, all_sources = len(lines), sources
     if carried:
-        carried_views = [
-            {k: m[k] for k in ("totals", "products", "salespeople",
-                               "customers", "daily", "incentives")}
-            for m in months if m["key"] in carried
-        ]
-        general = merge_views([general] + carried_views)
+        prev_general = _previous_general(prev, carried)
+        if prev_general is not None:
+            # Las fuentes sólo traen meses nuevos y el data.js anterior cubre
+            # exactamente los conservados: su vista general ya trae los conteos
+            # distintos bien hechos para ese tramo, así que se combina con ella en
+            # vez de re-sumar mes a mes.
+            general = merge_views([prev_general, general])
+            _fix_customers_per_salesperson(general, prev_general, lines)
+            line_items += prev["meta"].get("lineItems", 0)
+            all_sources = sorted(set(prev["meta"].get("sources", [])) | set(sources))
+        else:
+            carried_views = [
+                {k: m[k] for k in ("totals", "products", "salespeople",
+                                   "customers", "daily", "incentives")}
+                for m in months if m["key"] in carried
+            ]
+            general = merge_views([general] + carried_views)
 
     period_start = min(m["periodStart"] for m in months)
     period_end = max(m["periodEnd"] for m in months)
@@ -574,8 +675,8 @@ def build_report():
             "periodStart": period_start,
             "periodEnd": period_end,
             "periodLabel": period_label,
-            "lineItems": len(lines),
-            "sources": sources,
+            "lineItems": line_items,
+            "sources": all_sources,
             "carriedForward": carried,
             "duplicateOrders": dup_orders,
         },

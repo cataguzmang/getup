@@ -266,6 +266,10 @@ def row_label(row, first_period_col):
     return ""
 
 
+class NoBrandRows(RuntimeError):
+    """El archivo no trae filas de la marca (Alta Gama a veces manda una sola)."""
+
+
 def parse_sheet(rows, sku_prefix, brand):
     """Filas crudas → fuente con periodos, productos GOA, filas ajenas y controles.
 
@@ -330,7 +334,7 @@ def parse_sheet(rows, sku_prefix, brand):
         })
 
     if not products:
-        raise RuntimeError("No se encontró ninguna fila de producto de %s." % brand)
+        raise NoBrandRows("No se encontró ninguna fila de producto de %s." % brand)
 
     skus = [p["sku"] for p in products]
     dup = sorted({s for s in skus if skus.count(s) > 1})
@@ -640,7 +644,16 @@ def run(brand, sku_prefix, output_file, history_file=None, source_dir=SOURCE_DIR
         raise SystemExit("✗ No se encontró ningún '%s' en %s ni histórico de %s."
                          % (SOURCE_GLOB, source_dir, brand))
 
-    sources = ([history] if history else []) + [load_excel(p, sku_prefix, brand) for p in paths]
+    sources = [history] if history else []
+    for p in paths:
+        try:
+            sources.append(load_excel(p, sku_prefix, brand))
+        except NoBrandRows:
+            # Un archivo de otra marca no puede ganarle meses a esta (dejaría
+            # todos sus productos en n/d): se ignora y se avisa.
+            print("  · %s no trae filas de %s: se ignora" % (Path(p).name, brand))
+    if not sources:
+        raise SystemExit("✗ Ningún archivo de %s trae filas de %s." % (source_dir, brand))
     report = build_report(sources, brand)
     excluded = merge_sources(sources)["excluded"]
 

@@ -53,7 +53,21 @@ Si reprocesas un mes ya archivado, el archivo viejo no se pisa: el nuevo entra c
 sufijo `-2`, `-3`, …
 
 Cada dashboard conserva su propio generador (`fuentes/ → data.js`); `split_excel.py` los
-llama al final. Ver el README de cada carpeta para el detalle de cada reporte.
+llama al final.
+
+### Computador sin el histórico de `fuentes/`
+
+Los `fuentes/*.xlsx` son privados y viven sólo en el computador donde se cargaron.
+Si en este computador faltan los meses anteriores, los generadores de **GOA** y
+**San José** conservan esos meses desde el `data.js` publicado y empalman sólo los
+meses nuevos (no se pierde nada). Reglas:
+
+- Corre con `--only GET,GOA` para no regenerar marcas cuyo histórico no está aquí.
+- No reproceses un mes que ya está publicado sin tener todo el histórico: San José
+  aborta con un mensaje en vez de duplicarlo.
+- En la vista general de GOA, "clientes por vendedor" del mes nuevo suma sólo los
+  clientes nuevos para todo el histórico (el `data.js` no guarda qué vendedor
+  atendió a qué cliente). Con septiembre 2026 reprodujo exacto lo publicado. Ver el README de cada carpeta para el detalle de cada reporte.
 
 ### Alta Gama (otro distribuidor, otro flujo)
 

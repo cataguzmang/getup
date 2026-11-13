@@ -73,6 +73,7 @@ def canonical_row(row, cols, state=None):
     Company crudo del distribuidor cambia de un mes a otro (o desaparece), pero
     la información viene en el nombre de la hoja. fuentes/ garantiza valores."""
     vals = [get(row, cols, f) for f in CANONICAL_FIELDS]
+    vals[COL_CUSTOMER] = clean_customer(vals[COL_CUSTOMER])
     if state in CANONICAL_COMPANY:
         vals[COL_COMPANY] = CANONICAL_COMPANY[state]
     return vals
@@ -106,6 +107,20 @@ BRAND_BY_SHEET_HINT = {
 
 
 # ── Helpers puros ─────────────────────────────────────────────────────────
+# Desde oct-2026 el distribuidor marca los puntos de venta nuevos en el nombre del
+# cliente ("Save A Lot - NUEVO!", "Casa Blanca - nuevo!"), a veces sólo en algunas
+# líneas del mismo pedido. La marca no es parte del nombre: si se deja, el mismo
+# cliente cuenta dos veces y la etiqueta llega al dashboard público.
+_NUEVO_SUFFIX_RE = re.compile(r"\s*(?:-\s*nuevo\s*!*|nuevo\s*!+)\s*$", re.I)
+
+
+def clean_customer(name):
+    """Quita la marca '- NUEVO!' del final del nombre del cliente."""
+    if not isinstance(name, str):
+        return name
+    return _NUEVO_SUFFIX_RE.sub("", name).rstrip()
+
+
 def sku_prefix(variant):
     """'[GOA02] Pure Chamoline' -> 'GOA'. None si no matchea o no es str."""
     if not isinstance(variant, str):
@@ -150,13 +165,23 @@ def brand_from_sheet_name(name):
     return None
 
 
-def find_incentive_block(rows):
-    """Filas del bloque de incentivos (desde el ancla 'SOLD' al final), o [].
+def _is_incentive_anchor(row):
+    """'SOLD' en alguna celda, o el encabezado del bloque GOA de oct-2026
+    ('Vendedor' + 'Gratis'/'Vendidos', sin 'SOLD')."""
+    cells = {c.strip().upper() for c in row if isinstance(c, str)}
+    if "SOLD" in cells:
+        return True
+    return "VENDEDOR" in cells and bool(cells & {"GRATIS", "VENDIDOS"})
 
-    Ancla: alguna celda de la fila == 'SOLD' (case-insensitive).
+
+def find_incentive_block(rows):
+    """Filas del bloque de incentivos (desde el ancla al final), o [].
+
+    Ancla: alguna celda de la fila == 'SOLD' (case-insensitive), o un encabezado
+    'Vendedor' + 'Gratis'/'Vendidos' (layout GOA desde oct-2026).
     """
     for i, row in enumerate(rows):
-        if any(isinstance(c, str) and c.strip().upper() == "SOLD" for c in row):
+        if _is_incentive_anchor(row):
             return [list(r) for r in rows[i:]]
     return []
 

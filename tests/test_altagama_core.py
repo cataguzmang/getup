@@ -46,3 +46,20 @@ def test_reporte_de_kombuchacha_los_ceros_cuentan(tmp_path):
     assert report["meta"]["brand"] == "Kombuchacha"
     assert [p["units"] for p in report["periods"]] == [0, 456, 24]
     assert report["highlights"]["bestMonth"]["key"] == "2026-08"
+
+
+def test_archivo_sin_filas_de_la_marca_se_ignora(tmp_path):
+    """Alta Gama a veces manda sólo una marca: el archivo de GOA no puede ganarle
+    meses a Kombuchacha (dejaría todo en n/d) ni botar su generación."""
+    import openpyxl
+    folder = tmp_path / "src"
+    folder.mkdir()
+    for name, rows in (("mixto.xlsx", ROWS), ("solo-goa.xlsx", ROWS[:4])):
+        wb = openpyxl.Workbook()
+        for r in rows:
+            wb.active.append(r)
+        wb.active.title = "Sheet1"
+        wb.save(folder / name)
+    report = core.run("Kombuchacha", KOM, tmp_path / "out.js", source_dir=folder)
+    assert [s["file"] for s in report["meta"]["sources"]] == ["mixto.xlsx"]
+    assert [p["units"] for p in report["periods"]] == [0, 456, 24]

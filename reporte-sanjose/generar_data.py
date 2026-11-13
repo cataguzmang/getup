@@ -269,7 +269,7 @@ def _group_kind(label):
     if "SOLD" in t:
         return "sold"
     if "FREE" in t and "TOTAL" in t:
-        return "free_total"      # redundante con FREE: se ignora
+        return "free_total"      # cajas que San José reintegra (ver _parse_matrix_segment)
     if "FREE" in t:
         return "free"
     if "DESCUENTO" in t or not t:
@@ -284,6 +284,12 @@ def _parse_matrix_segment(seg):
     sold_cols = [c for g in groups if _group_kind(g["label"]) == "sold" for c, _ in g["cols"]]
     free_cols = [cp for g in groups if _group_kind(g["label"]) == "free" for cp in g["cols"]]
     desc_cols = [cp for g in groups if _group_kind(g["label"]) == "desc" for cp in g["cols"]]
+    # "Total Units FREE": hasta sep-2026 repetía FREE; en oct-2026 Florida trajo
+    # FREE = cajas regaladas (14, calza con las transacciones) y Total Units FREE =
+    # cajas que se descuentan (6: 3+1 Brine × $29,56, 2 Tomato × $30). Las cajas
+    # de cada descuento salen de aquí cuando la columna existe.
+    free_total_cols = [cp for g in groups if _group_kind(g["label"]) == "free_total"
+                       for cp in g["cols"]]
 
     descuentos = []
     free_rep, sold_rep = {}, {}
@@ -311,6 +317,11 @@ def _parse_matrix_segment(seg):
                 free_by_prod[prod] = free_by_prod.get(prod, 0) + v
         if free_by_prod:
             free_rep[name] = int(round(sum(free_by_prod.values())))
+        free_total_by_prod = {}
+        for c, prod in free_total_cols:
+            v = _num(row[c]) if c < len(row) else None
+            if v is not None:
+                free_total_by_prod[prod] = free_total_by_prod.get(prod, 0) + v
         for c, prod in desc_cols:
             amount = _num(row[c]) if c < len(row) else None
             if not amount:
@@ -326,7 +337,8 @@ def _parse_matrix_segment(seg):
                     print(f"  ⚠ Descuento de {name} (${amount:.2f}) sin producto "
                           f"atribuible; se registra como 'Sin detalle'")
                     prod = "Sin detalle"
-            cases = int(round(free_by_prod.get(prod, 0)))
+            cases_src = free_total_by_prod if prod in free_total_by_prod else free_by_prod
+            cases = int(round(cases_src.get(prod, 0)))
             descuentos.append({"product": prod, "cases": cases, "amount": round(amount, 2)})
     total = round(sum(d["amount"] for d in descuentos), 2)
     return {
@@ -395,19 +407,27 @@ def _parse_incentive_segment(seg):
     }
 
 
-def new_customers_by_month(rows):
+def _norm_customer(name):
+    return re.sub(r"\s+", " ", str(name)).strip().lower()
+
+
+def new_customers_by_month(rows, known=None):
     """Clientes que aparecen por primera vez en cada mes (excluye el primer mes cargado,
-    que no tiene historia previa). Devuelve {(y,m): [{name, state, salesperson}]}."""
+    que no tiene historia previa). Devuelve {(y,m): [{name, state, salesperson}]}.
+
+    `known`: nombres de clientes del histórico conservado (empalme sin fuentes
+    viejas). Con él, el primer mes de las fuentes sí tiene historia previa: cuenta
+    como nuevo todo cliente que no esté en `known`."""
     months = sorted(set(month_key(r['date']) for r in rows))
     if not months:
         return {}
-    first_month = months[0]
-    def norm(name):
-        return re.sub(r"\s+", " ", str(name)).strip().lower()
+    first_month = months[0] if known is None else None
+    known = {_norm_customer(n) for n in (known or ())}
+    norm = _norm_customer
     first_seen = {}
     for r in sorted(rows, key=lambda r: r['date']):
         key = norm(r['customer'])
-        if key and key not in first_seen:
+        if key and key not in first_seen and key not in known:
             first_seen[key] = r
     out = {}
     for key, r in first_seen.items():
@@ -737,37 +757,225 @@ def find_product_first_months(rows, months):
     return prod_first
 
 
+# ── Empalme con el data.js anterior (meses sin fuentes) ─────────────────────
+# Las fuentes/ son privadas y viven sólo en el computador donde se cargaron. En
+# otro computador el histórico existe únicamente como el data.js publicado: en vez
+# de regenerar (y perder los meses viejos), los meses nuevos se empalman sobre él.
+# Todo lo de un mes es local a ese mes; lo que cruza meses (clientes nuevos,
+# vista "ALL") se combina con la vista ALL anterior.
+_MES_NUM = {v.lower(): k for k, v in MES_CORTO.items()}
+
+
+def load_previous_data(path):
+    """Constantes del data.js anterior ({'MONTHS_BTN': ..., 'D': ..., ...}) o None."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    out = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"const (\w+) = (.*);$", line)
+        if m:
+            try:
+                out[m.group(1)] = json.loads(m.group(2))
+            except ValueError:
+                return None
+    need = ("MONTHS_BTN", "PROD_FIRST_MONTH", "D", "GENERAL_DATA")
+    return out if all(k in out for k in need) else None
+
+
+def _ym_from_btn(label):
+    """'Oct 2025' -> (2025, 10)."""
+    mes, anio = label.split()
+    return (int(anio), _MES_NUM[mes.lower()])
+
+
+def _merge_all(prev, new, prev_months_views, new_sales):
+    """Vista ALL = ALL anterior (meses conservados) + ALL de los meses nuevos."""
+    def add(a, b, keys):
+        return {k: round(a.get(k, 0) + b.get(k, 0), 2) for k in keys}
+
+    keys = ('rev', 'cajas', 'pc', 'pv', 'ord', 'descuentos')
+    # Estados
+    states = {}
+    for st in list(prev['states']) + [s for s in new['states'] if s not in prev['states']]:
+        d = add(prev['states'].get(st, {}), new['states'].get(st, {}), keys)
+        d['cajas'], d['pc'], d['ord'] = int(d['cajas']), int(d['pc']), int(d['ord'])
+        d.update({
+            'revNeto': round(d['rev'] - d['descuentos'], 2),
+            'promoPct': _promo_pct(d['cajas'], d['pc']),
+            'roi': _roi(d['rev'], d['pv']),
+            'revPorCaja': _rev_por_caja(d['rev'], d['cajas'], d['pc']),
+        })
+        states[st] = d
+    # Resumen
+    sm = add(prev['summary'], new['summary'], keys + ('clientesNuevos',))
+    for k in ('cajas', 'pc', 'ord', 'clientesNuevos'):
+        sm[k] = int(sm[k])
+    paid = sm['cajas'] - sm['pc']
+    summary = {
+        'rev': sm['rev'], 'cajas': sm['cajas'], 'pc': sm['pc'], 'pv': sm['pv'],
+        'ord': sm['ord'],
+        'avg_price': round(sm['rev'] / paid, 2) if paid > 0 else 0,
+        'descuentos': sm['descuentos'],
+        'revNeto': round(sm['rev'] - sm['descuentos'], 2),
+        'clientesNuevos': sm['clientesNuevos'],
+        'promoPct': _promo_pct(sm['cajas'], sm['pc']),
+        'roi': _roi(sm['rev'], sm['pv']),
+        'revPorCaja': _rev_por_caja(sm['rev'], sm['cajas'], sm['pc']),
+        'pagadas': max(paid, 0),
+        'ticket': round(sm['rev'] / sm['ord'], 2) if sm['ord'] > 0 else 0.0,
+    }
+    # Clientes (la tabla trae a todos)
+    cust = {}
+    for c in prev['customerTable'] + new['customerTable']:
+        t = cust.setdefault(c['name'], {'name': c['name'], 'state': c['state'],
+                                        'revenue': 0.0, 'cajas': 0, 'promo_qty': 0})
+        t['state'] = c['state']          # el estado del último mes, como al regenerar
+        t['revenue'] = round(t['revenue'] + c['revenue'], 2)
+        t['cajas'] += c['cajas']
+        t['promo_qty'] += c['promo_qty']
+    customer_table = sorted(cust.values(), key=lambda c: -c['revenue'])
+    for c in customer_table:
+        c['promo_pct'] = round(c['promo_qty'] / c['cajas'] * 100, 1) if c['cajas'] else 0.0
+    customer_chart = [{'n': c['name'], 'v': c['revenue'],
+                       's': 'fl' if c['state'] == 'Florida' else 'ny'}
+                      for c in customer_table[:10]]
+    # Vendedores: el top-10 del ALL no trae a todos; cada mes sí (si tuvo < 10)
+    sales = defaultdict(float)
+    if all(len(v['salesChart']) < 10 for v in prev_months_views):
+        for v in prev_months_views:
+            for x in v['salesChart']:
+                sales[x['n']] += x['v']
+    else:
+        print("  ⚠ Algún mes conservado tiene ≥10 vendedores: el ranking ALL usa el "
+              "top-10 anterior (los de más abajo pueden faltar)")
+        for x in prev['salesChart']:
+            sales[x['n']] += x['v']
+    for n, v in new_sales.items():
+        sales[n] += v
+    sales_chart = [{'n': n, 'v': round(v, 2)}
+                   for n, v in sorted(sales.items(), key=lambda x: -x[1])[:10]]
+    # Productos: cajas promo exactas desde cada mes (el % redondeado del ALL no alcanza)
+    prods = {}
+    for v in prev_months_views + [new]:
+        for p in v['productsCards']:
+            t = prods.setdefault(p['name'], {'rev': 0.0, 'cajas': 0, 'pc': 0})
+            t['rev'] += p['revenue']
+            t['cajas'] += p['cajas']
+            t['pc'] += int(round(p['promo_pct'] * p['cajas'] / 100))
+    products_cards = [{'name': n, 'revenue': round(d['rev'], 2), 'cajas': d['cajas'],
+                       'promo_pct': _promo_pct(d['cajas'], d['pc'])}
+                      for n, d in sorted(prods.items(), key=lambda x: -x[1]['rev'])]
+    # Descuentos por producto
+    desc = {}
+    for d in prev['descuentosPorProducto'] + new['descuentosPorProducto']:
+        t = desc.setdefault((d['product'], d['state']), dict(d, cases=0, amount=0.0))
+        t['cases'] += d['cases']
+        t['amount'] = round(t['amount'] + d['amount'], 2)
+    # Cross-check (QA interno)
+    cross = {}
+    for st, sd in states.items():
+        pc_, nc_ = prev['crossCheck'].get(st, {}), new['crossCheck'].get(st, {})
+        free_rep = (pc_.get('free', {}).get('reportado', 0)
+                    + nc_.get('free', {}).get('reportado', 0))
+        rep = (pc_.get('sold', {}).get('reportado', 0)
+               + nc_.get('sold', {}).get('reportado', 0))
+        entregadas, pagadas = sd['cajas'], max(sd['cajas'] - sd['pc'], 0)
+        sold = {"computado": entregadas, "reportado": rep}
+        if rep > 0 and rep != entregadas and rep == pagadas:
+            sold = {"computado": pagadas, "reportado": rep, "base": "pagadas"}
+        cross[st] = {"free": {"computado": sd['pc'], "reportado": free_rep}, "sold": sold}
+    return {
+        'summary': summary,
+        'states': states,
+        'customerChart': customer_chart,
+        'salesChart': sales_chart,
+        'customerTable': customer_table,
+        'productsCards': products_cards,
+        'descuentosPorProducto': list(desc.values()),
+        'clientesNuevosLista': prev['clientesNuevosLista'] + new['clientesNuevosLista'],
+        'crossCheck': cross,
+    }
+
+
+def _empalme(prev, rows, fuente_months):
+    """Meses del data.js anterior que no están en fuentes/. [] si no hay nada que
+    conservar; aborta si las fuentes reprocesan un mes ya publicado sin traer
+    todo el histórico (no se puede descontar ese mes de la vista ALL)."""
+    if prev is None:
+        return []
+    prev_months = [_ym_from_btn(b) for b in prev['MONTHS_BTN']]
+    carried = [ym for ym in prev_months if ym not in set(fuente_months)]
+    if not carried:
+        return []
+    overlap = sorted(set(prev_months) & set(fuente_months))
+    if overlap:
+        raise SystemExit(
+            "✗ fuentes/ trae meses que ya están en data.js "
+            f"({', '.join(month_label_btn(m) for m in overlap)}) pero no el histórico "
+            f"completo (faltan {', '.join(month_label_btn(m) for m in carried)}). "
+            "Deja en fuentes/ sólo los meses nuevos, o todo el histórico.")
+    return carried
+
+
 def main():
     print("Leyendo fuentes/...")
     rows = load_rows()
 
     # Determine sorted month list
-    all_months = sorted(set(month_key(r['date']) for r in rows))
+    fuente_months = sorted(set(month_key(r['date']) for r in rows))
+    prev = load_previous_data(OUTPUT_FILE)
+    carried = _empalme(prev, rows, fuente_months)
+    all_months = sorted(set(fuente_months) | set(carried))
     n = len(all_months)
 
     order_prices, product_avg, global_avg = get_order_unit_prices(rows)
     incentivos = load_incentivos()
-    new_customers = new_customers_by_month(rows)
+    known = ([c['name'] for c in prev['GENERAL_DATA']['ALL']['customerTable']]
+             if carried else None)
+    new_customers = new_customers_by_month(rows, known=known)
 
     # Build D (time series)
-    D = build_monthly_state_data(rows, all_months, order_prices, product_avg, global_avg, incentivos)
+    D = build_monthly_state_data(rows, fuente_months, order_prices, product_avg, global_avg, incentivos)
+    if carried:
+        prev_idx = {ym: i for i, ym in enumerate(_ym_from_btn(b) for b in prev['MONTHS_BTN'])}
+        new_idx = {ym: i for i, ym in enumerate(fuente_months)}
+        D = {st: {k: [prev['D'][st][k][prev_idx[ym]] if ym in prev_idx else vals[new_idx[ym]]
+                      for ym in all_months]
+                  for k, vals in metrics.items()}
+             for st, metrics in D.items()}
 
     # Build GENERAL_DATA
     general_data = {}
 
     # ALL
-    general_data['ALL'] = build_period_data(rows, all_months, order_prices, product_avg, global_avg,
-                                            incentivos, new_customers, month_set=set(all_months))
+    general_data['ALL'] = build_period_data(rows, fuente_months, order_prices, product_avg, global_avg,
+                                            incentivos, new_customers, month_set=set(fuente_months))
+    if carried:
+        new_sales = defaultdict(float)
+        for r in rows:
+            if not r['is_promo']:
+                new_sales[r['salesperson']] += r['line_rev']
+        prev_views = [prev['GENERAL_DATA'][month_label_short(ym)] for ym in carried]
+        general_data['ALL'] = _merge_all(prev['GENERAL_DATA']['ALL'], general_data['ALL'],
+                                         prev_views, new_sales)
 
     # Per month
     for ym in all_months:
         label = month_label_short(ym)
+        if ym in carried:
+            general_data[label] = prev['GENERAL_DATA'][label]
+            continue
         general_data[label] = build_period_data(rows, all_months, order_prices, product_avg, global_avg,
                                                 incentivos, new_customers, month_set={ym})
 
     # Find first month per product (for dynamic note in product cards)
-    prod_first = find_product_first_months(rows, all_months)
+    prod_first = find_product_first_months(rows, fuente_months)
     first_month_label = month_label_short(all_months[0])
+    if carried:
+        ya = {p['name'] for p in prev['GENERAL_DATA']['ALL']['productsCards']}
+        prod_first = dict(prev['PROD_FIRST_MONTH'],
+                          **{p: m for p, m in prod_first.items() if p not in ya})
     prod_first_js = {p: m for p, m in prod_first.items() if m != first_month_label}
 
     # MONTHS, PAIRS, PLBLS
@@ -800,6 +1008,9 @@ const GENERAL_DATA = {json.dumps(general_data, ensure_ascii=False)};
         f.write(js)
 
     print(f"✓ {OUTPUT_FILE} generado: {period_text} ({n} meses)")
+    if carried:
+        print(f"  Conservados del data.js anterior (sin fuentes): "
+              f"{', '.join(month_label_btn(m) for m in carried)}")
 
     # Quick validation
     all_summary = general_data['ALL']['summary']

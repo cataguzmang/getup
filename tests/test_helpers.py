@@ -54,3 +54,20 @@ def test_state_of_prefijo_fl():
     sin = tx(D(2026, 8, 1), "S6", "[GET01] x", "c", "sp", company=None)
     assert sx.state_of(sin, "FL Ago - GOA") == "Florida"
     assert sx.state_of(sin, "NY Ago - GOA") == "Nueva York"
+
+
+import pytest
+
+
+@pytest.mark.parametrize("raw, esperado", [
+    ("Save A Lot - NUEVO!", "Save A Lot"),
+    ("Casa Blanca - nuevo!", "Casa Blanca"),
+    ("Foodworld Market - Valley Stream - NUEVO!", "Foodworld Market - Valley Stream"),
+    ("Shop fair market fresh -NUEVO", "Shop fair market fresh"),
+    ("Tienda NUEVO!!", "Tienda"),
+    ("Supermercado Nuevo", "Supermercado Nuevo"),   # sin guion ni '!': es el nombre
+    ("Key Food 10400", "Key Food 10400"),
+    (None, None),
+])
+def test_clean_customer_quita_marca_nuevo(raw, esperado):
+    assert sx.clean_customer(raw) == esperado
