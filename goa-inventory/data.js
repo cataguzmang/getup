@@ -3,50 +3,60 @@ const reportData = {
     "brand": "Garden of the Andes",
     "distributor": "LatinFood US Corp",
     "periodStart": "2026-02-24",
-    "periodEnd": "2026-09-30",
-    "periodLabel": "Febrero 2026 – Septiembre 2026",
-    "lineItems": 260,
+    "periodEnd": "2026-10-23",
+    "periodLabel": "Febrero 2026 – Octubre 2026",
+    "lineItems": 302,
     "sources": [
       "GOA clientes recurrentes.xlsx",
       "GOA-2026-06.xlsx",
       "GOA-2026-07.xlsx",
       "GOA-2026-08.xlsx",
       "GOA-2026-09.xlsx",
+      "GOA-2026-10.xlsx",
       "Latin-GOA-MAY.xlsx"
     ],
-    "carriedForward": [],
+    "carriedForward": [
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09"
+    ],
     "duplicateOrders": []
   },
   "totals": {
-    "units": 303,
-    "revenue": 5678.8,
-    "orders": 77,
-    "customers": 49,
+    "units": 347,
+    "revenue": 6552.8,
+    "orders": 92,
+    "customers": 51,
     "salespeople": 10,
-    "freeUnits": 13
+    "freeUnits": 17
   },
   "products": [
     {
       "sku": "GOA02",
       "name": "Pure Chamoline Herbal Tea",
-      "units": 60,
-      "revenue": 889.29,
-      "orders": 40,
+      "units": 70,
+      "revenue": 1107.79,
+      "orders": 49,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
-          "units": 30,
-          "revenue": 455.57
+          "units": 31,
+          "revenue": 477.42
         },
         {
           "name": "Katherine Osorio Duque",
-          "units": 14,
-          "revenue": 174.8
+          "units": 19,
+          "revenue": 284.05
         },
         {
           "name": "Luis Soler",
-          "units": 9,
-          "revenue": 105.97
+          "units": 12,
+          "revenue": 171.52
         },
         {
           "name": "Daniela Davila",
@@ -62,15 +72,20 @@ const reportData = {
           "name": "Angela Q",
           "units": 1,
           "revenue": 21.85
+        },
+        {
+          "name": "LuzAlba A",
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
       "sku": "GOA05",
       "name": "Rosehip & Hibiscus Herbal Tea",
-      "units": 50,
-      "revenue": 958.12,
-      "orders": 30,
+      "units": 54,
+      "revenue": 1045.52,
+      "orders": 34,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
@@ -84,13 +99,13 @@ const reportData = {
         },
         {
           "name": "Luis Soler",
-          "units": 9,
-          "revenue": 193.37
+          "units": 10,
+          "revenue": 215.22
         },
         {
           "name": "Katherine Osorio Duque",
-          "units": 7,
-          "revenue": 152.95
+          "units": 9,
+          "revenue": 196.65
         },
         {
           "name": "Daniela Davila",
@@ -101,30 +116,35 @@ const reportData = {
           "name": "Angela Q",
           "units": 1,
           "revenue": 21.85
+        },
+        {
+          "name": "LuzAlba A",
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
       "sku": "GOA03",
       "name": "Ginger Lemongrass Herbal Tea",
-      "units": 38,
-      "revenue": 757.1,
-      "orders": 36,
+      "units": 44,
+      "revenue": 888.2,
+      "orders": 42,
       "salespeople": [
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 15,
+          "revenue": 327.75
+        },
         {
           "name": "Mireya Fernandez",
           "units": 14,
           "revenue": 240.35
         },
         {
-          "name": "Katherine Osorio Duque",
-          "units": 11,
-          "revenue": 240.35
-        },
-        {
           "name": "Luis Soler",
-          "units": 5,
-          "revenue": 105.97
+          "units": 6,
+          "revenue": 127.82
         },
         {
           "name": "Daniela Davila",
@@ -133,8 +153,8 @@ const reportData = {
         },
         {
           "name": "LuzAlba A",
-          "units": 2,
-          "revenue": 43.7
+          "units": 3,
+          "revenue": 65.55
         },
         {
           "name": "Raquel L",
@@ -156,9 +176,9 @@ const reportData = {
     {
       "sku": "GOA04",
       "name": "Lemon Verbena Herbal Tea",
-      "units": 34,
-      "revenue": 717.77,
-      "orders": 23,
+      "units": 37,
+      "revenue": 761.47,
+      "orders": 26,
       "salespeople": [
         {
           "name": "Luisa Fernanda",
@@ -171,14 +191,14 @@ const reportData = {
           "revenue": 152.95
         },
         {
+          "name": "Katherine Osorio Duque",
+          "units": 7,
+          "revenue": 131.1
+        },
+        {
           "name": "Luis Soler",
           "units": 6,
           "revenue": 105.97
-        },
-        {
-          "name": "Katherine Osorio Duque",
-          "units": 5,
-          "revenue": 109.25
         },
         {
           "name": "Daniela Davila",
@@ -194,30 +214,35 @@ const reportData = {
           "name": "Angela Q",
           "units": 1,
           "revenue": 21.85
+        },
+        {
+          "name": "LuzAlba A",
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     },
     {
       "sku": "GOA01",
       "name": "Green Tea Herbal Tea",
-      "units": 32,
-      "revenue": 608.52,
-      "orders": 27,
+      "units": 37,
+      "revenue": 717.77,
+      "orders": 32,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
-          "units": 17,
-          "revenue": 284.05
+          "units": 19,
+          "revenue": 327.75
         },
         {
           "name": "Katherine Osorio Duque",
-          "units": 8,
-          "revenue": 174.8
+          "units": 9,
+          "revenue": 196.65
         },
         {
           "name": "Luis Soler",
-          "units": 4,
-          "revenue": 84.12
+          "units": 6,
+          "revenue": 127.82
         },
         {
           "name": "Daniela Davila",
@@ -266,11 +291,35 @@ const reportData = {
       ]
     },
     {
+      "sku": "GOA09",
+      "name": "Chai Herbal Tea",
+      "units": 25,
+      "revenue": 524.4,
+      "orders": 24,
+      "salespeople": [
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 12,
+          "revenue": 240.35
+        },
+        {
+          "name": "Mireya Fernandez",
+          "units": 7,
+          "revenue": 152.95
+        },
+        {
+          "name": "Luis Soler",
+          "units": 6,
+          "revenue": 131.1
+        }
+      ]
+    },
+    {
       "sku": "GOA06",
       "name": "Lemon Balm Herbal Tea",
-      "units": 20,
-      "revenue": 371.45,
-      "orders": 20,
+      "units": 22,
+      "revenue": 415.15,
+      "orders": 22,
       "salespeople": [
         {
           "name": "Katherine Osorio Duque",
@@ -284,8 +333,8 @@ const reportData = {
         },
         {
           "name": "Luis Soler",
-          "units": 4,
-          "revenue": 87.4
+          "units": 6,
+          "revenue": 131.1
         },
         {
           "name": "Daniela Davila",
@@ -295,35 +344,11 @@ const reportData = {
       ]
     },
     {
-      "sku": "GOA09",
-      "name": "Chai Herbal Tea",
-      "units": 18,
-      "revenue": 393.3,
-      "orders": 18,
-      "salespeople": [
-        {
-          "name": "Katherine Osorio Duque",
-          "units": 8,
-          "revenue": 174.8
-        },
-        {
-          "name": "Mireya Fernandez",
-          "units": 6,
-          "revenue": 131.1
-        },
-        {
-          "name": "Luis Soler",
-          "units": 4,
-          "revenue": 87.4
-        }
-      ]
-    },
-    {
       "sku": "GOA08",
       "name": "Black Tea Herbal Tea",
-      "units": 13,
-      "revenue": 218.5,
-      "orders": 13,
+      "units": 16,
+      "revenue": 284.05,
+      "orders": 16,
       "salespeople": [
         {
           "name": "Mireya Fernandez",
@@ -332,13 +357,13 @@ const reportData = {
         },
         {
           "name": "Katherine Osorio Duque",
-          "units": 3,
-          "revenue": 65.55
+          "units": 5,
+          "revenue": 109.25
         },
         {
           "name": "Luis Soler",
-          "units": 1,
-          "revenue": 21.85
+          "units": 2,
+          "revenue": 43.7
         },
         {
           "name": "Angela Q",
@@ -355,13 +380,13 @@ const reportData = {
     {
       "sku": "GOA10",
       "name": "Pepermint Tea",
-      "units": 9,
+      "units": 11,
       "revenue": 196.65,
-      "orders": 8,
+      "orders": 9,
       "salespeople": [
         {
           "name": "Katherine Osorio Duque",
-          "units": 6,
+          "units": 8,
           "revenue": 131.1
         },
         {
@@ -379,19 +404,24 @@ const reportData = {
     {
       "sku": "GOA11",
       "name": "Patagonian Berries Tea",
-      "units": 4,
-      "revenue": 43.7,
-      "orders": 3,
+      "units": 6,
+      "revenue": 87.4,
+      "orders": 5,
       "salespeople": [
         {
           "name": "Katherine Osorio Duque",
-          "units": 2,
-          "revenue": 43.7
+          "units": 3,
+          "revenue": 65.55
         },
         {
           "name": "Mireya Fernandez",
           "units": 2,
           "revenue": 0.0
+        },
+        {
+          "name": "Luis Soler",
+          "units": 1,
+          "revenue": 21.85
         }
       ]
     }
@@ -399,25 +429,25 @@ const reportData = {
   "salespeople": [
     {
       "name": "Mireya Fernandez",
-      "units": 120,
-      "revenue": 2006.92,
-      "orders": 20,
-      "customers": 13,
+      "units": 124,
+      "revenue": 2094.32,
+      "orders": 23,
+      "customers": 14,
       "freeUnits": 11
     },
     {
       "name": "Katherine Osorio Duque",
-      "units": 79,
-      "revenue": 1595.05,
-      "orders": 31,
-      "customers": 11,
-      "freeUnits": 2
+      "units": 102,
+      "revenue": 2010.2,
+      "orders": 39,
+      "customers": 12,
+      "freeUnits": 6
     },
     {
       "name": "Luis Soler",
-      "units": 48,
-      "revenue": 901.3,
-      "orders": 12,
+      "units": 61,
+      "revenue": 1185.35,
+      "orders": 15,
       "customers": 11,
       "freeUnits": 0
     },
@@ -447,9 +477,9 @@ const reportData = {
     },
     {
       "name": "LuzAlba A",
-      "units": 2,
-      "revenue": 43.7,
-      "orders": 2,
+      "units": 6,
+      "revenue": 131.1,
+      "orders": 3,
       "customers": 2,
       "freeUnits": 0
     },
@@ -487,9 +517,9 @@ const reportData = {
     },
     {
       "name": "Food Bazaar # 14 -West NY",
-      "units": 23,
-      "revenue": 458.85,
-      "orders": 10
+      "units": 24,
+      "revenue": 480.7,
+      "orders": 11
     },
     {
       "name": "Súper Fresh Irvington",
@@ -498,22 +528,28 @@ const reportData = {
       "orders": 3
     },
     {
+      "name": "Twin City- Elizabeth",
+      "units": 22,
+      "revenue": 393.3,
+      "orders": 6
+    },
+    {
       "name": "C town Poconos",
       "units": 19,
       "revenue": 371.45,
       "orders": 3
     },
     {
-      "name": "Twin City- Elizabeth",
-      "units": 20,
+      "name": "Market Fresh - Middletown",
+      "units": 18,
       "revenue": 349.6,
-      "orders": 5
+      "orders": 8
     },
     {
-      "name": "Market Fresh - Middletown",
-      "units": 16,
-      "revenue": 305.9,
-      "orders": 6
+      "name": "Foodworld Market - Valley Stream",
+      "units": 18,
+      "revenue": 349.6,
+      "orders": 3
     },
     {
       "name": "Fine fare (Harlem)",
@@ -522,28 +558,34 @@ const reportData = {
       "orders": 1
     },
     {
+      "name": "Shop fair market fresh",
+      "units": 15,
+      "revenue": 284.05,
+      "orders": 2
+    },
+    {
+      "name": "Save A Lot",
+      "units": 14,
+      "revenue": 262.2,
+      "orders": 4
+    },
+    {
+      "name": "CTown Supermarket New Britain",
+      "units": 12,
+      "revenue": 218.5,
+      "orders": 2
+    },
+    {
       "name": "Food Bazaar # 46 - Elizabeth",
       "units": 13,
       "revenue": 196.65,
       "orders": 2
     },
     {
-      "name": "Foodworld Market - Valley Stream",
+      "name": "Frytanga Cafe LLC",
       "units": 11,
       "revenue": 196.65,
-      "orders": 1
-    },
-    {
-      "name": "Shop fair market fresh",
-      "units": 9,
-      "revenue": 152.95,
-      "orders": 1
-    },
-    {
-      "name": "CTown Supermarket New Britain",
-      "units": 8,
-      "revenue": 131.1,
-      "orders": 1
+      "orders": 3
     },
     {
       "name": "Food Bazaar # 72 - Exterior",
@@ -594,12 +636,6 @@ const reportData = {
       "orders": 2
     },
     {
-      "name": "Save A Lot",
-      "units": 5,
-      "revenue": 109.25,
-      "orders": 2
-    },
-    {
       "name": "Mi Tierra Spmkt-86",
       "units": 5,
       "revenue": 109.25,
@@ -624,16 +660,16 @@ const reportData = {
       "orders": 1
     },
     {
-      "name": "Frytanga Cafe LLC",
-      "units": 3,
-      "revenue": 65.55,
-      "orders": 2
-    },
-    {
       "name": "Red delicious deli",
       "units": 3,
       "revenue": 65.55,
       "orders": 1
+    },
+    {
+      "name": "Ctown Supermarket Castleton",
+      "units": 3,
+      "revenue": 65.55,
+      "orders": 2
     },
     {
       "name": "ASI es Colombia Bakery - Port Chester",
@@ -666,7 +702,13 @@ const reportData = {
       "orders": 1
     },
     {
-      "name": "Ctown Supermarket Castleton",
+      "name": "Food Bazaar # 47 - Fairview",
+      "units": 2,
+      "revenue": 43.7,
+      "orders": 2
+    },
+    {
+      "name": "Castellanos Grocery",
       "units": 2,
       "revenue": 43.7,
       "orders": 1
@@ -720,12 +762,6 @@ const reportData = {
       "orders": 1
     },
     {
-      "name": "Food Bazaar # 47 - Fairview",
-      "units": 1,
-      "revenue": 21.85,
-      "orders": 1
-    },
-    {
       "name": "Sabor de Colombia #1",
       "units": 1,
       "revenue": 21.85,
@@ -751,6 +787,12 @@ const reportData = {
     },
     {
       "name": "Mayta's Market International LLC",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "name": "Casa Blanca",
       "units": 1,
       "revenue": 21.85,
       "orders": 1
@@ -1122,6 +1164,66 @@ const reportData = {
       "units": 1,
       "revenue": 21.85,
       "orders": 1
+    },
+    {
+      "date": "2026-10-05",
+      "units": 8,
+      "revenue": 174.8,
+      "orders": 2
+    },
+    {
+      "date": "2026-10-06",
+      "units": 6,
+      "revenue": 131.1,
+      "orders": 1
+    },
+    {
+      "date": "2026-10-07",
+      "units": 4,
+      "revenue": 87.4,
+      "orders": 1
+    },
+    {
+      "date": "2026-10-08",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-10-09",
+      "units": 9,
+      "revenue": 152.95,
+      "orders": 2
+    },
+    {
+      "date": "2026-10-14",
+      "units": 2,
+      "revenue": 43.7,
+      "orders": 2
+    },
+    {
+      "date": "2026-10-19",
+      "units": 2,
+      "revenue": 43.7,
+      "orders": 1
+    },
+    {
+      "date": "2026-10-20",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-10-22",
+      "units": 1,
+      "revenue": 21.85,
+      "orders": 1
+    },
+    {
+      "date": "2026-10-23",
+      "units": 10,
+      "revenue": 174.8,
+      "orders": 3
     }
   ],
   "incentives": {
@@ -1133,6 +1235,10 @@ const reportData = {
       {
         "name": "Katherine Osorio D",
         "free": 2
+      },
+      {
+        "name": "Katherine Osorio",
+        "free": 4
       }
     ],
     "costItems": [
@@ -1147,9 +1253,13 @@ const reportData = {
       {
         "label": "Muestras FOOD BAZAAR",
         "amount": 13.5
+      },
+      {
+        "label": "Bono por punto de venta nuevo (6 puntos)",
+        "amount": 60.0
       }
     ],
-    "totalDescuentos": 312.59
+    "totalDescuentos": 372.59
   },
   "months": [
     {
@@ -3776,6 +3886,417 @@ const reportData = {
         "freeUnitsBySalesperson": [],
         "costItems": [],
         "totalDescuentos": 0.0
+      }
+    },
+    {
+      "key": "2026-10",
+      "label": "Octubre 2026",
+      "periodStart": "2026-10-05",
+      "periodEnd": "2026-10-23",
+      "totals": {
+        "units": 44,
+        "revenue": 874.0,
+        "orders": 15,
+        "customers": 12,
+        "salespeople": 4,
+        "freeUnits": 4
+      },
+      "products": [
+        {
+          "sku": "GOA02",
+          "name": "Pure Chamoline Herbal Tea",
+          "units": 10,
+          "revenue": 218.5,
+          "orders": 9,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 5,
+              "revenue": 109.25
+            },
+            {
+              "name": "Luis Soler",
+              "units": 3,
+              "revenue": 65.55
+            },
+            {
+              "name": "LuzAlba A",
+              "units": 1,
+              "revenue": 21.85
+            },
+            {
+              "name": "Mireya Fernandez",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA09",
+          "name": "Chai Herbal Tea",
+          "units": 7,
+          "revenue": 131.1,
+          "orders": 6,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 4,
+              "revenue": 65.55
+            },
+            {
+              "name": "Luis Soler",
+              "units": 2,
+              "revenue": 43.7
+            },
+            {
+              "name": "Mireya Fernandez",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA03",
+          "name": "Ginger Lemongrass Herbal Tea",
+          "units": 6,
+          "revenue": 131.1,
+          "orders": 6,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 4,
+              "revenue": 87.4
+            },
+            {
+              "name": "Luis Soler",
+              "units": 1,
+              "revenue": 21.85
+            },
+            {
+              "name": "LuzAlba A",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA01",
+          "name": "Green Tea Herbal Tea",
+          "units": 5,
+          "revenue": 109.25,
+          "orders": 5,
+          "salespeople": [
+            {
+              "name": "Luis Soler",
+              "units": 2,
+              "revenue": 43.7
+            },
+            {
+              "name": "Mireya Fernandez",
+              "units": 2,
+              "revenue": 43.7
+            },
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA05",
+          "name": "Rosehip & Hibiscus Herbal Tea",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 4,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 2,
+              "revenue": 43.7
+            },
+            {
+              "name": "Luis Soler",
+              "units": 1,
+              "revenue": 21.85
+            },
+            {
+              "name": "LuzAlba A",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA08",
+          "name": "Black Tea Herbal Tea",
+          "units": 3,
+          "revenue": 65.55,
+          "orders": 3,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 2,
+              "revenue": 43.7
+            },
+            {
+              "name": "Luis Soler",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA04",
+          "name": "Lemon Verbena Herbal Tea",
+          "units": 3,
+          "revenue": 43.7,
+          "orders": 3,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 2,
+              "revenue": 21.85
+            },
+            {
+              "name": "LuzAlba A",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA11",
+          "name": "Patagonian Berries Tea",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 1,
+              "revenue": 21.85
+            },
+            {
+              "name": "Luis Soler",
+              "units": 1,
+              "revenue": 21.85
+            }
+          ]
+        },
+        {
+          "sku": "GOA06",
+          "name": "Lemon Balm Herbal Tea",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2,
+          "salespeople": [
+            {
+              "name": "Luis Soler",
+              "units": 2,
+              "revenue": 43.7
+            }
+          ]
+        },
+        {
+          "sku": "GOA10",
+          "name": "Pepermint Tea",
+          "units": 2,
+          "revenue": 0.0,
+          "orders": 1,
+          "salespeople": [
+            {
+              "name": "Katherine Osorio Duque",
+              "units": 2,
+              "revenue": 0.0
+            }
+          ]
+        }
+      ],
+      "salespeople": [
+        {
+          "name": "Katherine Osorio Duque",
+          "units": 23,
+          "revenue": 415.15,
+          "orders": 8,
+          "customers": 6,
+          "freeUnits": 4
+        },
+        {
+          "name": "Luis Soler",
+          "units": 13,
+          "revenue": 284.05,
+          "orders": 3,
+          "customers": 2,
+          "freeUnits": 0
+        },
+        {
+          "name": "LuzAlba A",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 1,
+          "customers": 1,
+          "freeUnits": 0
+        },
+        {
+          "name": "Mireya Fernandez",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 3,
+          "customers": 3,
+          "freeUnits": 0
+        }
+      ],
+      "customers": [
+        {
+          "name": "Save A Lot",
+          "units": 9,
+          "revenue": 152.95,
+          "orders": 2
+        },
+        {
+          "name": "Foodworld Market - Valley Stream",
+          "units": 7,
+          "revenue": 152.95,
+          "orders": 2
+        },
+        {
+          "name": "Frytanga Cafe LLC",
+          "units": 8,
+          "revenue": 131.1,
+          "orders": 1
+        },
+        {
+          "name": "Shop fair market fresh",
+          "units": 6,
+          "revenue": 131.1,
+          "orders": 1
+        },
+        {
+          "name": "CTown Supermarket New Britain",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 1
+        },
+        {
+          "name": "Castellanos Grocery",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 1
+        },
+        {
+          "name": "Market Fresh - Middletown",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2
+        },
+        {
+          "name": "Twin City- Elizabeth",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 1
+        },
+        {
+          "name": "Food Bazaar # 14 -West NY",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "name": "Food Bazaar # 47 - Fairview",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "name": "Casa Blanca",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "name": "Ctown Supermarket Castleton",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        }
+      ],
+      "daily": [
+        {
+          "date": "2026-10-05",
+          "units": 8,
+          "revenue": 174.8,
+          "orders": 2
+        },
+        {
+          "date": "2026-10-06",
+          "units": 6,
+          "revenue": 131.1,
+          "orders": 1
+        },
+        {
+          "date": "2026-10-07",
+          "units": 4,
+          "revenue": 87.4,
+          "orders": 1
+        },
+        {
+          "date": "2026-10-08",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "date": "2026-10-09",
+          "units": 9,
+          "revenue": 152.95,
+          "orders": 2
+        },
+        {
+          "date": "2026-10-14",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 2
+        },
+        {
+          "date": "2026-10-19",
+          "units": 2,
+          "revenue": 43.7,
+          "orders": 1
+        },
+        {
+          "date": "2026-10-20",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "date": "2026-10-22",
+          "units": 1,
+          "revenue": 21.85,
+          "orders": 1
+        },
+        {
+          "date": "2026-10-23",
+          "units": 10,
+          "revenue": 174.8,
+          "orders": 3
+        }
+      ],
+      "incentives": {
+        "freeUnitsBySalesperson": [
+          {
+            "name": "Katherine Osorio",
+            "free": 4
+          }
+        ],
+        "costItems": [
+          {
+            "label": "Bono por punto de venta nuevo (6 puntos)",
+            "amount": 60.0
+          }
+        ],
+        "totalDescuentos": 60.0
       }
     }
   ]

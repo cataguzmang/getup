@@ -3,7 +3,7 @@ const altaGamaData = {
     "brand": "Garden of the Andes",
     "distributor": "Alta Gama",
     "metric": "Unidades vendidas (sell-through en unidades)",
-    "source": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
+    "source": "AltaGama_GoA_Aug-Oct_2026.xlsx",
     "sources": [
       {
         "file": "GOA_CM Sell Through Data_2026_YTD.xlsx (histórico)",
@@ -19,7 +19,12 @@ const altaGamaData = {
       {
         "file": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
         "periods": [
-          "2026-07",
+          "2026-07"
+        ]
+      },
+      {
+        "file": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+        "periods": [
           "2026-08",
           "2026-09",
           "2026-10"
@@ -27,20 +32,14 @@ const altaGamaData = {
       }
     ],
     "periodStart": "2026-01-01",
-    "periodEnd": "2026-10-26",
+    "periodEnd": "2026-10-31",
     "periodLabel": "Enero 2026 – Octubre 2026",
-    "cutoffDate": "2026-10-26",
-    "partialPeriods": [
-      "2026-10"
-    ],
-    "partialNote": {
-      "key": "2026-10",
-      "short": "Octubre 2026 incluye ventas hasta el 26 de octubre. Los demás meses están completos.",
-      "note": "Los datos de octubre corresponden al periodo comprendido entre el 1 y el 26 de octubre de 2026."
-    },
+    "cutoffDate": "2026-10-31",
+    "partialPeriods": [],
+    "partialNote": null,
     "notes": [
       "Alta Gama proporciona información de sell-through en unidades. El reporte no incluye precios ni valores monetarios.",
-      "Los datos de octubre corresponden al periodo comprendido entre el 1 y el 26 de octubre de 2026."
+      "Todos los periodos del reporte son meses completos."
     ],
     "validation": {
       "totalRowPresent": false,
@@ -105,26 +104,26 @@ const altaGamaData = {
         {
           "key": "2026-08",
           "label": "Agosto 2026",
-          "source": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
-          "excelTotal": null,
-          "computed": null,
-          "ok": null
+          "source": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+          "excelTotal": 324,
+          "computed": 324,
+          "ok": true
         },
         {
           "key": "2026-09",
           "label": "Septiembre 2026",
-          "source": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
-          "excelTotal": null,
-          "computed": null,
-          "ok": null
+          "source": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+          "excelTotal": 486,
+          "computed": 486,
+          "ok": true
         },
         {
           "key": "2026-10",
           "label": "Octubre 2026",
-          "source": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
-          "excelTotal": null,
-          "computed": null,
-          "ok": null
+          "source": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+          "excelTotal": 378,
+          "computed": 378,
+          "ok": true
         }
       ],
       "overrides": [
@@ -136,26 +135,58 @@ const altaGamaData = {
           "after": 270,
           "partialBefore": true,
           "partialAfter": false
+        },
+        {
+          "key": "2026-08",
+          "from": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
+          "to": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+          "before": 317,
+          "after": 324,
+          "partialBefore": false,
+          "partialAfter": false
+        },
+        {
+          "key": "2026-09",
+          "from": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
+          "to": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+          "before": 474,
+          "after": 486,
+          "partialBefore": false,
+          "partialAfter": false
+        },
+        {
+          "key": "2026-10",
+          "from": "GetUpImorts_GoA_Kombuchacha_July-October_10.26.26.xlsx",
+          "to": "AltaGama_GoA_Aug-Oct_2026.xlsx",
+          "before": 294,
+          "after": 378,
+          "partialBefore": true,
+          "partialAfter": false
         }
       ],
-      "issues": []
+      "issues": [
+        "AltaGama_GoA_Aug-Oct_2026.xlsx · 2026-08: GA Chai Tea 1.4oz reexpresado de 29 a 30",
+        "AltaGama_GoA_Aug-Oct_2026.xlsx · 2026-08: GA Ginger Lemongrass 1.4oz reexpresado de 60 a 66",
+        "AltaGama_GoA_Aug-Oct_2026.xlsx · 2026-09: GA Green Tea 1.4oz reexpresado de 96 a 102",
+        "AltaGama_GoA_Aug-Oct_2026.xlsx · 2026-09: GA Pure Chamomile 0.8oz reexpresado de 66 a 72"
+      ]
     }
   },
   "totals": {
-    "units": 3951,
-    "unitsFullMonths": 3657,
+    "units": 4054,
+    "unitsFullMonths": 4054,
     "products": 7,
     "periods": 10,
-    "fullMonths": 9,
-    "partialPeriods": 1,
-    "avgPeriod": 395.1,
-    "avgFullMonth": 406.3
+    "fullMonths": 10,
+    "partialPeriods": 0,
+    "avgPeriod": 405.4,
+    "avgFullMonth": 405.4
   },
   "highlights": {
     "topProduct": {
       "sku": "GA Green Tea 1.4oz",
       "shortName": "Green Tea 1.4oz",
-      "units": 888,
+      "units": 912,
       "share": 22.5
     },
     "bestMonth": {
@@ -166,20 +197,11 @@ const altaGamaData = {
     "lastMonth": {
       "key": "2026-10",
       "label": "Octubre 2026",
-      "units": 294,
-      "delta": -180,
-      "deltaPct": -38.0
+      "units": 378,
+      "delta": -108,
+      "deltaPct": -22.2
     },
-    "partial": {
-      "key": "2026-10",
-      "label": "Octubre 2026",
-      "short": "Oct",
-      "units": 294,
-      "start": "2026-10-01",
-      "end": "2026-10-26",
-      "coverageDays": 26,
-      "monthDays": 31
-    }
+    "partial": null
   },
   "periods": [
     {
@@ -298,9 +320,9 @@ const altaGamaData = {
       "partial": false,
       "coverageDays": 31,
       "monthDays": 31,
-      "units": 317,
-      "delta": 47,
-      "deltaPct": 17.4
+      "units": 324,
+      "delta": 54,
+      "deltaPct": 20.0
     },
     {
       "key": "2026-09",
@@ -313,9 +335,9 @@ const altaGamaData = {
       "partial": false,
       "coverageDays": 30,
       "monthDays": 30,
-      "units": 474,
-      "delta": 157,
-      "deltaPct": 49.5
+      "units": 486,
+      "delta": 162,
+      "deltaPct": 50.0
     },
     {
       "key": "2026-10",
@@ -324,13 +346,13 @@ const altaGamaData = {
       "year": 2026,
       "month": 10,
       "start": "2026-10-01",
-      "end": "2026-10-26",
-      "partial": true,
-      "coverageDays": 26,
+      "end": "2026-10-31",
+      "partial": false,
+      "coverageDays": 31,
       "monthDays": 31,
-      "units": 294,
-      "delta": -180,
-      "deltaPct": -38.0
+      "units": 378,
+      "delta": -108,
+      "deltaPct": -22.2
     }
   ],
   "products": [
@@ -347,13 +369,13 @@ const altaGamaData = {
         "2026-06": 66,
         "2026-07": 72,
         "2026-08": 72,
-        "2026-09": 96,
-        "2026-10": 42
+        "2026-09": 102,
+        "2026-10": 60
       },
-      "units": 888,
-      "unitsFullMonths": 846,
+      "units": 912,
+      "unitsFullMonths": 912,
       "share": 22.5,
-      "avgFullMonth": 94.0,
+      "avgFullMonth": 91.2,
       "missingPeriods": [],
       "best": {
         "key": "2026-02",
@@ -378,9 +400,9 @@ const altaGamaData = {
         "2026-10": 36
       },
       "units": 750,
-      "unitsFullMonths": 714,
-      "share": 19.0,
-      "avgFullMonth": 79.3,
+      "unitsFullMonths": 750,
+      "share": 18.5,
+      "avgFullMonth": 75.0,
       "missingPeriods": [],
       "best": {
         "key": "2026-03",
@@ -400,14 +422,14 @@ const altaGamaData = {
         "2026-05": 66,
         "2026-06": 0,
         "2026-07": 42,
-        "2026-08": 60,
+        "2026-08": 66,
         "2026-09": 78,
-        "2026-10": 36
+        "2026-10": 60
       },
-      "units": 678,
-      "unitsFullMonths": 642,
-      "share": 17.2,
-      "avgFullMonth": 71.3,
+      "units": 708,
+      "unitsFullMonths": 708,
+      "share": 17.5,
+      "avgFullMonth": 70.8,
       "missingPeriods": [],
       "best": {
         "key": "2026-03",
@@ -429,12 +451,12 @@ const altaGamaData = {
         "2026-07": 36,
         "2026-08": 30,
         "2026-09": 84,
-        "2026-10": 84
+        "2026-10": 102
       },
-      "units": 666,
-      "unitsFullMonths": 582,
+      "units": 684,
+      "unitsFullMonths": 684,
       "share": 16.9,
-      "avgFullMonth": 64.7,
+      "avgFullMonth": 68.4,
       "missingPeriods": [],
       "best": {
         "key": "2026-02",
@@ -455,13 +477,13 @@ const altaGamaData = {
         "2026-06": 42,
         "2026-07": 12,
         "2026-08": 42,
-        "2026-09": 66,
-        "2026-10": 78
+        "2026-09": 72,
+        "2026-10": 90
       },
-      "units": 616,
-      "unitsFullMonths": 538,
+      "units": 634,
+      "unitsFullMonths": 634,
       "share": 15.6,
-      "avgFullMonth": 59.8,
+      "avgFullMonth": 63.4,
       "missingPeriods": [],
       "best": {
         "key": "2026-02",
@@ -481,14 +503,14 @@ const altaGamaData = {
         "2026-05": 6,
         "2026-06": 24,
         "2026-07": 12,
-        "2026-08": 29,
+        "2026-08": 30,
         "2026-09": 36,
-        "2026-10": 18
+        "2026-10": 30
       },
-      "units": 263,
-      "unitsFullMonths": 245,
-      "share": 6.7,
-      "avgFullMonth": 27.2,
+      "units": 276,
+      "unitsFullMonths": 276,
+      "share": 6.8,
+      "avgFullMonth": 27.6,
       "missingPeriods": [],
       "best": {
         "key": "2026-02",
@@ -514,8 +536,8 @@ const altaGamaData = {
       },
       "units": 90,
       "unitsFullMonths": 90,
-      "share": 2.3,
-      "avgFullMonth": 10.0,
+      "share": 2.2,
+      "avgFullMonth": 9.0,
       "missingPeriods": [],
       "best": {
         "key": "2026-02",
